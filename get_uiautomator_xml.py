@@ -2,6 +2,8 @@ import os
 import subprocess
 import tempfile
 
+from lxml import etree
+
 
 class UIStructureError(Exception):
     pass
@@ -55,6 +57,16 @@ def pull_ui_xml_to_temp_dir(udid):
 
 def get_root_element(udid, reload=False):
     import lxml.etree as ET
+    def custom_matches(_, text, pattern):
+        import re
+        text = str(text)
+        return re.search(pattern, text) is not None
+
+    # 创建自定义函数注册器
+    custom_functions = etree.FunctionNamespace(None)
+
+    # 注册自定义函数
+    custom_functions['matches'] = custom_matches
     for i in range(5):
         try:
             get_ui_xml(udid, reload)

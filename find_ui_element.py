@@ -2,14 +2,12 @@ import os
 import tempfile
 import time
 
-from adb_uiautomator.get_uiautomator_xml import get_root_element
+from common import Common
+from get_uiautomator_xml import get_root_element
 from ui_object import UiObject
-
 
 import os
 import time
-
-
 
 
 def wait_function(root, device_serial, timeout, func, **query):
@@ -48,6 +46,9 @@ def find_element_by_query(root, **query):
         attribute = "resource-id" if attribute == "id" else attribute
 
         if attribute.find("Matches") > 0:
+            attribute = attribute.replace("Matches", "")
+            condition = f"matches(@{attribute},'{value}')"
+        elif attribute.find("Contains") > 0:
             attribute = attribute.replace("Match", "")
             condition = f"contains(@{attribute},'{value}')"
         else:
@@ -72,13 +73,14 @@ def check_element_exist(root, **query):
 
 
 def scroll_to_find_element(root, device_serial, scroll_time=10, target_area=None, **query):
-    x = int(get_screen_size(device_serial)[0] / 2)
-    y1 = int(get_screen_size(device_serial)[1] / 4)
-    y2 = int(get_screen_size(device_serial)[1] / 2)
+    common = Common(device_serial)
+    x = int(common.get_screen_size()[0] / 2)
+    y1 = int(common.get_screen_size()[1] / 4)
+    y2 = int(common.get_screen_size()[1] / 2)
     if target_area is not None:
-        x = int(get_screen_size(device_serial)[0] * target_area.get_position()[0])
-        y1 = int((get_screen_size(device_serial)[1] * target_area.get_position()[1]) / 4)
-        y2 = int((get_screen_size(device_serial)[1] * target_area.get_position()[1]) / 2)
+        x = int(common.get_screen_size()[0] * target_area.get_position()[0])
+        y1 = int((common.get_screen_size()[1] * target_area.get_position()[1]) / 4)
+        y2 = int((common.get_screen_size()[1] * target_area.get_position()[1]) / 2)
     for i in range(int(scroll_time)):
         print("finding")
         matching_element = find_element_by_query(root, **query)
