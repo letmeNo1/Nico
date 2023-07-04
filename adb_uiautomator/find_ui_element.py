@@ -1,10 +1,6 @@
-import os
-import tempfile
-import time
-
-from common import Common
-from get_uiautomator_xml import get_root_element
-from ui_object import UiObject
+from adb_uiautomator.common import Common
+from adb_uiautomator.get_uiautomator_xml import get_root_element
+from adb_uiautomator.ui_object import UiObject
 
 import os
 import time
