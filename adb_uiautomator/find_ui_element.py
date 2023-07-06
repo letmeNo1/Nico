@@ -23,15 +23,7 @@ def wait_function(root, device_serial, timeout, func, **query):
             print("no found, try again")
             root = get_root_element(device_serial, True)
     error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
-    raise TimeoutError(error)
-
-
-def find_element_exits(root, device_serial, timeout, func, **query):
-    try:
-        wait_function(root, device_serial, timeout, func, **query)
-        return True
-    except TimeoutError:
-        return False
+    return UiObject(root, device_serial, error)
 
 
 def find_element_by_query(root, **query):
@@ -59,38 +51,3 @@ def find_element_by_query(root, **query):
         return None
     else:
         return matching_elements
-
-
-def check_element_exist(root, **query):
-    rst = False
-    if find_element_by_query(root, **query) != "":
-        rst = True
-    return rst
-
-
-def scroll_to_find_element(root, device_serial, scroll_time=10, target_area=None, **query):
-    common = Common(device_serial)
-    x = int(common.get_screen_size()[0] / 2)
-    y1 = int(common.get_screen_size()[1] / 4)
-    y2 = int(common.get_screen_size()[1] / 2)
-    if target_area is not None:
-        x = int(common.get_screen_size()[0] * target_area.get_position()[0])
-        y1 = int((common.get_screen_size()[1] * target_area.get_position()[1]) / 4)
-        y2 = int((common.get_screen_size()[1] * target_area.get_position()[1]) / 2)
-    for i in range(int(scroll_time)):
-        print("finding")
-        matching_element = find_element_by_query(root, **query)
-        if matching_element is not None:
-            print("found!")
-            return UiObject(root, device_serial, matching_element)
-
-        else:
-            print("Couldn't found! try again")
-            root = get_root_element(device_serial, True)
-            if i == 0:  # first time no find the ele shoule retutrn to top
-
-                os.system("""adb -s %s shell input swipe %s %s %s %s""" % (device_serial, x, y1, x, y2))
-            else:
-                os.system(
-                    """adb -s %s shell input swipe %s %s %s %s""" % (device_serial, x, y2, x, y1))  # swipe up
-    return None

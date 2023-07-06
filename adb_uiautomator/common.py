@@ -119,3 +119,7 @@ class Common:
         """
         self.shell('input keyevent MENU')
         self.shell('input keyevent BACK')
+
+    def keyevent(self,keyname):
+        self.shell(f'input keyevent {keyname}')
+

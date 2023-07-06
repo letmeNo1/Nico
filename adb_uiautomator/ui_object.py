@@ -3,18 +3,23 @@ import re
 
 
 class UiObject:
-    def __init__(self, root, device_serial, found_node):
+    def __init__(self, root, udid, found_node):
         self.root = root
         self.found_node = found_node
-        self.device_serial = device_serial
+        self.udid = udid
         self.close_keyboard()
-
+        
+    def node_check(self):
+        if type(self.found_node) is str:
+            raise TimeoutError(self.found_node)
+    
     def get_attribute_value(self, attribute_name):
+        self.node_check()
         attribute_value = self.found_node.attrib[attribute_name]
         return attribute_value
 
     def close_keyboard(self):
-        os.popen(f'adb -s {self.device_serial} shell pm disable-user com.android.inputmethod.latin')
+        os.popen(f'adb -s {self.udid} shell pm disable-user com.android.inputmethod.latin')
 
     @property
     def index(self):
@@ -105,38 +110,48 @@ class UiObject:
         center_x = x + w // 2
         center_y = y + h // 2
         return center_x, center_y
+    
+    
+    def exits(self):
+        if self.found_node is None:
+            return False
+        else:
+            return True
+            
 
     def click(self):
         x = self.center_coordinate[0]
         y = self.center_coordinate[1]
-        command = f'adb -s {self.device_serial} shell input tap {x} {y}'
+        command = f'adb -s {self.udid} shell input tap {x} {y}'
         os.system(command)
 
     def long_click(self, duration):
         x = self.center_coordinate[0]
         y = self.center_coordinate[1]
-        command = f'adb -s {self.device_serial} shell swipe {x} {y} {x} {y} {duration}'
+        command = f'adb -s {self.udid} shell swipe {x} {y} {x} {y} {duration}'
         os.system(command)
 
     def set_text(self, text):
         len_of_text = len(self.text)
         self.click()
-        os.system(f'adb -s {self.device_serial} shell input keyevent KEYCODE_MOVE_END')
-        del_cmd = f'adb -s {self.device_serial} shell input keyevent'
+        os.system(f'adb -s {self.udid} shell input keyevent KEYCODE_MOVE_END')
+        del_cmd = f'adb -s {self.udid} shell input keyevent'
         for _ in range(len_of_text):
             del_cmd = del_cmd + " KEYCODE_DEL"
         os.system(del_cmd)
-        os.system(f'adb -s {self.device_serial} shell input text "{text}"')
+        os.system(f'adb -s {self.udid} shell input text "{text}"')
 
     def last_sibling(self):
+        self.node_check()
         last_sibling = None
         for child in self.root.iter():
             if child == self.found_node:
                 break
             last_sibling = child
-        return UiObject(self.root, self.device_serial, last_sibling)
+        return UiObject(self.root, self.udid, last_sibling)
 
     def next_sibling(self):
+        self.node_check()
         next_sibling = None
         found_current = False
         for child in self.root.iter():
@@ -145,4 +160,4 @@ class UiObject:
                 break
             if child == self.found_node:
                 found_current = True
-        return UiObject(self.root, self.device_serial, next_sibling)
+        return UiObject(self.root, self.udid, next_sibling)
