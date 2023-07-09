@@ -1,21 +1,29 @@
 import os
 import re
 
+from adb_uiautomator.find_ui_element import wait_function
+
 
 class UiObject:
-    def __init__(self, root, udid, found_node):
+    def __init__(self, root, udid, func, **query):
         self.root = root
-        self.found_node = found_node
         self.udid = udid
+        self.func = func
+        self.query = query
         self.close_keyboard()
-        
-    def node_check(self):
-        if type(self.found_node) is str:
-            raise TimeoutError(self.found_node)
-    
+
+    def __find_element_by_query(self):
+        found_node = self.func(self.root, self.query)
+        return found_node
+
+    def exits(self):
+        return self.__find_element_by_query is not None
+
+    def wait_for_appearance(self, timeout):
+        return wait_function(self.root, self.udid, timeout, self.func, self.query)
+
     def get_attribute_value(self, attribute_name):
-        self.node_check()
-        attribute_value = self.found_node.attrib[attribute_name]
+        attribute_value = self.__find_element_by_query().attrib[attribute_name]
         return attribute_value
 
     def close_keyboard(self):
@@ -110,14 +118,6 @@ class UiObject:
         center_x = x + w // 2
         center_y = y + h // 2
         return center_x, center_y
-    
-    
-    def exits(self):
-        if self.found_node is None:
-            return False
-        else:
-            return True
-            
 
     def click(self):
         x = self.center_coordinate[0]
@@ -142,22 +142,25 @@ class UiObject:
         os.system(f'adb -s {self.udid} shell input text "{text}"')
 
     def last_sibling(self):
-        self.node_check()
         last_sibling = None
         for child in self.root.iter():
-            if child == self.found_node:
+            if child == self.__find_element_by_query():
                 break
             last_sibling = child
         return UiObject(self.root, self.udid, last_sibling)
 
     def next_sibling(self):
-        self.node_check()
         next_sibling = None
         found_current = False
         for child in self.root.iter():
             if found_current:
                 next_sibling = child
                 break
-            if child == self.found_node:
+            if child == self.__find_element_by_query():
                 found_current = True
         return UiObject(self.root, self.udid, next_sibling)
+
+    def get_first(self):
+        if type(self.__find_element_by_query()) is list:
+            return self.__find_element_by_query()[0]
+        return self.__find_element_by_query()

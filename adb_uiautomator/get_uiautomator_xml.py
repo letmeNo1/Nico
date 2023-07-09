@@ -12,6 +12,7 @@ class UIStructureError(Exception):
 def get_ui_xml(udid, reload):
     if check_xml_exists(udid) and reload is False:
         rst = "exists"
+        print("already exit")
     else:
         commands = """
                  su
@@ -34,6 +35,7 @@ def get_ui_xml(udid, reload):
 def check_xml_exists(udid):
     temp_folder = tempfile.gettempdir()
     path = temp_folder + f"\\{udid}_ui.xml"
+    print(os.path.exists(path))
     return os.path.exists(path)
 
 

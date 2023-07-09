@@ -1,12 +1,10 @@
-from adb_uiautomator.common import Common
 from adb_uiautomator.get_uiautomator_xml import get_root_element
-from adb_uiautomator.ui_object import UiObject
 
 import os
 import time
 
 
-def wait_function(root, device_serial, timeout, func, **query):
+def wait_function(root, device_serial, timeout, func, query):
     time_started_sec = time.time()
     query_string = list(query.values())[0]
     query_method = list(query.keys())[0]
@@ -15,18 +13,15 @@ def wait_function(root, device_serial, timeout, func, **query):
         if found_node is not None:
             time.time() - time_started_sec
             print(f"Found element by {query_method} = {query_string}")
-            if type(found_node) is list:
-                return [UiObject(root, device_serial, node) for node in found_node]
-            else:
-                return UiObject(root, device_serial, found_node)
+            return found_node
         else:
             print("no found, try again")
             root = get_root_element(device_serial, True)
     error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
-    return UiObject(root, device_serial, error)
+    raise TimeoutError(error)
 
 
-def find_element_by_query(root, **query):
+def find_element_by_query(root, query):
     xpath_expression = ".//*"
     conditions = []
     for attribute, value in query.items():

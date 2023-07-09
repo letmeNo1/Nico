@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import subprocess
 
 
 class AdbError(Exception):
@@ -17,7 +18,7 @@ class AdbError(Exception):
         return "stdout[%s] stderr[%s]" % (self.stdout, self.stderr)
 
 
-class Common:
+class Utils:
     def __init__(self, udid):
         self.udid = udid
 
@@ -42,8 +43,31 @@ class Common:
         width, height = map(int, size_str.split('x'))
         return width, height
 
-    def shell(self, cmd):
-        command = f'adb -s {self.udid} shell {cmd}'
+    def shell(self, cmds, with_root=False, timeout=10):
+        # gandalf_android = json.loads(os.getenv("SysInfo")).get(self.device_name)
+        udid = self.udid
+        """@Brief: Execute the CMD and return value
+        @return: bool
+        """
+        commands = ""
+        if type(cmds) is list:
+            for cmd in cmds:
+                commands = commands + cmd + "\n"
+        else:
+            commands = cmds + "\n"
+        if with_root:
+            su_commands = "su\n"
+            commands = su_commands + commands
+
+        adb_process = subprocess.Popen("adb -s %s shell" % udid, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE, text=True)
+        adb_process.stdin.write(commands)
+        adb_process.stdin.flush()
+        output, error = adb_process.communicate(timeout=timeout)
+        rst = output
+
+    def cmd(self, cmd):
+        command = f'adb -s {self.udid} {cmd}'
         output = os.popen(command).read()
         return output
 
@@ -120,6 +144,11 @@ class Common:
         self.shell('input keyevent MENU')
         self.shell('input keyevent BACK')
 
-    def keyevent(self,keyname):
+    def keyevent(self, keyname):
         self.shell(f'input keyevent {keyname}')
+
+    def snapshot(self, name, path):
+        self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
+
+        self.cmd(f'pull /sdcard/{name}.png {path}')
 
