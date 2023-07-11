@@ -72,8 +72,7 @@ def pull_ui_xml_to_temp_dir(udid):
     get_root_cmd = f"adb -s {udid} root"
     os.popen(get_root_cmd).read()
     command = f'adb -s {udid} pull /data/local/tmp/{udid}_ui.xml {temp_folder}'
-    rst = os.popen(command).read()
-    logger.debug(rst)
+    os.popen(command).read()
     return temp_folder + f"\\{udid}_ui.xml"
 
 
@@ -94,7 +93,7 @@ def get_root_element(udid, reload=False):
             get_ui_xml(udid, reload)
             break
         except UIStructureError:
-            logger.debug(f"init fail, retry {i} times")
+            logger.debug(f"init fail, retry {i+1} times")
 
     xml_file_path = pull_ui_xml_to_temp_dir(udid)
     # 解析XML文件
