@@ -44,7 +44,6 @@ class Utils:
         return width, height
 
     def shell(self, cmds, with_root=False, timeout=10):
-        # gandalf_android = json.loads(os.getenv("SysInfo")).get(self.device_name)
         udid = self.udid
         """@Brief: Execute the CMD and return value
         @return: bool
@@ -54,17 +53,18 @@ class Utils:
             for cmd in cmds:
                 commands = commands + cmd + "\n"
         else:
-            commands = cmds + "\n"
+            commands = cmds
         if with_root:
             su_commands = "su\n"
             commands = su_commands + commands
-
         adb_process = subprocess.Popen("adb -s %s shell" % udid, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, text=True)
+                                       stderr=subprocess.PIPE, text=True, shell=True)
         adb_process.stdin.write(commands)
-        adb_process.stdin.flush()
         output, error = adb_process.communicate(timeout=timeout)
-        return output
+        if output !="":
+            return output
+        else:
+            return error
 
     def cmd(self, cmd):
         command = f'adb -s {self.udid} {cmd}'
