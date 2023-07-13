@@ -150,7 +150,7 @@ class Utils:
     def snapshot(self, name, path):
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
-        self.cmd(f'rm /sdcard/{name}.png')
+        self.shell(f'rm /sdcard/{name}.png')
 
     def close_keyboard(self):
         os.popen(f'adb -s {self.udid} shell pm disable-user com.android.inputmethod.latin')

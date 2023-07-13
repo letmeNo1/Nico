@@ -2,6 +2,17 @@ import os
 import subprocess
 import tempfile
 
+from lxml import etree
+
+from adb_uiautomator.logger_config import logger
+
+
+
+
+import os
+import subprocess
+import tempfile
+
 from adb_uiautomator.utils import Utils, AdbError
 from lxml import etree
 
