@@ -10,11 +10,11 @@ from adb_uiautomator.logger_config import logger
 
 def check_file_exists_in_sdcard(udid, file_name):
     utils = Utils(udid)
-    try:
-        utils.shell(f"ls {file_name}")
-        return True
-    except:
+    rst = utils.shell(f"ls {file_name}")
+    if rst.find("No such file or directory") > 0:
         return False
+    else:
+        return True
 
 def init_adb_auto(udid):
     utils = Utils(udid)
@@ -40,7 +40,6 @@ def dump_ui_xml(udid, reload,wait_idle):
         if rst.find("No such file or directory")>0:
             utils.shell("mkdir /data/local/tmp")
         commands = f"""
-                 su
                  cd /sdcard
                  /system/bin/sh start_auto.sh dump --waitIdle-{wait_idle} /data/local/tmp/{udid}_ui.xml
                  """
@@ -54,6 +53,8 @@ def check_xml_exists(udid):
     path = temp_folder + f"\\{udid}_ui.xml"
     return os.path.exists(path)
 
+def get_root(udid):
+    os.system(f"adb -s {udid} root")
 
 def remove_ui_xml(udid):
     if check_xml_exists(udid):
@@ -65,6 +66,7 @@ def remove_ui_xml(udid):
 def pull_ui_xml_to_temp_dir(udid):
     utils = Utils(udid)
     temp_folder = tempfile.gettempdir()
+    get_root(udid)
     command = f'pull /data/local/tmp/{udid}_ui.xml {temp_folder}'
     utils.cmd(command)
     return temp_folder + f"\\{udid}_ui.xml"
@@ -95,4 +97,4 @@ def get_root_node(udid, reload=False,wait_idle=2000):
     root = tree.getroot()
     return root
 
-# get_ui_xml("290aa9aac2a29a1e",True)
+pull_ui_xml_to_temp_dir("emulator-5554")

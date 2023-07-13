@@ -147,6 +147,9 @@ class Utils:
     def keyevent(self, keyname):
         self.shell(f'input keyevent {keyname}')
 
+    def back(self):
+        self.keyevent("BACK")
+
     def snapshot(self, name, path):
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
