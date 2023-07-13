@@ -2,3 +2,4 @@
 dist/
 .idea/
 *.pyc
+adb_uiautomator.egg-info/SOURCES.txt

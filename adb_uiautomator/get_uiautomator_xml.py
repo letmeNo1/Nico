@@ -2,44 +2,61 @@ import os
 import subprocess
 import tempfile
 
+from adb_uiautomator.utils import Utils, AdbError
 from lxml import etree
 
-
-class UIStructureError(Exception):
-    pass
+from adb_uiautomator.logger_config import logger
 
 
-def get_ui_xml(udid, reload):
+
+def check_file_exists_in_sdcard(udid, file_name):
+    utils = Utils(udid)
+    try:
+        utils.shell(f"ls {file_name}")
+        return True
+    except:
+        return False
+
+def init_adb_auto(udid):
+    utils = Utils(udid)
+    start_auto_name = "sdcard/start_auto.sh"
+    uiautomator_jar_name = "sdcard/bin/uiautomator.jar"
+    lib_path = os.path.dirname(__file__) + "\libs"
+    if not check_file_exists_in_sdcard(udid, start_auto_name):
+        start_auto_file_path = lib_path + "\\start_auto.sh"
+        os.popen(f"adb -s {udid} push {start_auto_file_path} sdcard")
+    if not check_file_exists_in_sdcard(udid, uiautomator_jar_name):
+        if not check_file_exists_in_sdcard(udid,"sdcard/bin"):
+            utils.shell("mkdir sdcard/bin")
+        uiautomator_jaro_file_path = lib_path + "\\uiautomator.jar"
+        os.popen(f"adb -s {udid} push {uiautomator_jaro_file_path} sdcard/bin")
+
+def dump_ui_xml(udid, reload,wait_idle):
+    utils = Utils(udid)
     if check_xml_exists(udid) and reload is False:
         rst = "exists"
-        print("already exit")
+        logger.debug(f"A local {udid}_ui.xml file already exists, And the existing files will be read first")
     else:
-        commands = """
+        rst = os.popen(f"adb -s {udid} shell ls /data/local/tmp").read()
+        if rst.find("No such file or directory")>0:
+            utils.shell("mkdir /data/local/tmp")
+        commands = f"""
                  su
-                 cd /data/local/
-                 mkdir tmp
-                 uiautomator dump --compressed /data/local/tmp/%s_ui.xml
-                 """ % udid
-
-        adb_process = subprocess.Popen("adb -s %s shell" % udid, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, text=True)
-        adb_process.stdin.write(commands)
-        adb_process.stdin.flush()
-        rst, error = adb_process.communicate()
-        if rst == "":
-            raise UIStructureError("Failed to obtain UI structure")
-    print("adb uiautomator was initialized successfully")
+                 cd /sdcard
+                 /system/bin/sh start_auto.sh dump --waitIdle-{wait_idle} /data/local/tmp/{udid}_ui.xml
+                 """
+        utils.shell(commands,with_root=True)
+        logger.debug("adb uiautomator was initialized successfully")
     return rst
 
 
 def check_xml_exists(udid):
     temp_folder = tempfile.gettempdir()
     path = temp_folder + f"\\{udid}_ui.xml"
-    print(os.path.exists(path))
     return os.path.exists(path)
 
 
-def remove_xml(udid):
+def remove_ui_xml(udid):
     if check_xml_exists(udid):
         temp_folder = tempfile.gettempdir()
         path = temp_folder + f"\\{udid}_ui.xml"
@@ -47,17 +64,14 @@ def remove_xml(udid):
 
 
 def pull_ui_xml_to_temp_dir(udid):
+    utils = Utils(udid)
     temp_folder = tempfile.gettempdir()
-    get_root_cmd = f"adb -s {udid} root"
-    rst = os.popen(get_root_cmd).read()
-    print(rst)
-    command = f'adb -s {udid} pull /data/local/tmp/{udid}_ui.xml {temp_folder}'
-    rst = os.popen(command).read()
-    print(rst)
+    command = f'pull /data/local/tmp/{udid}_ui.xml {temp_folder}'
+    utils.cmd(command)
     return temp_folder + f"\\{udid}_ui.xml"
 
 
-def get_root_element(udid, reload=False):
+def get_root_node(udid, reload=False,wait_idle=2000):
     import lxml.etree as ET
     def custom_matches(_, text, pattern):
         import re
@@ -71,13 +85,15 @@ def get_root_element(udid, reload=False):
     custom_functions['matches'] = custom_matches
     for i in range(5):
         try:
-            get_ui_xml(udid, reload)
+            dump_ui_xml(udid, reload,wait_idle)
             break
-        except UIStructureError:
-            print(f"init fail, retry {i} times")
+        except AdbError:
+            logger.debug(f"init fail, retry {i+1} times")
 
     xml_file_path = pull_ui_xml_to_temp_dir(udid)
     # 解析XML文件
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
     return root
+
+# get_ui_xml("290aa9aac2a29a1e",True)

@@ -1,9 +1,9 @@
 README.md
 setup.py
 adb_uiautomator/__init__.py
-adb_uiautomator/find_ui_element.py
 adb_uiautomator/get_uiautomator_xml.py
 adb_uiautomator/nico.py
+adb_uiautomator/nico_proxy.py
 adb_uiautomator/ui_object.py
 adb_uiautomator/utils.py
 adb_uiautomator.egg-info/PKG-INFO

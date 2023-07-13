@@ -64,7 +64,7 @@ class Utils:
         adb_process.stdin.write(commands)
         adb_process.stdin.flush()
         output, error = adb_process.communicate(timeout=timeout)
-        rst = output
+        return output
 
     def cmd(self, cmd):
         command = f'adb -s {self.udid} {cmd}'
