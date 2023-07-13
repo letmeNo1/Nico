@@ -1,11 +1,12 @@
-import os
 import re
 
+from adb_uiautomator import logger_config
 from adb_uiautomator.get_uiautomator_xml import get_root_element
-from adb_uiautomator.ui_object import UiObject
 
 import os
 import time
+
+from adb_uiautomator.logger_config import logger
 
 
 def find_element_by_query(root, **query):
@@ -35,11 +36,12 @@ def find_element_by_query(root, **query):
         return matching_elements
 
 
-class NicoProxy():
-    def __init__(self, root, udid, **query):
+class NicoProxy:
+    def __init__(self, root, udid, ui_object=None, **query):
         self.root = root
         self.udid = udid
         self.query = query
+        self.ui_object = ui_object
         self.close_keyboard()
 
     def __find_function(self, root, query):
@@ -53,10 +55,10 @@ class NicoProxy():
             found_node = find_element_by_query(root, **query)
             if found_node is not None:
                 time.time() - time_started_sec
-                print(f"Found element by {query_method} = {query_string}")
+                logger.debug(f"Found element by {query_method} = {query_string}")
                 return found_node
             else:
-                print("no found, try again")
+                logger.debug("no found, try again")
                 root = get_root_element(device_serial, True)
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
         raise TimeoutError(error)
@@ -72,7 +74,10 @@ class NicoProxy():
         return self.__find_element_by_query is not None
 
     def get_attribute_value(self, attribute_name):
-        attribute_value = self.__find_element_by_query().attrib[attribute_name]
+        if self.ui_object is not None:
+            attribute_value = self.ui_object.attrib[attribute_name]
+        else:
+            attribute_value = self.__find_element_by_query().attrib[attribute_name]
         return attribute_value
 
     def close_keyboard(self):
@@ -196,7 +201,7 @@ class NicoProxy():
             if child == self.__find_element_by_query():
                 break
             last_sibling = child
-        return UiObject(self.root, self.udid, last_sibling)
+        return NicoProxy(self.root, self.udid, last_sibling)
 
     def next_sibling(self):
         next_sibling = None
@@ -207,7 +212,7 @@ class NicoProxy():
                 break
             if child == self.__find_element_by_query():
                 found_current = True
-        return UiObject(self.root, self.udid, next_sibling)
+        return NicoProxy(self.root, self.udid, next_sibling)
 
     def get_first(self):
         if type(self.__find_element_by_query()) is list:
