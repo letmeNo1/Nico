@@ -43,6 +43,13 @@ class Utils:
         width, height = map(int, size_str.split('x'))
         return width, height
 
+    def qucik_shell(self, cmds):
+        udid = self.udid
+        """@Brief: Execute the CMD and return value
+        @return: bool
+        """
+        return os.popen(f'''adb -s {udid} shell "{cmds}"''').read()
+
     def shell(self, cmds, with_root=False, timeout=10):
         udid = self.udid
         """@Brief: Execute the CMD and return value
@@ -101,13 +108,13 @@ class Utils:
 
         """
         screenOnRE = re.compile('mScreenOnFully=(true|false)')
-        m = screenOnRE.search(self.shell('dumpsys window policy'))
+        m = screenOnRE.search(self.qucik_shell('dumpsys window policy'))
         if m:
             return m.group(1) == 'true'
         else:
             # MIUI11
             screenOnRE = re.compile('screenState=(SCREEN_STATE_ON|SCREEN_STATE_OFF)')
-            m = screenOnRE.search(self.shell('dumpsys window policy'))
+            m = screenOnRE.search(self.qucik_shell('dumpsys window policy'))
             if m:
                 return m.group(1) == 'SCREEN_STATE_ON'
         raise AdbError("Couldn't determine screen ON state")
@@ -124,7 +131,7 @@ class Utils:
 
         """
         lockScreenRE = re.compile('(?:mShowingLockscreen|isStatusBarKeyguard|showing)=(true|false)')
-        m = lockScreenRE.search(self.shell('dumpsys window policy'))
+        m = lockScreenRE.search(self.qucik_shell('dumpsys window policy'))
         if not m:
             raise AdbError("Couldn't determine screen lock state")
         return (m.group(1) == 'true')
@@ -141,11 +148,11 @@ class Utils:
             Might not work on all devices
 
         """
-        self.shell('input keyevent MENU')
-        self.shell('input keyevent BACK')
+        self.qucik_shell('input keyevent MENU')
+        self.qucik_shell('input keyevent BACK')
 
     def keyevent(self, keyname):
-        self.shell(f'input keyevent {keyname}')
+        self.qucik_shell(f'input keyevent {keyname}')
 
     def back(self):
         self.keyevent("BACK")
@@ -153,7 +160,5 @@ class Utils:
     def snapshot(self, name, path):
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
-        self.shell(f'rm /sdcard/{name}.png')
+        self.qucik_shell(f'rm /sdcard/{name}.png')
 
-    def close_keyboard(self):
-        os.popen(f'adb -s {self.udid} shell pm disable-user com.android.inputmethod.latin')

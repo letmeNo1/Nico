@@ -1,5 +1,7 @@
 import re
 
+from adb_uiautomator.utils import Utils
+
 from adb_uiautomator.get_uiautomator_xml import get_root_node
 from adb_uiautomator.utils import Utils
 import os
@@ -87,9 +89,15 @@ class NicoProxy:
 
     def close_keyboard(self):
         utils = Utils(self.udid)
+<<<<<<< Updated upstream
         ime_list = utils.shell("ime list -s").split("\n")[0:-1]
         for ime in ime_list:
             os.popen(f'adb -s {self.udid} shell ime disable {ime}')
+=======
+        ime_list = utils.qucik_shell("ime list -s").split("\n")[0:-1]
+        for ime in ime_list:
+            utils.qucik_shell(f"ime disable {ime}")
+>>>>>>> Stashed changes
 
     @property
     def index(self):
