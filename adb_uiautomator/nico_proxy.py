@@ -1,7 +1,6 @@
 import re
 
-from adb_uiautomator import logger_config
-from adb_uiautomator.get_uiautomator_xml import get_root_element
+from adb_uiautomator.get_uiautomator_xml import get_root_node
 
 import os
 import time
@@ -11,6 +10,7 @@ from adb_uiautomator.logger_config import logger
 
 def find_element_by_query(root, **query):
     xpath_expression = ".//*"
+    print("x")
     conditions = []
     for attribute, value in query.items():
         attribute = "class" if attribute == "class_name" else attribute
@@ -59,7 +59,7 @@ class NicoProxy:
                 return found_node
             else:
                 logger.debug("no found, try again")
-                root = get_root_element(device_serial, True)
+                root = get_root_node(device_serial, True)
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
         raise TimeoutError(error)
 

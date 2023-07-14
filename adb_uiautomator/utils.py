@@ -64,7 +64,7 @@ class Utils:
         adb_process.stdin.write(commands)
         adb_process.stdin.flush()
         output, error = adb_process.communicate(timeout=timeout)
-        rst = output
+        return output
 
     def cmd(self, cmd):
         command = f'adb -s {self.udid} {cmd}'
@@ -150,7 +150,7 @@ class Utils:
     def snapshot(self, name, path):
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
-        self.cmd(f'rm /sdcard/{name}.png')
+        self.shell(f'rm /sdcard/{name}.png')
 
     def close_keyboard(self):
         os.popen(f'adb -s {self.udid} shell pm disable-user com.android.inputmethod.latin')

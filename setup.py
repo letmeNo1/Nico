@@ -1,4 +1,6 @@
 import setuptools
+from setuptools import setup, find_packages
+import glob
 
 with open("README.md", "r", encoding='UTF-8') as fh:
     long_description = fh.read()
@@ -19,6 +21,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/letmeNo1/Makima",
     packages=setuptools.find_packages(),
+    package_data={
+        'adb_uiautomator': ['libs/start_auto.sh', 'libs/uiautomator.jar']
+    },
     install_requires=[
         'lxml',
     ],
@@ -28,4 +33,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
+    include_package_data = True
 )
