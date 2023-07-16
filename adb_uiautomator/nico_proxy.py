@@ -1,14 +1,14 @@
 import re
 
-from adb_uiautomator.get_uiautomator_xml import get_root_node
 from adb_uiautomator.utils import Utils
+
+from adb_uiautomator.get_uiautomator_xml import get_root_node
+
 import os
 import time
 
 from adb_uiautomator.logger_config import logger
 
-class UIStructureError(Exception):
-    pass
 
 def find_element_by_query(root, **query):
     xpath_expression = ".//*"
@@ -74,91 +74,87 @@ class NicoProxy:
     def exits(self):
         return self.__find_element_by_query is not None
 
-    def __get_attribute_value(self, attribute_name):
-
+    def get_attribute_value(self, attribute_name):
         if self.ui_object is not None:
             attribute_value = self.ui_object.attrib[attribute_name]
-            return attribute_value
         else:
-            if self.__find_element_by_query() is None:
-                raise UIStructureError("The element could not be found in the current node. Please try reloading the element node(e.g. Calling nico(#query condition).wait_for_appearance() before performing the operation)")
-            else:
-                return self.__find_element_by_query().attrib[attribute_name]
+            attribute_value = self.__find_element_by_query().attrib[attribute_name]
+        return attribute_value
 
     def close_keyboard(self):
         utils = Utils(self.udid)
-        ime_list = utils.shell("ime list -s").split("\n")[0:-1]
+        ime_list = utils.qucik_shell("ime list -s").split("\n")[0:-1]
         for ime in ime_list:
-            os.popen(f'adb -s {self.udid} shell ime disable {ime}')
+            utils.qucik_shell(f"ime disable {ime}")
 
     @property
     def index(self):
-        return self.__get_attribute_value("index")
+        return self.get_attribute_value("index")
 
     @property
     def text(self):
-        return self.__get_attribute_value("text")
+        return self.get_attribute_value("text")
 
     @property
     def resource_id(self):
-        return self.__get_attribute_value("resource-id")
+        return self.get_attribute_value("resource-id")
 
     @property
     def class_name(self):
-        return self.__get_attribute_value("class")
+        return self.get_attribute_value("class")
 
     @property
     def package(self):
-        return self.__get_attribute_value("package")
+        return self.get_attribute_value("package")
 
     @property
     def content_desc(self):
-        return self.__get_attribute_value("content-desc")
+        return self.get_attribute_value("content-desc")
 
     @property
     def checkable(self):
-        return self.__get_attribute_value("checkable")
+        return self.get_attribute_value("checkable")
 
     @property
     def checked(self):
-        return self.__get_attribute_value("checked")
+        return self.get_attribute_value("checked")
 
     @property
     def clickable(self):
-        return self.__get_attribute_value("clickable")
+        return self.get_attribute_value("clickable")
 
     @property
     def enabled(self):
-        return self.__get_attribute_value("enabled")
+        return self.get_attribute_value("enabled")
 
     @property
     def focusable(self):
-        return self.__get_attribute_value("focusable")
+        return self.get_attribute_value("focusable")
 
     @property
     def focused(self):
-        return self.__get_attribute_value("focused")
+        return self.get_attribute_value("focused")
 
     @property
     def scrollable(self):
-        return self.__get_attribute_value("scrollable")
+        return self.get_attribute_value("scrollable")
 
     @property
     def long_clickable(self):
-        return self.__get_attribute_value("long-clickable")
+        return self.get_attribute_value("long-clickable")
 
     @property
     def password(self):
-        return self.__get_attribute_value("password")
+        return self.get_attribute_value("password")
 
     @property
     def selected(self):
-        return self.__get_attribute_value("selected")
+        return self.get_attribute_value("selected")
 
     @property
     def bounds(self):
         pattern = r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]'
-        matches = re.findall(pattern, self.__get_attribute_value("bounds"))
+        matches = re.findall(pattern, self.get_attribute_value("bounds"))
 
         left = int(matches[0][0])
         top = int(matches[0][1])
