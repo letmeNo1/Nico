@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 
 from adb_uiautomator.nico_proxy import NicoProxy
@@ -9,15 +10,14 @@ class UIStructureError(Exception):
 
 
 class AdbAutoNico(Utils):
-    def __init__(self, udid,wait_idle=2000):
+    def __init__(self, udid):
         super().__init__(udid)
         self.udid = udid
-        self.wait_idle = wait_idle
-        remove_ui_xml(self.udid)
+        remove_ui_xml()
 
 
 
     def __call__(self, force_reload=False,**query):
         init_adb_auto(self.udid)
-        root = get_root_node(self.udid,force_reload,self.wait_idle)
+        root = get_root_node(self.udid,force_reload)
         return NicoProxy(root, self.udid, **query)
