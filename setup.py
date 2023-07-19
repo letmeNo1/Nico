@@ -22,7 +22,7 @@ setuptools.setup(
     url="https://github.com/letmeNo1/Makima",
     packages=setuptools.find_packages(),
     package_data={
-        'adb_uiautomator': ['libs/start_auto.sh', 'libs/uiautomator.jar']
+        'adb_uiautomator': ['libs/android_test.apk', 'libs/app.apk']
     },
     install_requires=[
         'lxml',
