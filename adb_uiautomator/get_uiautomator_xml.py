@@ -58,10 +58,10 @@ def remove_ui_xml():
 
 def pull_ui_xml_to_temp_dir(udid):
     utils = Utils(udid)
-    temp_folder = tempfile.gettempdir()
-    command = f'pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml {temp_folder}'
+    temp_file = tempfile.gettempdir() + f"/{udid}_ui.xml"
+    command = f'pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml {temp_file}'
     utils.cmd(command)
-    return temp_folder + "/2.xml"
+    return temp_file
 
 
 def get_root_node(udid, reload=False):
@@ -88,5 +88,3 @@ def get_root_node(udid, reload=False):
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
     return root
-
-init_adb_auto("514f465834593398")

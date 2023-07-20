@@ -31,18 +31,10 @@ class Utils:
 
     def start_app(self, package_name):
         command = f'adb -s {self.udid} shell am start -n {package_name}'
-        output = os.popen(command).read()
-        size_str = output.split(': ')[-1]
-        width, height = map(int, size_str.split('x'))
-        return width, height
-
+        os.popen(command).read()
     def stop_app(self, package_name):
         command = f'adb -s {self.udid} shell am force-stop {package_name}'
-        output = os.popen(command).read()
-        size_str = output.split(': ')[-1]
-        width, height = map(int, size_str.split('x'))
-        return width, height
-
+        os.popen(command).read()
     def qucik_shell(self, cmds):
         udid = self.udid
         """@Brief: Execute the CMD and return value
