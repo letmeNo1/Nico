@@ -1,0 +1,17 @@
+[project]
+name = "aki22"
+version = '0.0.1'
+description = 'neeky perf tools'
+requires-python = '>=3.8'
+authors = [
+    {name = "Hank.Huang", email = "fkzzzz@qq.com"},
+]
+readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "lxml == 4.9.3",
+]
+[tool.poetry]
+include = ["src/adb_uiautomator/libs/*"]
