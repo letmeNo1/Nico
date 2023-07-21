@@ -20,6 +20,7 @@ def find_element_by_query(root, query):
     for attribute, value in query.items():
         attribute = "class" if attribute == "class_name" else attribute
         attribute = "resource-id" if attribute == "id" else attribute
+        attribute = "content-desc" if attribute == "desc" else attribute
 
         if attribute.find("Matches") > 0:
             attribute = attribute.replace("Matches", "")

@@ -26,7 +26,6 @@ def init_adb_auto(udid):
     rst = utils.qucik_shell("pm list packages hank.dump_hierarchy").split("\n")
 
     for i in ["android_test.apk","app.apk"]:
-        # print(dict.get(i))
         if f"package:{dict.get(i)}" not in rst:
             lib_path = os.path.dirname(__file__) + f"\libs\{i}"
             utils.cmd(f"install {lib_path}")
@@ -37,7 +36,7 @@ def init_adb_auto(udid):
 
 def dump_ui_xml(udid, reload):
     utils = Utils(udid)
-    if check_xml_exists() and reload is False:
+    if check_xml_exists(udid) and reload is False:
         logger.debug(f"A local file already exists, And the existing files will be read first")
     else:
         commands = f"""am instrument -w -r -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
@@ -45,15 +44,15 @@ def dump_ui_xml(udid, reload):
         logger.debug("adb uiautomator dump successfully")
 
 
-def check_xml_exists():
+def check_xml_exists(udid):
     temp_folder = tempfile.gettempdir()
-    path = temp_folder + f"/2.xml"
+    path = temp_folder + f"/{udid}_ui.xml"
     return os.path.exists(path)
 
-def remove_ui_xml():
-    if check_xml_exists():
+def remove_ui_xml(udid):
+    if check_xml_exists(udid):
         temp_folder = tempfile.gettempdir()
-        path = temp_folder + f"/2.xml"
+        path = temp_folder + f"/{udid}_ui.xml"
         os.remove(path)
 
 def pull_ui_xml_to_temp_dir(udid):

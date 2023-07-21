@@ -13,11 +13,11 @@ class AdbAutoNico(Utils):
     def __init__(self, udid):
         super().__init__(udid)
         self.udid = udid
-        remove_ui_xml()
+        init_adb_auto(self.udid)
+        remove_ui_xml(self.udid)
 
 
 
     def __call__(self, force_reload=False,**query):
-        init_adb_auto(self.udid)
         root = get_root_node(self.udid,force_reload)
         return NicoProxy(root, self.udid, **query)
