@@ -31,20 +31,18 @@ class Utils:
 
     def start_app(self, package_name):
         command = f'adb -s {self.udid} shell am start -n {package_name}'
-        output = os.popen(command).read()
-        size_str = output.split(': ')[-1]
-        width, height = map(int, size_str.split('x'))
-        return width, height
-
+        os.popen(command).read()
     def stop_app(self, package_name):
         command = f'adb -s {self.udid} shell am force-stop {package_name}'
-        output = os.popen(command).read()
-        size_str = output.split(': ')[-1]
-        width, height = map(int, size_str.split('x'))
-        return width, height
+        os.popen(command).read()
+    def qucik_shell(self, cmds):
+        udid = self.udid
+        """@Brief: Execute the CMD and return value
+        @return: bool
+        """
+        return os.popen(f'''adb -s {udid} shell "{cmds}"''').read()
 
     def shell(self, cmds, with_root=False, timeout=10):
-        # gandalf_android = json.loads(os.getenv("SysInfo")).get(self.device_name)
         udid = self.udid
         """@Brief: Execute the CMD and return value
         @return: bool
@@ -54,17 +52,22 @@ class Utils:
             for cmd in cmds:
                 commands = commands + cmd + "\n"
         else:
-            commands = cmds + "\n"
+            commands = cmds
         if with_root:
             su_commands = "su\n"
             commands = su_commands + commands
-
         adb_process = subprocess.Popen("adb -s %s shell" % udid, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE, text=True)
+                                       stderr=subprocess.PIPE, text=True, shell=True)
         adb_process.stdin.write(commands)
-        adb_process.stdin.flush()
         output, error = adb_process.communicate(timeout=timeout)
+<<<<<<< HEAD
         return output
+=======
+        if output !="":
+            return output
+        else:
+            return error
+>>>>>>> 27b78adcd6c451af86a53020d2c5171b0196d0b6
 
     def cmd(self, cmd):
         command = f'adb -s {self.udid} {cmd}'
@@ -101,13 +104,13 @@ class Utils:
 
         """
         screenOnRE = re.compile('mScreenOnFully=(true|false)')
-        m = screenOnRE.search(self.shell('dumpsys window policy'))
+        m = screenOnRE.search(self.qucik_shell('dumpsys window policy'))
         if m:
             return m.group(1) == 'true'
         else:
             # MIUI11
             screenOnRE = re.compile('screenState=(SCREEN_STATE_ON|SCREEN_STATE_OFF)')
-            m = screenOnRE.search(self.shell('dumpsys window policy'))
+            m = screenOnRE.search(self.qucik_shell('dumpsys window policy'))
             if m:
                 return m.group(1) == 'SCREEN_STATE_ON'
         raise AdbError("Couldn't determine screen ON state")
@@ -124,7 +127,7 @@ class Utils:
 
         """
         lockScreenRE = re.compile('(?:mShowingLockscreen|isStatusBarKeyguard|showing)=(true|false)')
-        m = lockScreenRE.search(self.shell('dumpsys window policy'))
+        m = lockScreenRE.search(self.qucik_shell('dumpsys window policy'))
         if not m:
             raise AdbError("Couldn't determine screen lock state")
         return (m.group(1) == 'true')
@@ -141,16 +144,21 @@ class Utils:
             Might not work on all devices
 
         """
-        self.shell('input keyevent MENU')
-        self.shell('input keyevent BACK')
+        self.qucik_shell('input keyevent MENU')
+        self.qucik_shell('input keyevent BACK')
 
     def keyevent(self, keyname):
-        self.shell(f'input keyevent {keyname}')
+        self.qucik_shell(f'input keyevent {keyname}')
+
+    def back(self):
+        self.keyevent("BACK")
 
     def snapshot(self, name, path):
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
+<<<<<<< HEAD
         self.shell(f'rm /sdcard/{name}.png')
+=======
+        self.qucik_shell(f'rm /sdcard/{name}.png')
+>>>>>>> 27b78adcd6c451af86a53020d2c5171b0196d0b6
 
-    def close_keyboard(self):
-        os.popen(f'adb -s {self.udid} shell pm disable-user com.android.inputmethod.latin')
