@@ -1,6 +1,6 @@
 [project]
-name = "aki22"
-version = '0.0.1'
+name = "adb_uiautomator"
+version = '1.0.1'
 description = 'neeky perf tools'
 requires-python = '>=3.8'
 authors = [
