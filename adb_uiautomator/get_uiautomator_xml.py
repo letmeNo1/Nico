@@ -1,8 +1,5 @@
 import os
-import re
 import tempfile
-import time
-from datetime import datetime
 
 from adb_uiautomator.utils import Utils, AdbError
 from lxml import etree
@@ -23,7 +20,7 @@ def init_adb_auto(udid):
         "android_test.apk": "hank.dump_hierarchy.test",
     }
     rst = utils.qucik_shell("pm list packages hank.dump_hierarchy")
-    if rst.find("error") > 0:
+    if rst.find("not found") > 0:
         raise AdbError(rst)
 
     for i in ["android_test.apk", "app.apk"]:
@@ -90,3 +87,6 @@ def get_root_node(udid, reload=False):
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
     return root
+
+
+init_adb_auto("xxx")
