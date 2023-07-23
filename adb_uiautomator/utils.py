@@ -10,12 +10,7 @@ class AdbError(Exception):
         When ADB have something wrong
     """
 
-    def __init__(self, stdout, stderr):
-        self.stdout = stdout
-        self.stderr = stderr
-
-    def __str__(self):
-        return "stdout[%s] stderr[%s]" % (self.stdout, self.stderr)
+    pass
 
 
 class Utils:
@@ -30,25 +25,23 @@ class Utils:
         return width, height
 
     def start_app(self, package_name):
-        command = f'adb -s {self.udid} shell am start -n {package_name}'
-        output = os.popen(command).read()
-        size_str = output.split(': ')[-1]
-        width, height = map(int, size_str.split('x'))
-        return width, height
+        command = f'am start -n {package_name}'
+        self.qucik_shell(command)
 
     def stop_app(self, package_name):
-        command = f'adb -s {self.udid} shell am force-stop {package_name}'
-        output = os.popen(command).read()
-        size_str = output.split(': ')[-1]
-        width, height = map(int, size_str.split('x'))
-        return width, height
+        command = f'am force-stop {package_name}'
+        self.qucik_shell(command)
 
     def qucik_shell(self, cmds):
         udid = self.udid
         """@Brief: Execute the CMD and return value
         @return: bool
         """
-        return os.popen(f'''adb -s {udid} shell "{cmds}"''').read()
+        try:
+            result = subprocess.run(f'''adb -s {udid} shell "{cmds}"''', shell=True, capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError as e:
+            return e.stderr
+        return result
 
     def shell(self, cmds, with_root=False, timeout=10):
         udid = self.udid

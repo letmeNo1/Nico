@@ -10,6 +10,10 @@ import time
 from adb_uiautomator.logger_config import logger
 
 
+class UIStructureError(Exception):
+    pass
+
+
 def find_element_by_query(root, query):
     xpath_expression = ".//*"
     conditions = []
@@ -57,8 +61,7 @@ class NicoProxy:
             if found_node is not None:
                 time.time() - time_started_sec
                 logger.debug(f"Found element by {query_method} = {query_string}")
-                self.ui_object = found_node
-                return NicoProxy(root,udid,found_node)
+                return found_node
             else:
                 logger.debug("no found, try again")
                 root = get_root_node(udid, True)
@@ -68,11 +71,21 @@ class NicoProxy:
     def wait_for_appearance(self, timeout=10):
         return self.__wait_function(self.root, self.udid, timeout, self.query)
 
+    def get(self, index):
+        return NicoProxy(self.root, self.udid, self.__find_function(self.root, self.query)[index])
+
     def exits(self):
-        return self.__find_function(self.root,self.query) is not None
+        return self.__find_function(self.root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
-        return self.ui_object.attrib[attribute_name]
+        try:
+            if self.ui_object is None:
+                self.ui_object = self.__find_function(self.root, self.query)
+
+            return self.ui_object.attrib[attribute_name]
+        except AttributeError:
+            raise UIStructureError(
+                "More than one element has been retrieved, use the 'get' method to specify the number you want")
 
     def close_keyboard(self):
         utils = Utils(self.udid)
@@ -194,20 +207,22 @@ class NicoProxy:
         os.system(f'adb -s {self.udid} shell input text "{text}"')
 
     def last_sibling(self):
+        ui_object = self.__find_function(self.root,self.query)
         last_sibling = None
         for child in self.root.iter():
-            if child == self.ui_object:
+            if child == ui_object:
                 break
             last_sibling = child
-        return NicoProxy(self.root, self.udid, ui_object = last_sibling)
+        return NicoProxy(self.root, self.udid, ui_object=last_sibling)
 
     def next_sibling(self):
+        ui_object = self.__find_function(self.root,self.query)
         next_sibling = None
         found_current = False
         for child in self.root.iter():
             if found_current:
                 next_sibling = child
                 break
-            if child == self.ui_object:
+            if child == ui_object:
                 found_current = True
-        return NicoProxy(self.root, self.udid, ui_object = next_sibling)
+        return NicoProxy(self.root, self.udid, ui_object=next_sibling)
