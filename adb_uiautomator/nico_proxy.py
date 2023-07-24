@@ -74,7 +74,7 @@ class NicoProxy:
     def get(self, index):
         return NicoProxy(self.root, self.udid, self.__find_function(self.root, self.query)[index])
 
-    def exits(self):
+    def exists(self):
         return self.__find_function(self.root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
