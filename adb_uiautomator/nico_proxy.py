@@ -76,7 +76,7 @@ class NicoProxy:
 
     def get(self, index):
         root = get_root_node(self.udid)
-        return NicoProxy(self.udid, self.__find_function(root, self.query)[index])
+        return NicoProxy(self.udid, ui_object=self.__find_function(root, self.query)[index])
 
     def exists(self):
         root = get_root_node(self.udid)

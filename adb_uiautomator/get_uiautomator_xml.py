@@ -37,9 +37,9 @@ def dump_ui_xml(udid, reload):
     if check_xml_exists(udid) and reload is False:
         logger.debug(f"A local file already exists, And the existing files will be read first")
     else:
-        commands = f"""am instrument -w -r -e class hank.dump_hierarchy.HierarchyTest 
-        hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner """
-        utils.qucik_shell(commands)
+        commands = f"""am instrument -w -r -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+        RST = utils.qucik_shell(commands)
+        print(RST)
         logger.debug("adb uiautomator dump successfully")
 
 
