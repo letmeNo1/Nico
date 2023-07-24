@@ -88,6 +88,3 @@ def get_root_node(udid, reload=False):
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
     return root
-
-
-init_adb_auto("xxx")

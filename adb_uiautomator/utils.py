@@ -38,7 +38,7 @@ class Utils:
         @return: bool
         """
         try:
-            result = subprocess.run(f'''adb -s {udid} shell "{cmds}"''', shell=True, capture_output=True, text=True, check=True)
+            result = subprocess.run(f'''adb -s {udid} shell "{cmds}"''', shell=True, capture_output=True, text=True, check=True).stdout
         except subprocess.CalledProcessError as e:
             return e.stderr
         return result
