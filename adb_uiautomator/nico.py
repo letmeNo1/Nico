@@ -18,5 +18,4 @@ class AdbAutoNico(Utils):
         remove_ui_xml(self.udid)
 
     def __call__(self, force_reload=False, **query):
-        root = get_root_node(self.udid, force_reload)
-        return NicoProxy(root, self.udid, **query)
+        return NicoProxy(self.udid, force_reload,**query)

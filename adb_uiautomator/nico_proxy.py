@@ -42,17 +42,20 @@ def find_element_by_query(root, query):
 
 
 class NicoProxy:
-    def __init__(self, root, udid, ui_object=None, **query):
-        self.root = root
+    def __init__(self, udid, force_reload=False,ui_object=None, **query):
         self.udid = udid
         self.query = query
         self.ui_object = ui_object
+        self.force_reload = force_reload
         self.close_keyboard()
 
     def __find_function(self, root, query):
+        if find_element_by_query(root, query) is None:
+            root = get_root_node(self.udid,True)
         return find_element_by_query(root, query)
 
-    def __wait_function(self, root, udid, timeout, query):
+    def __wait_function(self, udid, timeout, query):
+        root = get_root_node(self.udid)
         time_started_sec = time.time()
         query_string = list(query.values())[0]
         query_method = list(query.keys())[0]
@@ -69,18 +72,21 @@ class NicoProxy:
         raise TimeoutError(error)
 
     def wait_for_appearance(self, timeout=10):
-        return self.__wait_function(self.root, self.udid, timeout, self.query)
+        return self.__wait_function(self.udid, timeout, self.query)
 
     def get(self, index):
-        return NicoProxy(self.root, self.udid, self.__find_function(self.root, self.query)[index])
+        root = get_root_node(self.udid)
+        return NicoProxy(self.udid, self.__find_function(root, self.query)[index])
 
     def exists(self):
-        return self.__find_function(self.root, self.query) is not None
+        root = get_root_node(self.udid)
+        return self.__find_function(root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
+        root = get_root_node(self.udid)
         try:
             if self.ui_object is None:
-                self.ui_object = self.__find_function(self.root, self.query)
+                self.ui_object = self.__find_function(root, self.query)
 
             return self.ui_object.attrib[attribute_name]
         except AttributeError:
@@ -207,22 +213,24 @@ class NicoProxy:
         os.system(f'adb -s {self.udid} shell input text "{text}"')
 
     def last_sibling(self):
-        ui_object = self.__find_function(self.root,self.query)
+        root = get_root_node(self.udid)
+        ui_object = self.__find_function(root,self.query)
         last_sibling = None
-        for child in self.root.iter():
+        for child in root.iter():
             if child == ui_object:
                 break
             last_sibling = child
-        return NicoProxy(self.root, self.udid, ui_object=last_sibling)
+        return NicoProxy(root, self.udid, ui_object=last_sibling)
 
     def next_sibling(self):
-        ui_object = self.__find_function(self.root,self.query)
+        root = get_root_node(self.udid)
+        ui_object = self.__find_function(root,self.query)
         next_sibling = None
         found_current = False
-        for child in self.root.iter():
+        for child in root.iter():
             if found_current:
                 next_sibling = child
                 break
             if child == ui_object:
                 found_current = True
-        return NicoProxy(self.root, self.udid, ui_object=next_sibling)
+        return NicoProxy(root, self.udid, ui_object=next_sibling)
