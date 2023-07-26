@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: nico
+Version: 1.0.1
+Summary: A cross-platform desktop automated testing framework.
+Home-page: https://github.com/letmeNo1/nico
+Author: hank.huang
+Author-email: hank.huang550@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+
+# Nico
+A framework for building Android automation based on adb commands
+
+Readme 正在编写中，调用请参考 test.py 
+
+

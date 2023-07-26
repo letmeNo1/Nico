@@ -12,17 +12,17 @@ def parse_requirements(filename):
 
 
 setuptools.setup(
-    name="adb_uiautomator",
+    name="nico",
     version="1.0.1",
     author="hank.huang",
     author_email="hank.huang550@gmail.com",
     description="A cross-platform desktop automated testing framework.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/letmeNo1/Makima",
+    url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'adb_uiautomator': ['libs/android_test.apk', 'libs/app.apk']
+        'nico': ['libs/android_test.apk', 'libs/app.apk']
     },
     install_requires=[
         'lxml',
