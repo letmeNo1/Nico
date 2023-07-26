@@ -7,7 +7,7 @@ from nico.get_uiautomator_xml import get_root_node
 import os
 import time
 
-from adb_uiautomator.logger_config import logger
+from nico.logger_config import logger
 
 
 class UIStructureError(Exception):
