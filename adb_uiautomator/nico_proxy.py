@@ -220,7 +220,7 @@ class NicoProxy:
             if child == ui_object:
                 break
             last_sibling = child
-        return NicoProxy(root, self.udid, ui_object=last_sibling)
+        return NicoProxy(udid=self.udid, ui_object=last_sibling)
 
     def next_sibling(self):
         root = get_root_node(self.udid)
@@ -233,4 +233,4 @@ class NicoProxy:
                 break
             if child == ui_object:
                 found_current = True
-        return NicoProxy(root, self.udid, ui_object=next_sibling)
+        return NicoProxy(udid=self.udid, ui_object=next_sibling)

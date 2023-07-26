@@ -67,9 +67,15 @@ class Utils:
             return error
 
     def cmd(self, cmd):
-        command = f'adb -s {self.udid} {cmd}'
-        output = os.popen(command).read()
-        return output
+        udid = self.udid
+        """@Brief: Execute the CMD and return value
+        @return: bool
+        """
+        try:
+            result = subprocess.run(f'''adb -s {udid} {cmd}''', shell=True, capture_output=True, text=True,check=True).stdout
+        except subprocess.CalledProcessError as e:
+            return e.stderr
+        return result
 
     def restart_app(self, package_name):
         self.stop_app(package_name)

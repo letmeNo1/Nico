@@ -26,8 +26,11 @@ def init_adb_auto(udid):
     for i in ["android_test.apk", "app.apk"]:
         if f"package:{dict.get(i)}" not in rst:
             lib_path = os.path.dirname(__file__) + f"\libs\{i}"
-            utils.cmd(f"install {lib_path}")
-            logger.debug(f"adb install {i} successfully")
+            rst = utils.cmd(f"install {lib_path}")
+            if rst.find("successfully")>0:
+                logger.debug(f"adb install {i} successfully")
+            else:
+                logger.error(rst)
 
     logger.debug("adb uiautomator was initialized successfully")
 
@@ -38,8 +41,7 @@ def dump_ui_xml(udid, reload):
         logger.debug(f"A local file already exists, And the existing files will be read first")
     else:
         commands = f"""am instrument -w -r -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
-        RST = utils.qucik_shell(commands)
-        print(RST)
+        utils.qucik_shell(commands)
         logger.debug("adb uiautomator dump successfully")
 
 
