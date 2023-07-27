@@ -2,7 +2,7 @@ import re
 
 from nico.utils import Utils
 
-from nico.get_uiautomator_xml import get_root_node
+from nico.get_uiautomator_xml import get_root_node,get_exisit_root_node
 
 import os
 import time
@@ -42,16 +42,15 @@ def find_element_by_query(root, query):
 
 
 class NicoProxy:
-    def __init__(self, udid, force_reload=False,ui_object=None, **query):
+    def __init__(self, udid, found_node=None, **query):
         self.udid = udid
         self.query = query
-        self.ui_object = ui_object
-        self.force_reload = force_reload
+        self.found_node = found_node
         self.close_keyboard()
 
     def __find_function(self, root, query):
-        if find_element_by_query(root, query) is None:
-            root = get_root_node(self.udid,True)
+        if root is None or find_element_by_query(root, query) is None:
+            root = get_root_node(self.udid)
         return find_element_by_query(root, query)
 
     def __wait_function(self, udid, timeout, query):
@@ -67,28 +66,27 @@ class NicoProxy:
                 return found_node
             else:
                 logger.debug("no found, try again")
-                root = get_root_node(udid, True)
+                root = get_root_node(udid)
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
         raise TimeoutError(error)
 
     def wait_for_appearance(self, timeout=10):
-        return self.__wait_function(self.udid, timeout, self.query)
+        self.__wait_function(self.udid, timeout, self.query)
 
     def get(self, index):
-        root = get_root_node(self.udid)
-        return NicoProxy(self.udid, ui_object=self.__find_function(root, self.query)[index])
+        root = get_exisit_root_node(self.udid)
+        node = self.__find_function(root, self.query)
+        return NicoProxy(self.udid, found_node=node[index])
 
     def exists(self):
         root = get_root_node(self.udid)
         return self.__find_function(root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
-        root = get_root_node(self.udid)
+        root = get_exisit_root_node(self.udid)
+        node = self.__find_function(root, self.query)
         try:
-            if self.ui_object is None:
-                self.ui_object = self.__find_function(root, self.query)
-
-            return self.ui_object.attrib[attribute_name]
+            return node.attrib[attribute_name]
         except AttributeError:
             raise UIStructureError(
                 "More than one element has been retrieved, use the 'get' method to specify the number you want")
@@ -214,23 +212,23 @@ class NicoProxy:
 
     def last_sibling(self):
         root = get_root_node(self.udid)
-        ui_object = self.__find_function(root,self.query)
+        found_node = self.__find_function(root,self.query)
         last_sibling = None
         for child in root.iter():
-            if child == ui_object:
+            if child == found_node:
                 break
             last_sibling = child
-        return NicoProxy(udid=self.udid, ui_object=last_sibling)
+        return NicoProxy(udid=self.udid, found_node=last_sibling)
 
     def next_sibling(self):
         root = get_root_node(self.udid)
-        ui_object = self.__find_function(root,self.query)
+        found_node = self.__find_function(root,self.query)
         next_sibling = None
         found_current = False
         for child in root.iter():
             if found_current:
                 next_sibling = child
                 break
-            if child == ui_object:
+            if child == found_node:
                 found_current = True
-        return NicoProxy(udid=self.udid, ui_object=next_sibling)
+        return NicoProxy(udid=self.udid, found_node=next_sibling)

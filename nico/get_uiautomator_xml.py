@@ -1,5 +1,6 @@
 import os
 import tempfile
+import lxml.etree as ET
 
 from nico.utils import Utils, AdbError
 from lxml import etree
@@ -27,7 +28,8 @@ def init_adb_auto(udid):
         if f"package:{dict.get(i)}" not in rst:
             lib_path = os.path.dirname(__file__) + f"\libs\{i}"
             rst = utils.cmd(f"install {lib_path}")
-            if rst.find("successfully")>0:
+            print(rst)
+            if rst.find("Success")>=0:
                 logger.debug(f"adb install {i} successfully")
             else:
                 logger.error(rst)
@@ -35,14 +37,11 @@ def init_adb_auto(udid):
     logger.debug("adb uiautomator was initialized successfully")
 
 
-def dump_ui_xml(udid, reload):
+def dump_ui_xml(udid):
     utils = Utils(udid)
-    if check_xml_exists(udid) and reload is False:
-        logger.debug(f"A local file already exists, And the existing files will be read first")
-    else:
-        commands = f"""am instrument -w -r -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
-        utils.qucik_shell(commands)
-        logger.debug("adb uiautomator dump successfully")
+    commands = f"""am instrument -w -r -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+    utils.qucik_shell(commands)
+    logger.debug("adb uiautomator dump successfully")
 
 
 def check_xml_exists(udid):
@@ -65,8 +64,14 @@ def pull_ui_xml_to_temp_dir(udid):
     utils.cmd(command)
     return temp_file
 
+def get_exisit_root_node(udid):
+    xml_file_path = tempfile.gettempdir() + f"/{udid}_ui.xml"
+    # 解析XML文件
+    tree = ET.parse(xml_file_path)
+    root = tree.getroot()
+    return root
 
-def get_root_node(udid, reload=False):
+def get_root_node(udid):
     import lxml.etree as ET
     def custom_matches(_, text, pattern):
         import re
@@ -80,7 +85,7 @@ def get_root_node(udid, reload=False):
     custom_functions['matches'] = custom_matches
     for i in range(5):
         try:
-            dump_ui_xml(udid, reload)
+            dump_ui_xml(udid)
             break
         except AdbError:
             logger.debug(f"init fail, retry {i + 1} times")
