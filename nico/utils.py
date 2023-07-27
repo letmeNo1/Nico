@@ -38,7 +38,8 @@ class Utils:
         @return: bool
         """
         try:
-            result = subprocess.run(f'''adb -s {udid} shell "{cmds}"''', shell=True, capture_output=True, text=True, check=True).stdout
+            result = subprocess.run(f'''adb -s {udid} shell "{cmds}"''', shell=True, capture_output=True, text=True,
+                                    check=True).stdout
         except subprocess.CalledProcessError as e:
             return e.stderr
         return result
@@ -61,7 +62,7 @@ class Utils:
                                        stderr=subprocess.PIPE, text=True, shell=True)
         adb_process.stdin.write(commands)
         output, error = adb_process.communicate(timeout=timeout)
-        if output !="":
+        if output != "":
             return output
         else:
             return error
@@ -72,7 +73,8 @@ class Utils:
         @return: bool
         """
         try:
-            result = subprocess.run(f'''adb -s {udid} {cmd}''', shell=True, capture_output=True, text=True,check=True).stdout
+            result = subprocess.run(f'''adb -s {udid} {cmd}''', shell=True, capture_output=True, text=True,
+                                    check=True).stdout
         except subprocess.CalledProcessError as e:
             return e.stderr
         return result
@@ -156,8 +158,13 @@ class Utils:
     def back(self):
         self.keyevent("BACK")
 
+    def menu(self):
+        self.keyevent("MENU")
+
+    def home(self):
+        self.keyevent("HOME")
+
     def snapshot(self, name, path):
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
         self.qucik_shell(f'rm /sdcard/{name}.png')
-
