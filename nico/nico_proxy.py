@@ -2,7 +2,7 @@ import re
 
 from nico.utils import Utils
 
-from nico.get_uiautomator_xml import get_root_node,get_exisit_root_node
+from nico.get_uiautomator_xml import get_root_node, get_exisit_root_node
 
 import os
 import time
@@ -94,6 +94,7 @@ class NicoProxy:
             elif self.found_node is list:
                 raise UIStructureError(
                     "More than one element has been retrieved, use the 'get' method to specify the number you want")
+        return self.found_node.attrib[attribute_name]
 
     def close_keyboard(self):
         utils = Utils(self.udid)
@@ -216,7 +217,7 @@ class NicoProxy:
 
     def last_sibling(self):
         root = get_root_node(self.udid)
-        found_node = self.__find_function(root,self.query)
+        found_node = self.__find_function(root, self.query)
         last_sibling = None
         for child in root.iter():
             if child == found_node:
@@ -226,7 +227,7 @@ class NicoProxy:
 
     def next_sibling(self):
         root = get_root_node(self.udid)
-        found_node = self.__find_function(root,self.query)
+        found_node = self.__find_function(root, self.query)
         next_sibling = None
         found_current = False
         for child in root.iter():
