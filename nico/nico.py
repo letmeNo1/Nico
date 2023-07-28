@@ -14,5 +14,5 @@ class AdbAutoNico:
         init_adb_auto(self.udid)
         remove_ui_xml(self.udid)
 
-    def __call__(self, force_reload=False, **query):
-        return NicoProxy(self.udid, force_reload,**query)
+    def __call__(self,  **query):
+        return NicoProxy(self.udid,**query)
