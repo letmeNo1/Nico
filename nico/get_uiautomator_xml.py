@@ -65,6 +65,9 @@ def pull_ui_xml_to_temp_dir(udid):
     return temp_file
 
 def get_exisit_root_node(udid):
+    if not check_xml_exists(udid):
+        dump_ui_xml(udid)
+        pull_ui_xml_to_temp_dir(udid)
     xml_file_path = tempfile.gettempdir() + f"/{udid}_ui.xml"
     # 解析XML文件
     tree = ET.parse(xml_file_path)

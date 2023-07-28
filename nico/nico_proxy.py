@@ -76,6 +76,8 @@ class NicoProxy:
     def get(self, index):
         root = get_exisit_root_node(self.udid)
         node = self.__find_function(root, self.query)
+        print(node[index])
+        print("_____________hank")
         return NicoProxy(self.udid, found_node=node[index])
 
     def exists(self):
@@ -83,13 +85,15 @@ class NicoProxy:
         return self.__find_function(root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
-        root = get_exisit_root_node(self.udid)
-        node = self.__find_function(root, self.query)
-        try:
-            return node.attrib[attribute_name]
-        except AttributeError:
-            raise UIStructureError(
-                "More than one element has been retrieved, use the 'get' method to specify the number you want")
+        if self.found_node is None:
+            root = get_exisit_root_node(self.udid)
+            self.found_node = self.__find_function(root, self.query)
+            if self.found_node is None:
+                raise UIStructureError(
+                    f"Can't found element by {list(self.query.keys())[0]} = {list(self.query.values())[0]}")
+            elif self.found_node is list:
+                raise UIStructureError(
+                    "More than one element has been retrieved, use the 'get' method to specify the number you want")
 
     def close_keyboard(self):
         utils = Utils(self.udid)
