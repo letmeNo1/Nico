@@ -1,6 +1,6 @@
 import logging
 
-logger = logging.getLogger('my_logger')
+logger = logging.getLogger('Nico')
 logger.setLevel(logging.DEBUG)
 
 console_handler = logging.StreamHandler()

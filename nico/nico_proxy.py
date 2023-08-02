@@ -71,6 +71,9 @@ class NicoProxy:
         raise TimeoutError(error)
 
     def wait_for_appearance(self, timeout=10):
+        query_string = list(self.query.values())[0]
+        query_method = list(self.query.keys())[0]
+        logger.debug(f"Wating element by {query_method} = {query_string}")
         self.__wait_function(self.udid, timeout, self.query)
 
     def get(self, index):
@@ -80,8 +83,14 @@ class NicoProxy:
         print("_____________hank")
         return NicoProxy(self.udid, found_node=node[index])
 
-    def exists(self):
-        root = get_root_node(self.udid)
+    def exists(self,reload=True):
+        query_string = list(self.query.values())[0]
+        query_method = list(self.query.keys())[0]
+        logger.debug(f"checking element is exists by {query_method}={query_string}...")
+        if reload:
+            root = None
+        else:
+            root = get_exisit_root_node(self.udid)
         return self.__find_function(root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
