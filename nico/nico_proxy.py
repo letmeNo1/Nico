@@ -215,7 +215,7 @@ class NicoProxy:
         os.system(command)
 
     def set_text(self, text,append=False):
-        len_of_text = len(text)
+        len_of_text = len(self.text)
         self.click()
         os.system(f'adb -s {self.udid} shell input keyevent KEYCODE_MOVE_END')
         del_cmd = f'adb -s {self.udid} shell input keyevent'
