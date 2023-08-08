@@ -214,14 +214,17 @@ class NicoProxy:
         command = f'adb -s {self.udid} shell swipe {x} {y} {x} {y} {duration}'
         os.system(command)
 
-    def set_text(self, text):
-        len_of_text = len(self.text)
+    def set_text(self, text,append=False):
+        len_of_text = len(text)
         self.click()
         os.system(f'adb -s {self.udid} shell input keyevent KEYCODE_MOVE_END')
         del_cmd = f'adb -s {self.udid} shell input keyevent'
-        for _ in range(len_of_text):
-            del_cmd = del_cmd + " KEYCODE_DEL"
-        os.system(del_cmd)
+        if not append:
+            if len_of_text != 0:
+                for _ in range(len_of_text):
+                    del_cmd = del_cmd + " KEYCODE_DEL"
+                os.system(del_cmd)
+        text = text.replace("&","\&")
         os.system(f'adb -s {self.udid} shell input text "{text}"')
 
     def last_sibling(self):
@@ -246,3 +249,5 @@ class NicoProxy:
             if child == found_node:
                 found_current = True
         return NicoProxy(udid=self.udid, found_node=next_sibling)
+
+
