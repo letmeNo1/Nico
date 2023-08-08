@@ -48,10 +48,13 @@ class NicoProxy:
         self.found_node = found_node
         self.close_keyboard()
 
-    def __find_function(self, root, query):
+    def __find_function(self, root, query, muti = False, index = 0):
         if root is None or find_element_by_query(root, query) is None:
             root = get_root_node(self.udid)
-        return find_element_by_query(root, query)
+        if muti:
+            return find_element_by_query(root, query)[index]
+        else:
+            return find_element_by_query(root, query)
 
     def __wait_function(self, udid, timeout, query):
         root = get_root_node(self.udid)
@@ -78,9 +81,7 @@ class NicoProxy:
 
     def get(self, index):
         root = get_exisit_root_node(self.udid)
-        node = self.__find_function(root, self.query)
-        print(node[index])
-        print("_____________hank")
+        node = self.__find_function(root, self.query, True, index)
         return NicoProxy(self.udid, found_node=node[index])
 
     def exists(self,reload=True):
