@@ -33,9 +33,7 @@ def find_element_by_query(root, query):
     if conditions:
         xpath_expression += "[" + " and ".join(conditions) + "]"
     matching_elements = root.xpath(xpath_expression)
-    if len(matching_elements) == 1:
-        return matching_elements[0]
-    elif len(matching_elements) == 0:
+    if len(matching_elements) == 0:
         return None
     else:
         return matching_elements
@@ -54,7 +52,7 @@ class NicoProxy:
         if muti:
             return find_element_by_query(root, query)[index]
         else:
-            return find_element_by_query(root, query)
+            return find_element_by_query(root, query)[0]
 
     def __wait_function(self, udid, timeout, query):
         root = get_root_node(self.udid)
@@ -101,7 +99,7 @@ class NicoProxy:
             if self.found_node is None:
                 raise UIStructureError(
                     f"Can't found element by {list(self.query.keys())[0]} = {list(self.query.values())[0]}")
-            elif self.found_node is list:
+            elif type(self.found_node) is list:
                 raise UIStructureError(
                     "More than one element has been retrieved, use the 'get' method to specify the number you want")
         return self.found_node.attrib[attribute_name]
