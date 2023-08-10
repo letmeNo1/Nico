@@ -2,7 +2,7 @@ import re
 
 from nico.utils import Utils
 
-from nico.get_uiautomator_xml import get_root_node, get_exisit_root_node
+from nico.get_uiautomator_xml import get_root_node
 
 import os
 import time
@@ -49,10 +49,14 @@ class NicoProxy:
     def __find_function(self, root, query, muti = False, index = 0):
         if root is None or find_element_by_query(root, query) is None:
             root = get_root_node(self.udid)
-        if muti:
-            return find_element_by_query(root, query)[index]
-        else:
-            return find_element_by_query(root, query)[0]
+
+        found_rst = find_element_by_query(root, query)
+        if found_rst is not None:
+            if muti:
+                return found_rst[index]
+            else:
+                return found_rst[0]
+        return None
 
     def __wait_function(self, udid, timeout, query):
         root = get_root_node(self.udid)
@@ -78,23 +82,25 @@ class NicoProxy:
         self.__wait_function(self.udid, timeout, self.query)
 
     def get(self, index):
-        root = get_exisit_root_node(self.udid)
+        root = get_root_node(self.udid)
         node = self.__find_function(root, self.query, True, index)
         return NicoProxy(self.udid, found_node=node[index])
 
-    def exists(self,reload=True):
+    def set_seek_bar(self, percentage):
+        x = self.get_bounds()[0] + self.get_bounds()[2]*percentage
+        y = self.center_coordinate()[1]
+        logger.debug(f"click {x} {y}")
+
+    def exists(self):
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"checking element is exists by {query_method}={query_string}...")
-        if reload:
-            root = None
-        else:
-            root = get_exisit_root_node(self.udid)
+        root = get_root_node(self.udid)
         return self.__find_function(root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
         if self.found_node is None:
-            root = get_exisit_root_node(self.udid)
+            root = get_root_node(self.udid)
             self.found_node = self.__find_function(root, self.query)
             if self.found_node is None:
                 raise UIStructureError(
@@ -110,72 +116,55 @@ class NicoProxy:
         for ime in ime_list:
             utils.qucik_shell(f"ime disable {ime}")
 
-    @property
-    def index(self):
+    def get_index(self):
         return self.get_attribute_value("index")
 
-    @property
-    def text(self):
+    def get_text(self):
         return self.get_attribute_value("text")
 
-    @property
-    def resource_id(self):
+    def get_id(self):
         return self.get_attribute_value("resource-id")
 
-    @property
-    def class_name(self):
+    def get_class_name(self):
         return self.get_attribute_value("class")
 
-    @property
-    def package(self):
+    def get_package(self):
         return self.get_attribute_value("package")
 
-    @property
-    def content_desc(self):
+    def get_content_desc(self):
         return self.get_attribute_value("content-desc")
 
-    @property
-    def checkable(self):
+    def get_checkable(self):
         return self.get_attribute_value("checkable")
 
-    @property
-    def checked(self):
+    def get_checked(self):
         return self.get_attribute_value("checked")
 
-    @property
-    def clickable(self):
+    def get_clickable(self):
         return self.get_attribute_value("clickable")
 
-    @property
-    def enabled(self):
+    def get_enabled(self):
         return self.get_attribute_value("enabled")
 
-    @property
-    def focusable(self):
+    def get_focusable(self):
         return self.get_attribute_value("focusable")
 
-    @property
-    def focused(self):
+    def get_focused(self):
         return self.get_attribute_value("focused")
 
-    @property
-    def scrollable(self):
+    def get_scrollable(self):
         return self.get_attribute_value("scrollable")
 
-    @property
-    def long_clickable(self):
+    def get_long_clickable(self):
         return self.get_attribute_value("long-clickable")
 
-    @property
-    def password(self):
+    def get_password(self):
         return self.get_attribute_value("password")
 
-    @property
-    def selected(self):
+    def get_selected(self):
         return self.get_attribute_value("selected")
 
-    @property
-    def bounds(self):
+    def get_bounds(self):
         pattern = r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]'
         matches = re.findall(pattern, self.get_attribute_value("bounds"))
 
@@ -193,28 +182,28 @@ class NicoProxy:
         y = top
         return x, y, width, height
 
-    @property
     def center_coordinate(self):
-        x, y, w, h = self.bounds
+        x, y, w, h = self.get_bounds()
         center_x = x + w // 2
         center_y = y + h // 2
         return center_x, center_y
 
-    def click(self):
-        x = self.center_coordinate[0]
-        y = self.center_coordinate[1]
+    def click(self, x=None, y=None):
+        if x is None and y is None:
+            x = self.center_coordinate()[0]
+            y = self.center_coordinate()[1]
         command = f'adb -s {self.udid} shell input tap {x} {y}'
         os.system(command)
         logger.debug(f"click {x} {y}")
 
     def long_click(self, duration):
-        x = self.center_coordinate[0]
-        y = self.center_coordinate[1]
+        x = self.center_coordinate()[0]
+        y = self.center_coordinate()[1]
         command = f'adb -s {self.udid} shell swipe {x} {y} {x} {y} {duration}'
         os.system(command)
 
     def set_text(self, text,append=False):
-        len_of_text = len(self.text)
+        len_of_text = len(self.get_text())
         self.click()
         os.system(f'adb -s {self.udid} shell input keyevent KEYCODE_MOVE_END')
         del_cmd = f'adb -s {self.udid} shell input keyevent'

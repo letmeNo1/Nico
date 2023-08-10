@@ -1,6 +1,6 @@
 import os
+import subprocess
 import tempfile
-import lxml.etree as ET
 
 from nico.utils import Utils, AdbError
 from lxml import etree
@@ -12,6 +12,14 @@ def check_file_exists_in_sdcard(udid, file_name):
     utils = Utils(udid)
     rst = utils.qucik_shell(f"ls {file_name}")
     return rst
+
+
+def get_snapshot_m5d(udid):
+    lib_path = os.path.dirname(__file__) + "\libs\get_md5-1.0-SNAPSHOT.jar"
+    command = f"java -jar {lib_path} {udid}"
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    output, error = process.communicate()
+    return output.decode().split("MD5: ")[1].strip("\r\n")
 
 
 def init_adb_auto(udid):
@@ -29,7 +37,7 @@ def init_adb_auto(udid):
             lib_path = os.path.dirname(__file__) + f"\libs\{i}"
             rst = utils.cmd(f"install {lib_path}")
             print(rst)
-            if rst.find("Success")>=0:
+            if rst.find("Success") >= 0:
                 logger.debug(f"adb install {i} successfully")
             else:
                 logger.error(rst)
@@ -39,7 +47,7 @@ def init_adb_auto(udid):
 
 def dump_ui_xml(udid):
     utils = Utils(udid)
-    commands = f"""am instrument -w -r -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+    commands = f"""am instrument -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
     utils.qucik_shell(commands)
     logger.debug("adb uiautomator dump successfully")
 
@@ -57,25 +65,29 @@ def remove_ui_xml(udid):
         os.remove(path)
 
 
+def get_xml_file_path_in_tmp(udid):
+    return tempfile.gettempdir() + f"/{udid}_ui.xml"
+
+
 def pull_ui_xml_to_temp_dir(udid):
+    for i in range(5):
+        try:
+            dump_ui_xml(udid)
+            break
+        except AdbError:
+            logger.debug(f"init fail, retry {i + 1} times")
     utils = Utils(udid)
     temp_file = tempfile.gettempdir() + f"/{udid}_ui.xml"
     command = f'pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml {temp_file}'
     utils.cmd(command)
     return temp_file
 
-def get_exisit_root_node(udid):
-    if not check_xml_exists(udid):
-        dump_ui_xml(udid)
-        pull_ui_xml_to_temp_dir(udid)
-    xml_file_path = tempfile.gettempdir() + f"/{udid}_ui.xml"
-    # 解析XML文件
-    tree = ET.parse(xml_file_path)
-    root = tree.getroot()
-    return root
 
 def get_root_node(udid):
     import lxml.etree as ET
+    pre_snapshot = os.environ.get("current_snapshot")
+    if pre_snapshot is None:
+        os.environ["current_snapshot"] = get_snapshot_m5d(udid)
     def custom_matches(_, text, pattern):
         import re
         text = str(text)
@@ -86,15 +98,41 @@ def get_root_node(udid):
 
     # 注册自定义函数
     custom_functions['matches'] = custom_matches
-    for i in range(5):
-        try:
-            dump_ui_xml(udid)
-            break
-        except AdbError:
-            logger.debug(f"init fail, retry {i + 1} times")
-
-    xml_file_path = pull_ui_xml_to_temp_dir(udid)
+    current_snapshot_m5d = get_snapshot_m5d(udid)
+    if pre_snapshot != current_snapshot_m5d:
+        pull_ui_xml_to_temp_dir(udid)
+    xml_file_path = get_xml_file_path_in_tmp(udid)
     # 解析XML文件
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
+    os.environ["current_snapshot"] = current_snapshot_m5d
     return root
+
+
+
+def get_root_node(udid):
+    import lxml.etree as ET
+    pre_snapshot = os.environ.get("current_snapshot")
+    # if pre_snapshot is None:
+    #     os.environ["current_snapshot"] = get_snapshot_m5d(udid)
+    def custom_matches(_, text, pattern):
+        import re
+        text = str(text)
+        return re.search(pattern, text) is not None
+
+    # 创建自定义函数注册器
+    custom_functions = etree.FunctionNamespace(None)
+
+    # 注册自定义函数
+    custom_functions['matches'] = custom_matches
+    # current_snapshot_m5d = get_snapshot_m5d(udid)
+    pull_ui_xml_to_temp_dir(udid)
+    xml_file_path = get_xml_file_path_in_tmp(udid)
+    # 解析XML文件
+    tree = ET.parse(xml_file_path)
+    root = tree.getroot()
+    # os.environ["current_snapshot"] = current_snapshot_m5d
+    return root
+
+
+

@@ -1,19 +1,24 @@
 import os
+import time
 
+from nico.get_uiautomator_xml import get_snapshot_m5d, get_root_node
 from nico.nico import AdbAutoNico
 from nico.utils import Utils
+start_time = time.time()
 
-nico = AdbAutoNico("514f465834593398")
-utils = Utils("514f465834593398")
-utils.start_app("com.android.settings/.Settings")
-Link = nico(text ="连接").wait_for_appearance()
-Link.click()
-WLAN = nico(text = "WLAN").wait_for_appearance()
-WLAN.click()
-utils.back()
-bluetooth = nico(text="蓝牙").wait_for_appearance()
-bluetooth.click()
-utils.back()
+nico = AdbAutoNico("22367209daba64b1")
+nico(text ="Next").wait_for_appearance()
+nico(text ="Finnish").wait_for_appearance()
+nico(text ="dansk").wait_for_appearance()
+nico(text ="Dutch").wait_for_appearance()
+nico(text ="suomi").wait_for_appearance()
+nico(text ="Czech").wait_for_appearance()
 
+# get_root_node("22367209daba64b1")
+# import time
+#
 
-os.system("adb shell am instrument -w -r -e class com.example.myapplication.HierarchyTest com.example.myapplication.test/androidx.test.runner.AndroidJUnitRunner")
+end_time = time.time()
+
+#
+print("代码执行时间：", end_time - start_time, "秒")
