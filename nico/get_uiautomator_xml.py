@@ -1,6 +1,7 @@
 import os
 import subprocess
 import tempfile
+import time
 
 from nico.utils import Utils, AdbError
 from lxml import etree
@@ -47,9 +48,20 @@ def init_adb_auto(udid):
 
 def dump_ui_xml(udid):
     utils = Utils(udid)
-    commands = f"""am instrument -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
-    utils.qucik_shell(commands)
+    # start_time = time.time()
+    start_time = time.time()
+
+    commands = f"""am instrument -r -w -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+    # utils.qucik_shell(commands)
+    rst = os.popen(f"adb -s {udid} shell {commands}").read()
+    print(rst)
+    # end_time = time.time()
+    # print("dump代码执行时间：", end_time - start_time, "秒")
     logger.debug("adb uiautomator dump successfully")
+    end_time = time.time()
+
+    #
+    print("代码执行时间：", end_time - start_time, "秒")
 
 
 def check_xml_exists(udid):
@@ -70,24 +82,30 @@ def get_xml_file_path_in_tmp(udid):
 
 
 def pull_ui_xml_to_temp_dir(udid):
+    command2 = f'adb -s {udid} shell rm /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml'
+    os.popen(command2).read()
+
     for i in range(5):
         try:
             dump_ui_xml(udid)
             break
         except AdbError:
             logger.debug(f"init fail, retry {i + 1} times")
-    utils = Utils(udid)
+    # utils = Utils(udid)
     temp_file = tempfile.gettempdir() + f"/{udid}_ui.xml"
-    command = f'pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml {temp_file}'
-    utils.cmd(command)
-    return temp_file
+    command = f'adb -s {udid} pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml {temp_file}'
+    while True:
+        rst = os.popen(command).read()
+        print(rst)
+        if rst.find("error")<0:
+            break
+    print(rst)
+    # print(rst)
+    # return temp_file
 
 
 def get_root_node(udid):
     import lxml.etree as ET
-    pre_snapshot = os.environ.get("current_snapshot")
-    if pre_snapshot is None:
-        os.environ["current_snapshot"] = get_snapshot_m5d(udid)
     def custom_matches(_, text, pattern):
         import re
         text = str(text)
@@ -98,41 +116,11 @@ def get_root_node(udid):
 
     # 注册自定义函数
     custom_functions['matches'] = custom_matches
-    current_snapshot_m5d = get_snapshot_m5d(udid)
-    if pre_snapshot != current_snapshot_m5d:
-        pull_ui_xml_to_temp_dir(udid)
-    xml_file_path = get_xml_file_path_in_tmp(udid)
-    # 解析XML文件
-    tree = ET.parse(xml_file_path)
-    root = tree.getroot()
-    os.environ["current_snapshot"] = current_snapshot_m5d
-    return root
-
-
-
-def get_root_node(udid):
-    import lxml.etree as ET
-    pre_snapshot = os.environ.get("current_snapshot")
-    # if pre_snapshot is None:
-    #     os.environ["current_snapshot"] = get_snapshot_m5d(udid)
-    def custom_matches(_, text, pattern):
-        import re
-        text = str(text)
-        return re.search(pattern, text) is not None
-
-    # 创建自定义函数注册器
-    custom_functions = etree.FunctionNamespace(None)
-
-    # 注册自定义函数
-    custom_functions['matches'] = custom_matches
-    # current_snapshot_m5d = get_snapshot_m5d(udid)
     pull_ui_xml_to_temp_dir(udid)
     xml_file_path = get_xml_file_path_in_tmp(udid)
     # 解析XML文件
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
-    # os.environ["current_snapshot"] = current_snapshot_m5d
     return root
-
 
 
