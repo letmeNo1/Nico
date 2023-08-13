@@ -13,6 +13,7 @@ class AdbError(Exception):
     pass
 
 
+
 class Utils:
     def __init__(self, udid):
         self.udid = udid
@@ -73,7 +74,6 @@ class Utils:
         @return: bool
         """
         try:
-            print(f"adb -s {udid} {cmd}")
             result = subprocess.run(f'''adb -s {udid} {cmd}''', shell=True, capture_output=True, text=True,
                                     check=True).stdout
         except subprocess.CalledProcessError as e:

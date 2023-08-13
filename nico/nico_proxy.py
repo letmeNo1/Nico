@@ -40,15 +40,15 @@ def find_element_by_query(root, query):
 
 
 class NicoProxy:
-    def __init__(self, udid, found_node=None, **query):
+    def __init__(self, udid, port, found_node=None, **query):
         self.udid = udid
+        self.port = port
         self.query = query
         self.found_node = found_node
-        self.close_keyboard()
 
     def __find_function(self, root, query, muti = False, index = 0):
         if root is None or find_element_by_query(root, query) is None:
-            root = get_root_node(self.udid)
+            root = get_root_node(self.udid,self.port)
 
         found_rst = find_element_by_query(root, query)
         if found_rst is not None:
@@ -58,8 +58,9 @@ class NicoProxy:
                 return found_rst[0]
         return None
 
-    def __wait_function(self, udid, timeout, query):
-        root = get_root_node(self.udid)
+    def __wait_function(self, udid, port,timeout, query):
+
+        root = get_root_node(self.udid,self.port)
         time_started_sec = time.time()
         query_string = list(query.values())[0]
         query_method = list(query.keys())[0]
@@ -68,23 +69,26 @@ class NicoProxy:
             if found_node is not None:
                 time.time() - time_started_sec
                 logger.debug(f"Found element by {query_method} = {query_string}")
+
                 return found_node
             else:
                 logger.debug("no found, try again")
-                root = get_root_node(udid)
+                root = get_root_node(udid,port)
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
+
         raise TimeoutError(error)
 
     def wait_for_appearance(self, timeout=10):
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"Wating element by {query_method} = {query_string}")
-        self.__wait_function(self.udid, timeout, self.query)
+
+        self.__wait_function(self.udid, self.port, timeout, self.query)
 
     def get(self, index):
-        root = get_root_node(self.udid)
+        root = get_root_node(self.udid,self.port)
         node = self.__find_function(root, self.query, True, index)
-        return NicoProxy(self.udid, found_node=node[index])
+        return NicoProxy(self.udid, self.port, found_node=node[index])
 
     def set_seek_bar(self, percentage):
         x = self.get_bounds()[0] + self.get_bounds()[2]*percentage
@@ -95,12 +99,12 @@ class NicoProxy:
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"checking element is exists by {query_method}={query_string}...")
-        root = get_root_node(self.udid)
+        root = get_root_node(self.udid,self.port)
         return self.__find_function(root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):
         if self.found_node is None:
-            root = get_root_node(self.udid)
+            root = get_root_node(self.udid,self.port)
             self.found_node = self.__find_function(root, self.query)
             if self.found_node is None:
                 raise UIStructureError(
@@ -110,11 +114,6 @@ class NicoProxy:
                     "More than one element has been retrieved, use the 'get' method to specify the number you want")
         return self.found_node.attrib[attribute_name]
 
-    def close_keyboard(self):
-        utils = Utils(self.udid)
-        ime_list = utils.qucik_shell("ime list -s").split("\n")[0:-1]
-        for ime in ime_list:
-            utils.qucik_shell(f"ime disable {ime}")
 
     def get_index(self):
         return self.get_attribute_value("index")
@@ -216,17 +215,17 @@ class NicoProxy:
         os.system(f'adb -s {self.udid} shell input text "{text}"')
 
     def last_sibling(self):
-        root = get_root_node(self.udid)
+        root = get_root_node(self.udid,self.port)
         found_node = self.__find_function(root, self.query)
         last_sibling = None
         for child in root.iter():
             if child == found_node:
                 break
             last_sibling = child
-        return NicoProxy(udid=self.udid, found_node=last_sibling)
+        return NicoProxy(udid=self.udid, port=self.port,found_node=last_sibling)
 
     def next_sibling(self):
-        root = get_root_node(self.udid)
+        root = get_root_node(self.udid,self.port)
         found_node = self.__find_function(root, self.query)
         next_sibling = None
         found_current = False
@@ -236,6 +235,6 @@ class NicoProxy:
                 break
             if child == found_node:
                 found_current = True
-        return NicoProxy(udid=self.udid, found_node=next_sibling)
+        return NicoProxy(udid=self.udid, port=self.port, found_node=next_sibling)
 
 

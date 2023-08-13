@@ -1,24 +1,25 @@
 import socket
+import time
 
-# Define the server and port
-server = '127.0.0.1'
-port = 80
+def send_tcp_request(host, port, message):
+    try:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((host, port))
+        client_socket.sendall(message.encode())
+        client_socket.sendall('\n'.encode())
 
-# Create a socket object
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Connect to the server
-s.connect((server, port))
+        # 接收服务器响应
+        response = client_socket.recv(1024)  # 一次最多接收 1024 字节数据
+        print("Received response:", response.decode())
+        client_socket.close()
 
-# Send the HTTP request
-request = 'GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(server)
-s.sendall(request.encode())
+    except Exception as e:
+        print("Error:", e)
 
-# Receive the response
-response = s.recv(4096)
+if __name__ == "__main__":
+    host = "localhost"  # 服务器主机名或 IP 地址
+    port = 9000  # 服务器端口
+    send_tcp_request(host, port, "get_root")
 
-# Print the response
-print(response.decode())
 
-# Close the socket
-s.close()

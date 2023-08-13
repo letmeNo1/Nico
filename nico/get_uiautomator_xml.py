@@ -1,4 +1,6 @@
+import hashlib
 import os
+import socket
 import subprocess
 import tempfile
 import time
@@ -9,21 +11,25 @@ from lxml import etree
 from nico.logger_config import logger
 
 
-def check_file_exists_in_sdcard(udid, file_name):
+def __check_file_exists_in_sdcard(udid, file_name):
     utils = Utils(udid)
     rst = utils.qucik_shell(f"ls {file_name}")
     return rst
 
 
-def get_snapshot_m5d(udid):
-    lib_path = os.path.dirname(__file__) + "\libs\get_md5-1.0-SNAPSHOT.jar"
-    command = f"java -jar {lib_path} {udid}"
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    output, error = process.communicate()
-    return output.decode().split("MD5: ")[1].strip("\r\n")
+def __send_tcp_request(port, message):
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(("localhost", port))
+    client_socket.sendall(message.encode())
+    client_socket.sendall('\n'.encode())
+
+    # 接收服务器响应
+    response = client_socket.recv(1024)  # 一次最多接收 1024 字节数据
+    client_socket.close()
+    return response.decode()
 
 
-def init_adb_auto(udid):
+def init_adb_auto(udid, port):
     utils = Utils(udid)
     dict = {
         "app.apk": "hank.dump_hierarchy",
@@ -37,74 +43,77 @@ def init_adb_auto(udid):
         if f"package:{dict.get(i)}" not in rst:
             lib_path = os.path.dirname(__file__) + f"\libs\{i}"
             rst = utils.cmd(f"install {lib_path}")
-            print(rst)
             if rst.find("Success") >= 0:
                 logger.debug(f"adb install {i} successfully")
             else:
                 logger.error(rst)
+        else:
+            logger.debug(f"{i} already install")
+
+    for _ in range(10):
+        rst = utils.cmd(f'''forward --list | find "{port}"''')
+        if udid not in rst:
+            utils.cmd(f'''forward tcp:{port} tcp:{port}''')
+        else:
+            logger.debug(f"tcp already forward")
+            break
+
+    try:
+        response = __send_tcp_request(port, "content=print")
+    except ConnectionResetError:
+        response = None
+    commands = f"""adb -s {udid} shell am instrument -r -w -e port 9000 -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+    if response is None:
+        subprocess.Popen(commands, shell=True)
+        time.sleep(1)
+    else:
+        logger.debug(f"Server is ready")
 
     logger.debug("adb uiautomator was initialized successfully")
 
 
-def dump_ui_xml(udid):
-    utils = Utils(udid)
-    # start_time = time.time()
-    start_time = time.time()
+def __dump_ui_xml(port):
+    response = __send_tcp_request(port, "dump")
+    if "xxx.xml" in response:
+        logger.debug("adb uiautomator dump successfully")
+    else:
+        raise AdbError("adb uiautomator dump failed")
 
-    commands = f"""am instrument -r -w -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
-    # utils.qucik_shell(commands)
-    rst = os.popen(f"adb -s {udid} shell {commands}").read()
-    print(rst)
-    # end_time = time.time()
-    # print("dump代码执行时间：", end_time - start_time, "秒")
-    logger.debug("adb uiautomator dump successfully")
-    end_time = time.time()
 
+def __get_root_md5(port):
+    response = __send_tcp_request(port, "get_root")
+    if "[" in response:
+        logger.debug("get root successfully")
+        md5_hash = hashlib.md5(response.encode()).hexdigest()
+        return md5_hash
+    else:
+        raise AdbError("get root md5 failed")
     #
-    print("代码执行时间：", end_time - start_time, "秒")
 
 
-def check_xml_exists(udid):
-    temp_folder = tempfile.gettempdir()
-    path = temp_folder + f"/{udid}_ui.xml"
-    return os.path.exists(path)
-
-
-def remove_ui_xml(udid):
-    if check_xml_exists(udid):
-        temp_folder = tempfile.gettempdir()
-        path = temp_folder + f"/{udid}_ui.xml"
-        os.remove(path)
-
-
-def get_xml_file_path_in_tmp(udid):
+def __get_xml_file_path_in_tmp(udid):
     return tempfile.gettempdir() + f"/{udid}_ui.xml"
 
 
-def pull_ui_xml_to_temp_dir(udid):
-    command2 = f'adb -s {udid} shell rm /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml'
-    os.popen(command2).read()
-
-    for i in range(5):
-        try:
-            dump_ui_xml(udid)
-            break
-        except AdbError:
-            logger.debug(f"init fail, retry {i + 1} times")
-    # utils = Utils(udid)
-    temp_file = tempfile.gettempdir() + f"/{udid}_ui.xml"
-    command = f'adb -s {udid} pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/2.xml {temp_file}'
-    while True:
+def __pull_ui_xml_to_temp_dir(udid, port):
+    pre_root = os.getenv("current_root")
+    cur_root = __get_root_md5(port)
+    if pre_root is None or pre_root != cur_root:
+        command2 = f'adb -s {udid} shell rm /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/xxx.xml'
+        os.popen(command2).read()
+        __dump_ui_xml(port)
+        temp_file = tempfile.gettempdir() + f"/{udid}_ui.xml"
+        command = f'adb -s {udid} pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/xxx.xml {temp_file}'
         rst = os.popen(command).read()
-        print(rst)
-        if rst.find("error")<0:
-            break
-    print(rst)
+        if rst.find("error") > 0:
+            raise AdbError(rst)
+    os.environ["current_root"] = cur_root
+
     # print(rst)
     # return temp_file
 
 
-def get_root_node(udid):
+def get_root_node(udid, port):
     import lxml.etree as ET
     def custom_matches(_, text, pattern):
         import re
@@ -116,11 +125,9 @@ def get_root_node(udid):
 
     # 注册自定义函数
     custom_functions['matches'] = custom_matches
-    pull_ui_xml_to_temp_dir(udid)
-    xml_file_path = get_xml_file_path_in_tmp(udid)
+    __pull_ui_xml_to_temp_dir(udid, port)
+    xml_file_path = __get_xml_file_path_in_tmp(udid)
     # 解析XML文件
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
     return root
-
-
