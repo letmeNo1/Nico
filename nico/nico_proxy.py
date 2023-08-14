@@ -70,6 +70,7 @@ class NicoProxy:
             else:
                 logger.debug("no found, try again")
                 root = get_root_node(udid,port,True)
+                time.sleep(0.3)
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
 
         raise TimeoutError(error)
@@ -95,7 +96,7 @@ class NicoProxy:
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"checking element is exists by {query_method}={query_string}...")
-        root = get_root_node(self.udid,self.port)
+        root = get_root_node(self.udid,self.port,force_reload=True)
         return self.__find_function(root, self.query) is not None
 
     def get_attribute_value(self, attribute_name):

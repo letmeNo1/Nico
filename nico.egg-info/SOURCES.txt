@@ -6,6 +6,7 @@ nico/get_uiautomator_xml.py
 nico/logger_config.py
 nico/nico.py
 nico/nico_proxy.py
+nico/send_request.py
 nico/utils.py
 nico.egg-info/PKG-INFO
 nico.egg-info/SOURCES.txt
