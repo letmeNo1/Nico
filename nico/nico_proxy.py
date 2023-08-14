@@ -1,7 +1,4 @@
 import re
-
-from nico.utils import Utils
-
 from nico.get_uiautomator_xml import get_root_node
 
 import os
@@ -59,7 +56,6 @@ class NicoProxy:
         return None
 
     def __wait_function(self, udid, port,timeout, query):
-
         root = get_root_node(self.udid,self.port)
         time_started_sec = time.time()
         query_string = list(query.values())[0]
@@ -73,7 +69,7 @@ class NicoProxy:
                 return found_node
             else:
                 logger.debug("no found, try again")
-                root = get_root_node(udid,port)
+                root = get_root_node(udid,port,True)
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
 
         raise TimeoutError(error)

@@ -59,7 +59,7 @@ def init_adb_auto(udid, port):
             break
 
     try:
-        response = __send_tcp_request(port, "content=print")
+        response = __send_tcp_request(port, "print")
     except ConnectionResetError:
         response = None
     commands = f"""adb -s {udid} shell am instrument -r -w -e port 9000 -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
@@ -95,10 +95,10 @@ def __get_xml_file_path_in_tmp(udid):
     return tempfile.gettempdir() + f"/{udid}_ui.xml"
 
 
-def __pull_ui_xml_to_temp_dir(udid, port):
+def __pull_ui_xml_to_temp_dir(udid, port, force_reload):
     pre_root = os.getenv("current_root")
     cur_root = __get_root_md5(port)
-    if pre_root is None or pre_root != cur_root:
+    if pre_root is None or pre_root != cur_root or force_reload:
         command2 = f'adb -s {udid} shell rm /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/xxx.xml'
         os.popen(command2).read()
         __dump_ui_xml(port)
@@ -113,7 +113,7 @@ def __pull_ui_xml_to_temp_dir(udid, port):
     # return temp_file
 
 
-def get_root_node(udid, port):
+def get_root_node(udid, port, force_reload=False):
     import lxml.etree as ET
     def custom_matches(_, text, pattern):
         import re
@@ -125,7 +125,7 @@ def get_root_node(udid, port):
 
     # 注册自定义函数
     custom_functions['matches'] = custom_matches
-    __pull_ui_xml_to_temp_dir(udid, port)
+    __pull_ui_xml_to_temp_dir(udid, port,force_reload)
     xml_file_path = __get_xml_file_path_in_tmp(udid)
     # 解析XML文件
     tree = ET.parse(xml_file_path)
