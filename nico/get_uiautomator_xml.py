@@ -31,6 +31,8 @@ def __send_tcp_request(port, message):
 
 def init_adb_auto(udid, port):
     utils = Utils(udid)
+    utils.cmd(f'''forward --remove-all''')
+    utils.qucik_shell("am force-stop hank.dump_hierarchy")
     dict = {
         "app.apk": "hank.dump_hierarchy",
         "android_test.apk": "hank.dump_hierarchy.test",
@@ -55,19 +57,22 @@ def init_adb_auto(udid, port):
         if udid not in rst:
             utils.cmd(f'''forward tcp:{port} tcp:{port}''')
         else:
-            logger.debug(f"tcp already forward")
+            logger.debug(f"tcp already forward tcp:{port} tcp:{port}")
             break
 
-    try:
-        response = __send_tcp_request(port, "print")
-    except ConnectionResetError:
-        response = None
-    commands = f"""adb -s {udid} shell am instrument -r -w -e port 9000 -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
-    if response is None:
-        subprocess.Popen(commands, shell=True)
+
+    commands = f"""adb -s {udid} shell am instrument -r -w -e port {port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+    subprocess.Popen(commands, shell=True)
+    response = ""
+    while 10:
+        try:
+            response = __send_tcp_request(port, "print")
+        except ConnectionResetError:
+            pass
+        if "200" in response:
+            logger.debug(f"Server is ready")
+            break
         time.sleep(1)
-    else:
-        logger.debug(f"Server is ready")
 
     logger.debug("adb uiautomator was initialized successfully")
 

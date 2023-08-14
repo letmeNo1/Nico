@@ -19,7 +19,8 @@ def send_tcp_request(host, port, message):
 
 if __name__ == "__main__":
     host = "localhost"  # 服务器主机名或 IP 地址
-    port = 9000  # 服务器端口
-    send_tcp_request(host, port, "get_root")
+    port = 9824
+  # 服务器端口
+    send_tcp_request(host, port, "print")
 
 

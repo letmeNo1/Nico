@@ -1,4 +1,5 @@
 import os
+import random
 import tempfile
 import time
 
@@ -26,10 +27,15 @@ class UIStructureError(Exception):
 
 
 class AdbAutoNico:
-    def __init__(self, udid, port=9000):
+    def __init__(self, udid, port="random"):
         self.udid = udid
-        self.port = port
-        init_adb_auto(self.udid, port)
+
+        if port == "random":
+            random_number = random.randint(9000, 9999)
+            self.port = random_number
+        else:
+            self.port = port
+        init_adb_auto(self.udid, self.port)
         remove_ui_xml(self.udid)
         self.close_keyboard()
 
