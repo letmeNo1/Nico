@@ -68,9 +68,9 @@ class NicoProxy:
 
                 return found_node
             else:
-                logger.debug("no found, try again")
+                logger.debug(f"no found by {query_method} = {query_string}, try again")
                 root = get_root_node(udid,port,True)
-                time.sleep(0.3)
+                time.sleep(0.1)
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
 
         raise TimeoutError(error)
@@ -78,7 +78,28 @@ class NicoProxy:
     def wait_for_appearance(self, timeout=10):
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
-        logger.debug(f"Wating element by {query_method} = {query_string}")
+        logger.debug(f"Waiting element by {query_method} = {query_string}")
+
+        self.__wait_function(self.udid, self.port, timeout, self.query)
+
+    def wait_for_any(self, *any,timeout=10):
+        query_list = []
+        for item in any[0]:
+            query_list.append(item.query)
+        root = get_root_node(self.udid, self.port)
+        time_started_sec = time.time()
+        while time.time() < time_started_sec + timeout:
+            for index, query in enumerate(query_list):
+                query_string = list(query.values())[0]
+                query_method = list(query.keys())[0]
+                found_node = self.__find_function(root, query)
+                if found_node is not None:
+                    time.time() - time_started_sec
+                    logger.debug(f"Found element by {index}. {query_method} = {query_string}")
+                    return index
+            logger.debug(f"no found any, try again")
+            root = get_root_node(self.udid, self.port, True)
+
 
         self.__wait_function(self.udid, self.port, timeout, self.query)
 

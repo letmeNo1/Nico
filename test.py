@@ -19,18 +19,23 @@ start_time = time.time()
 #
 # commands = f"""adb -s 22367209daba64b1 shell am instrument -w -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
 # # 替换为你要执行的外部命令
-
-nico = AdbAutoNico("emulator-5554")
-# time.sleep(100)
-nico(text ="Display").wait_for_appearance()
-
-nico(text ="Display").click()
-
-
-nico = AdbAutoNico("emulator-5554")
 #
-nico(text ="Display").wait_for_appearance()
+# nico = AdbAutoNico("emulator-5554")
+# # time.sleep(100)
+# nico(text ="Display").wait_for_appearance()
 #
+# nico(text ="Display").click()
+#
+#
+nico = AdbAutoNico("emulator-5554")
+# #
+# nico(text ="Display").wait_for_appearance()
+# nico(text ="Display").wait_for_appearance()
+# nico(text ="Display").wait_for_appearance()
+
+#
+
+nico().wait_for_any([nico(text="122"),nico(text="Display")])
 # nico(text ="Back").click()
 # nico(text ="声音和振动").wait_for_appearance()
 # nico(text ="声音和振动").wait_for_appearance()

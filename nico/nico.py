@@ -19,15 +19,18 @@ class UIStructureError(Exception):
 class AdbAutoNico:
     def __init__(self, udid, port="random"):
         self.udid = udid
-        if os.getenv(f"{udid}_test_server_port") is not None:
-            self.port = int(os.getenv(f"{udid}_test_server_port"))
-        else:
-            if port != "random":
-                self.port = port
 
-            else:
-                random_number = random.randint(9000, 9999)
-                self.port = random_number
+        if port != "random":
+            self.port = port
+        else:
+            random_number = random.randint(9000, 9999)
+            self.port = random_number
+        rst = send_tcp_request(self.port,"print") != ""
+        if os.getenv(f"{udid}_test_server_port") is not None and rst:
+            self.port = int(os.getenv(f"{udid}_test_server_port"))
+            logger.debug(f"{udid}'s test server is ready")
+
+        else:
             self.__init_adb_auto(self.udid, self.port)
             self.__remove_ui_xml(self.udid)
         self.close_keyboard()
@@ -74,7 +77,18 @@ class AdbAutoNico:
                 logger.debug(f"tcp already forward tcp:{port} tcp:{port}")
                 break
 
-        send_tcp_request(udid,port,"print")
+        commands = f"""adb -s {udid} shell am instrument -r -w -e port {port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+        subprocess.Popen(commands, shell=True)
+        response = ""
+        while 10:
+            try:
+                response = send_tcp_request(port, "print")
+            except ConnectionResetError:
+                pass
+            if "200" in response:
+                logger.debug(f"{udid}'s test server is ready")
+                break
+            time.sleep(1)
         os.environ[f"{udid}_test_server_port"] = str(port)
         logger.debug("adb uiautomator was initialized successfully")
 
@@ -87,3 +101,6 @@ class AdbAutoNico:
     # os.popen(commands)  # 执行外部命令
     def __call__(self, **query):
         return NicoProxy(self.udid, self.port, **query)
+
+
+

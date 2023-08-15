@@ -21,7 +21,7 @@ def __check_file_exists_in_sdcard(udid, file_name):
 
 
 def __dump_ui_xml(udid,port):
-    response = send_tcp_request(udid,port, "dump")
+    response = send_tcp_request(port, "dump")
     if "xxx.xml" in response:
         logger.debug("adb uiautomator dump successfully")
     else:
@@ -29,7 +29,7 @@ def __dump_ui_xml(udid,port):
 
 
 def __get_root_md5(udid,port):
-    response = send_tcp_request(udid,port, "get_root")
+    response = send_tcp_request(port, "get_root")
     if "[" in response:
         logger.debug("get root successfully")
         md5_hash = hashlib.md5(response.encode()).hexdigest()

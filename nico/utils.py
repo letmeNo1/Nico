@@ -169,3 +169,6 @@ class Utils:
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
         self.qucik_shell(f'rm /sdcard/{name}.png')
+
+    def close_server(self):
+        self.qucik_shell("am force-stop hank.dump_hierarchy")
