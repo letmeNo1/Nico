@@ -20,7 +20,7 @@ def __check_file_exists_in_sdcard(udid, file_name):
     return rst
 
 
-def __dump_ui_xml(udid,port):
+def __dump_ui_xml(port):
     response = send_tcp_request(port, "dump")
     if "xxx.xml" in response:
         logger.debug("adb uiautomator dump successfully")
@@ -28,7 +28,7 @@ def __dump_ui_xml(udid,port):
         raise AdbError("adb uiautomator dump failed")
 
 
-def __get_root_md5(udid,port):
+def __get_root_md5(port):
     response = send_tcp_request(port, "get_root")
     if "[" in response:
         logger.debug("get root successfully")
@@ -45,11 +45,11 @@ def __get_xml_file_path_in_tmp(udid):
 
 def __pull_ui_xml_to_temp_dir(udid, port, force_reload):
     pre_root = os.getenv("current_root")
-    cur_root = __get_root_md5(udid,port)
+    cur_root = __get_root_md5(port)
     if pre_root is None or pre_root != cur_root or force_reload:
         command2 = f'adb -s {udid} shell rm /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/xxx.xml'
         os.popen(command2).read()
-        __dump_ui_xml(udid,port)
+        __dump_ui_xml(port)
         temp_file = tempfile.gettempdir() + f"/{udid}_ui.xml"
         command = f'adb -s {udid} pull /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/xxx.xml {temp_file}'
         rst = os.popen(command).read()

@@ -36,8 +36,32 @@ nico = AdbAutoNico("emulator-5554")
 #
 
 nico().wait_for_any([nico(text="122"),nico(text="Display")])
-# nico(text ="Back").click()
-# nico(text ="声音和振动").wait_for_appearance()
+
+nico2 = AdbAutoNico("514f465834593398")
+nico2(text="连接").wait_for_appearance()#
+
+# nico3 = AdbAutoNico("emulator-5554")
+# nico3(text="Display").wait_for_appearance()
+
+nico4 = AdbAutoNico("emulator-5554")
+nico4(text="Display").wait_for_appearance()
+
+
+nico4 = AdbAutoNico("emulator-5554")
+nico4(text="Display").wait_for_appearance()
+
+nico4 = AdbAutoNico("emulator-5554")
+nico4(text="Display").wait_for_appearance()
+
+nico4 = AdbAutoNico("emulator-5554")
+nico4(text="Display").wait_for_appearance()
+
+nico4 = AdbAutoNico("emulator-5554")
+nico4(text="Display").wait_for_appearance()
+
+nico4 = AdbAutoNico("emulator-5554")
+nico4(text="Display").wait_for_appearance()
+
 # nico(text ="声音和振动").wait_for_appearance()
 # nico(text ="声音和振动").wait_for_appearance()
 # nico(text ="声音和振动").wait_for_appearance()
