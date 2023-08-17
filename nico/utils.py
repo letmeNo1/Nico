@@ -75,7 +75,7 @@ class Utils:
         """
         try:
             result = subprocess.run(f'''adb -s {udid} {cmd}''', shell=True, capture_output=True, text=True,
-                                    check=True).stdout
+                                    check=True,timeout=10).stdout
         except subprocess.CalledProcessError as e:
             return e.stderr
         return result

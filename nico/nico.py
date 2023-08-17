@@ -77,6 +77,7 @@ class AdbAutoNico:
 
         for i in ["android_test.apk", "app.apk"]:
             if f"package:{dict.get(i)}" not in rst:
+                logger.debug(f"{udid}'s start install {i}")
                 lib_path = os.path.dirname(__file__) + f"\libs\{i}"
                 rst = utils.cmd(f"install {lib_path}")
                 if rst.find("Success") >= 0:

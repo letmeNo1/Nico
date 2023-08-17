@@ -16,4 +16,3 @@ nico.egg-info/top_level.txt
 nico/libs/__init__.py
 nico/libs/android_test.apk
 nico/libs/app.apk
-tools/__init__.py
