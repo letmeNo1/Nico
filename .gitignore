@@ -4,6 +4,6 @@ dist/
 *.pyc
 adb_uiautomator.egg-info/
 build/
-test.py
+get_root_xml.py
 test2.py
 test3.py

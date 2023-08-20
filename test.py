@@ -1,8 +1,4 @@
-import psutil
+from nico.nico import AdbAutoNico
 
-# 获取所有进程列表
-processes = psutil.process_iter()
-
-# 遍历进程列表并打印进程信息
-for process in processes:
-    print(process.name(), process.pid)
+poco = AdbAutoNico("22367209daba64b1")
+print(poco(text="Refresh").parent().get_clickable())

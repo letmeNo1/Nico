@@ -44,9 +44,7 @@ def __get_xml_file_path_in_tmp(udid):
 
 
 def __pull_ui_xml_to_temp_dir(udid, port, force_reload):
-    pre_root = os.getenv("current_root")
-    cur_root = __get_root_md5(port)
-    if pre_root is None or pre_root != cur_root or force_reload:
+    if force_reload:
         command2 = f'adb -s {udid} shell rm /storage/emulated/0/Android/data/hank.dump_hierarchy/cache/xxx.xml'
         os.popen(command2).read()
         __dump_ui_xml(port)
@@ -55,7 +53,6 @@ def __pull_ui_xml_to_temp_dir(udid, port, force_reload):
         rst = os.popen(command).read()
         if rst.find("error") > 0:
             raise AdbError(rst)
-    os.environ["current_root"] = cur_root
 
     # print(rst)
     # return temp_file
