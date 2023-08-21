@@ -232,6 +232,8 @@ class NicoProxy:
         text = text.replace("&", "\&")
         os.environ[f"{self.udid}_action_was_taken"] = "True"
         os.system(f'adb -s {self.udid} shell input text "{text}"')
+        os.system(f'adb -s {self.udid} shell settings put global policy_control immersive.full=*')
+
 
     def last_sibling(self):
         root = get_root_node(self.udid, self.port)
