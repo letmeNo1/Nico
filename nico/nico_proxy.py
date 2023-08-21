@@ -54,21 +54,30 @@ class NicoProxy:
                 return found_rst[0]
         return None
 
-    def __wait_function(self, udid, port, timeout, query):
+    def __wait_function(self, udid, port, timeout, wait_disapper, query):
         time_started_sec = time.time()
         query_string = list(query.values())[0]
         query_method = list(query.keys())[0]
         while time.time() < time_started_sec + timeout:
             found_node = self.__find_function(query)
-            if found_node is not None:
-                os.environ[f"{self.udid}_action_was_taken"] = "False"
-                time.time() - time_started_sec
-                logger.debug(f"Found element by {query_method} = {query_string}")
-
-                return found_node
+            if wait_disapper:
+                if found_node is None:
+                    os.environ[f"{self.udid}_action_was_taken"] = "False"
+                    time.time() - time_started_sec
+                    logger.debug(f"Found element by {query_method} = {query_string}")
+                else:
+                    os.environ[f"{self.udid}_action_was_taken"] = "True"
+                    logger.debug(f"no found by {query_method} = {query_string}, try again")
             else:
-                os.environ[f"{self.udid}_action_was_taken"] = "True"
-                logger.debug(f"no found by {query_method} = {query_string}, try again")
+                if found_node is not None:
+                    os.environ[f"{self.udid}_action_was_taken"] = "False"
+                    time.time() - time_started_sec
+                    logger.debug(f"Found element by {query_method} = {query_string}")
+
+                    return found_node
+                else:
+                    os.environ[f"{self.udid}_action_was_taken"] = "True"
+                    logger.debug(f"no found by {query_method} = {query_string}, try again")
 
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
         raise TimeoutError(error)
@@ -78,7 +87,14 @@ class NicoProxy:
         query_method = list(self.query.keys())[0]
         logger.debug(f"Waiting element by {query_method} = {query_string}")
 
-        self.__wait_function(self.udid, self.port, timeout, self.query)
+        self.__wait_function(self.udid, self.port, timeout, False, self.query)
+
+    def wait_for_disappearance(self, timeout=10):
+        query_string = list(self.query.values())[0]
+        query_method = list(self.query.keys())[0]
+        logger.debug(f"Waiting element by {query_method} = {query_string}")
+
+        self.__wait_function(self.udid, self.port, timeout, True, self.query)
 
     def wait_for_any(self, *any, timeout=10):
         query_list = []
@@ -234,7 +250,6 @@ class NicoProxy:
         os.system(f'adb -s {self.udid} shell input text "{text}"')
         os.system(f'adb -s {self.udid} shell settings put global policy_control immersive.full=*')
 
-
     def last_sibling(self):
         root = get_root_node(self.udid, self.port)
         found_node = self.__find_function(self.query)
@@ -246,8 +261,8 @@ class NicoProxy:
         return NicoProxy(udid=self.udid, port=self.port, found_node=last_sibling)
 
     def next_sibling(self):
-        root = get_root_node(self.udid, self.port,eval(os.getenv(f"{self.udid}_action_was_taken")))
-        os.environ[f"{self.udid}_action_was_taken"]="False"
+        root = get_root_node(self.udid, self.port, eval(os.getenv(f"{self.udid}_action_was_taken")))
+        os.environ[f"{self.udid}_action_was_taken"] = "False"
         found_node = self.__find_function(self.query)
         next_sibling = None
         found_current = False
