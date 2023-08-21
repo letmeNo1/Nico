@@ -43,7 +43,7 @@ class AdbAutoNico:
                 logger.debug(f"{self.udid} test server disconnect, restart ")
                 self.__init_adb_auto(self.udid, self.port)
                 self.__remove_ui_xml(self.udid)
-        os.environ[f"{self.udid}_action_was_taken"] = "False"
+        os.environ[f"{self.udid}_action_was_taken"] = "True"
         self.close_keyboard()
 
     def __check_xml_exists(self, udid):
