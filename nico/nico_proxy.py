@@ -44,8 +44,8 @@ class NicoProxy:
         self.found_node = found_node
 
     def __find_function(self, query, muti=False, index=0):
-        action_was_taken = os.getenv(f"{self.udid}_action_was_taken")
-        root = get_root_node(self.udid, self.port, force_reload=eval(action_was_taken))
+        action_was_taken = eval(os.getenv(f"{self.udid}_action_was_taken"))
+        root = get_root_node(self.udid, self.port, force_reload=action_was_taken)
         found_rst = find_element_by_query(root, query)
         if found_rst is not None:
             if muti:
@@ -119,14 +119,15 @@ class NicoProxy:
         return self.__find_function(self.query) is not None
 
     def get_attribute_value(self, attribute_name):
-        self.found_node = self.__find_function(self.query)
         if self.found_node is None:
-            raise UIStructureError(
-                f"Can't found element by {list(self.query.keys())[0]} = {list(self.query.values())[0]}")
-        elif type(self.found_node) is list:
-            raise UIStructureError(
-                "More than one element has been retrieved, use the 'get' method to specify the number you want")
-        os.environ[f"{self.udid}_action_was_taken"] = "False"
+            self.found_node = self.__find_function(self.query)
+            if self.found_node is None:
+                raise UIStructureError(
+                    f"Can't found element by {list(self.query.keys())[0]} = {list(self.query.values())[0]}")
+            elif type(self.found_node) is list:
+                raise UIStructureError(
+                    "More than one element has been retrieved, use the 'get' method to specify the number you want")
+            os.environ[f"{self.udid}_action_was_taken"] = "False"
         return self.found_node.attrib[attribute_name]
 
     def get_index(self):
@@ -219,6 +220,7 @@ class NicoProxy:
 
     def set_text(self, text, append=False):
         len_of_text = len(self.get_text())
+        print(len_of_text)
         self.click()
         os.system(f'adb -s {self.udid} shell input keyevent KEYCODE_MOVE_END')
         del_cmd = f'adb -s {self.udid} shell input keyevent'
@@ -242,15 +244,17 @@ class NicoProxy:
         return NicoProxy(udid=self.udid, port=self.port, found_node=last_sibling)
 
     def next_sibling(self):
-        root = get_root_node(self.udid, self.port)
+        root = get_root_node(self.udid, self.port,eval(os.getenv(f"{self.udid}_action_was_taken")))
+        os.environ[f"{self.udid}_action_was_taken"]="False"
         found_node = self.__find_function(self.query)
         next_sibling = None
         found_current = False
         for child in root.iter():
+            # print(child)
             if found_current:
                 next_sibling = child
                 break
-            if child == found_node:
+            if child.attrib == found_node.attrib:
                 found_current = True
         return NicoProxy(udid=self.udid, port=self.port, found_node=next_sibling)
 
