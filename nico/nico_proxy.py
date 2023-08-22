@@ -17,6 +17,7 @@ def find_element_by_query(root, query):
     for attribute, value in query.items():
         attribute = "class" if attribute == "class_name" else attribute
         attribute = "resource-id" if attribute == "id" else attribute
+        attribute = "content-desc" if attribute == "content_desc" else attribute
 
         if attribute.find("Matches") > 0:
             attribute = attribute.replace("Matches", "")
@@ -65,6 +66,7 @@ class NicoProxy:
                     os.environ[f"{self.udid}_action_was_taken"] = "False"
                     time.time() - time_started_sec
                     logger.debug(f"Found element by {query_method} = {query_string}")
+                    return 1
                 else:
                     os.environ[f"{self.udid}_action_was_taken"] = "True"
                     logger.debug(f"no found by {query_method} = {query_string}, try again")
@@ -131,8 +133,8 @@ class NicoProxy:
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"checking element is exists by {query_method}={query_string}...")
-        os.environ[f"{self.udid}_action_was_taken"] = "False"
-        return self.__find_function(self.query) is not None
+        rst = self.__find_function(self.query) is not None
+        return rst
 
     def get_attribute_value(self, attribute_name):
         if self.found_node is None:
@@ -236,7 +238,6 @@ class NicoProxy:
 
     def set_text(self, text, append=False):
         len_of_text = len(self.get_text())
-        print(len_of_text)
         self.click()
         os.system(f'adb -s {self.udid} shell input keyevent KEYCODE_MOVE_END')
         del_cmd = f'adb -s {self.udid} shell input keyevent'
@@ -251,29 +252,14 @@ class NicoProxy:
         os.system(f'adb -s {self.udid} shell settings put global policy_control immersive.full=*')
 
     def last_sibling(self):
-        root = get_root_node(self.udid, self.port)
         found_node = self.__find_function(self.query)
-        last_sibling = None
-        for child in root.iter():
-            if child == found_node:
-                break
-            last_sibling = child
-        return NicoProxy(udid=self.udid, port=self.port, found_node=last_sibling)
+        previous_node = found_node.getprevious()
+        return NicoProxy(udid=self.udid, port=self.port, found_node=previous_node)
 
     def next_sibling(self):
-        root = get_root_node(self.udid, self.port, eval(os.getenv(f"{self.udid}_action_was_taken")))
-        os.environ[f"{self.udid}_action_was_taken"] = "False"
         found_node = self.__find_function(self.query)
-        next_sibling = None
-        found_current = False
-        for child in root.iter():
-            # print(child)
-            if found_current:
-                next_sibling = child
-                break
-            if child.attrib == found_node.attrib:
-                found_current = True
-        return NicoProxy(udid=self.udid, port=self.port, found_node=next_sibling)
+        next_node = found_node.getnext()
+        return NicoProxy(udid=self.udid, port=self.port, found_node=next_node)
 
     def parent(self):
         found_node = self.__find_function(self.query)
