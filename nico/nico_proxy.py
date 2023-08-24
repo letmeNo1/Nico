@@ -124,7 +124,7 @@ class NicoProxy:
     def get(self, index):
         node = self.__find_function(self.query, True, index)
         os.environ[f"{self.udid}_action_was_taken"] = "False"
-        return NicoProxy(self.udid, self.port, found_node=node[index])
+        return NicoProxy(self.udid, self.port, found_node=node)
 
     def set_seek_bar(self, percentage):
         x = self.get_bounds()[0] + self.get_bounds()[2] * percentage
