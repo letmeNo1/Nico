@@ -76,3 +76,20 @@ def get_root_node(udid, port, force_reload=False):
     tree = ET.parse(xml_file_path)
     root = tree.getroot()
     return root
+
+def get_root_node_with_output(udid, port, force_reload=False):
+    import lxml.etree as ET
+    def custom_matches(_, text, pattern):
+        import re
+        text = str(text)
+        return re.search(pattern, text) is not None
+
+    # 创建自定义函数注册器
+    custom_functions = etree.FunctionNamespace(None)
+
+    # 注册自定义函数
+    custom_functions['matches'] = custom_matches
+    __pull_ui_xml_to_temp_dir(udid, port,force_reload)
+    xml_file_path = __get_xml_file_path_in_tmp(udid)
+    # 解析XML文件
+    return xml_file_path

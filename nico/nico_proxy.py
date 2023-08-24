@@ -1,5 +1,5 @@
 import re
-from nico.get_uiautomator_xml import get_root_node
+from nico.get_uiautomator_xml import get_root_node, get_root_node_with_output
 
 import os
 import time
@@ -99,6 +99,7 @@ class NicoProxy:
         self.__wait_function(self.udid, self.port, timeout, True, self.query)
 
     def wait_for_any(self, *any, timeout=10):
+        find_times = 0
         query_list = []
         for item in any[0]:
             query_list.append(item.query)
@@ -112,8 +113,9 @@ class NicoProxy:
                     time.time() - time_started_sec
                     logger.debug(f"Found element by {index}. {query_method} = {query_string}")
                     return index
-
-            logger.debug(f"no found any, try again")
+            find_times += 1
+            if find_times == 1:
+                logger.debug(f"no found any, try again")
             os.environ[f"{self.udid}_action_was_taken"] = "True"
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
         os.environ[f"{self.udid}_action_was_taken"] = "False"
@@ -128,6 +130,7 @@ class NicoProxy:
         x = self.get_bounds()[0] + self.get_bounds()[2] * percentage
         y = self.center_coordinate()[1]
         logger.debug(f"click {x} {y}")
+        self.click(x, y)
 
     def exists(self):
         query_string = list(self.query.values())[0]
@@ -265,3 +268,6 @@ class NicoProxy:
         found_node = self.__find_function(self.query)
         parent_node = found_node.getparent()
         return NicoProxy(udid=self.udid, port=self.port, found_node=parent_node)
+
+    def get_root_xml(self):
+        print(get_root_node_with_output(self.udid, self.port, True))
