@@ -13,7 +13,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="nico",
-    version="1.0.2",
+    version="1.0.4",
     author="hank.huang",
     author_email="hank.huang550@gmail.com",
     description="A cross-platform desktop automated testing framework.",

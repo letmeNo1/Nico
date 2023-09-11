@@ -5,6 +5,7 @@ nico/__init__.py
 nico/get_uiautomator_xml.py
 nico/logger_config.py
 nico/nico.py
+nico/nico_element.py
 nico/nico_proxy.py
 nico/send_request.py
 nico/utils.py

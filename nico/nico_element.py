@@ -146,8 +146,18 @@ class NicoElement(NicoProxy):
         previous_node = self.found_node.getprevious()
         return NicoElement(udid=self.udid, found_node=previous_node)
 
-    def next_sibling(self):
+    def next_sibling(self, index=1):
+        last_node = self.found_node.getprevious()
+        if index > 0:
+            for i in range(index):
+                last_node = self.found_node.getprevious()
+        return NicoElement(udid=self.udid, found_node=last_node)
+
+    def next_sibling(self, index=1):
         next_node = self.found_node.getnext()
+        if index > 0:
+            for i in range(index):
+                next_node = self.found_node.getnext()
         return NicoElement(udid=self.udid, found_node=next_node)
 
     def parent(self):
