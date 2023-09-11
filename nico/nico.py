@@ -5,10 +5,10 @@ import time
 import subprocess
 import socket
 
+from nico.nico_element import NicoElement
 from nico.send_request import send_tcp_request
 from nico.utils import Utils, AdbError
 
-from nico.nico_proxy import NicoProxy
 from nico.logger_config import logger
 
 
@@ -110,7 +110,7 @@ class AdbAutoNico:
 
     # os.popen(commands)  # 执行外部命令
     def __call__(self, **query):
-        return NicoProxy(self.udid, self.port, **query)
+        return NicoElement(self.udid, self.port, **query)
 
 
 
