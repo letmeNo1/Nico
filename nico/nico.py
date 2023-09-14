@@ -5,9 +5,10 @@ import time
 import subprocess
 import socket
 
+from nico import utils
 from nico.nico_element import NicoElement
 from nico.send_request import send_tcp_request
-from nico.utils import Utils, AdbError
+from nico.utils import Utils, NicoError
 
 from nico.logger_config import logger
 
@@ -27,7 +28,7 @@ class AdbAutoNico:
             self.port = random_number
 
         # 先判断是否有已存在的端口
-        exists_port = os.getenv(f"{self.udid}_test_server_port")
+        exists_port = self.__get_tcp_forward_port(self.udid)
         if exists_port is None:
             logger.debug(f"{self.udid} no exists port")
             self.__init_adb_auto(self.udid, self.port)
@@ -36,7 +37,7 @@ class AdbAutoNico:
             # 如果有已存在的端口则判断服务是正常开启
             self.port = int(exists_port)
             os.popen(f"adb -s {self.udid} forward tcp:{self.port } tcp:{self.port }").read()
-            rst = send_tcp_request(self.port, "print") != ""
+            rst = "WinError" not in send_tcp_request(self.port, "print")
             if rst:
                 logger.debug(f"{self.udid}'s test server is ready")
             else:
@@ -51,6 +52,14 @@ class AdbAutoNico:
         path = temp_folder + f"/{udid}_ui.xml"
         return os.path.exists(path)
 
+    def __get_tcp_forward_port(self, udid):
+        utils = Utils(udid)
+        rst = utils.cmd(f'''forward --list | find "{udid}"''')
+        port = None
+        if rst != "":
+            port = rst.split("tcp:")[-1]
+        return port
+
     def __remove_ui_xml(self, udid):
         if self.__check_xml_exists(udid):
             temp_folder = tempfile.gettempdir()
@@ -59,7 +68,7 @@ class AdbAutoNico:
 
     def __init_adb_auto(self, udid, port):
         utils = Utils(udid)
-        utils.cmd(f'''forward --remove-all''')
+        # utils.cmd(f'''forward --remove-all''')
         # utils.qucik_shell("am force-stop hank.dump_hierarchy")
         dict = {
             "app.apk": "hank.dump_hierarchy",
@@ -74,7 +83,7 @@ class AdbAutoNico:
                 logger.debug(f"{udid}'s tcp already forward tcp:{port} tcp:{port}")
                 break
         if rst.find("not found") > 0:
-            raise AdbError(rst)
+            raise NicoError(rst)
 
         for i in ["android_test.apk", "app.apk"]:
             if f"package:{dict.get(i)}" not in rst:
@@ -93,13 +102,12 @@ class AdbAutoNico:
 
         commands = f"""adb -s {udid} shell am instrument -r -w -e port {port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
         subprocess.Popen(commands, shell=True)
-        while 10:
+        for _ in range(10):
             response = send_tcp_request(port, "print")
             if "200" in response:
                 logger.debug(f"{udid}'s test server is ready")
                 break
             time.sleep(1)
-        os.environ[f"{udid}_test_server_port"] = str(port)
         logger.debug(f"{udid}'s adb uiautomator was initialized successfully")
 
     def close_keyboard(self):

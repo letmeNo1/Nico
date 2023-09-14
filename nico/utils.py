@@ -5,19 +5,25 @@ import time
 import subprocess
 
 
-class AdbError(Exception):
+class NicoError(Exception):
     """
-        This is AdbError BaseError
+        This is NicoError BaseError
         When ADB have something wrong
     """
 
     pass
 
 
-
 class Utils:
     def __init__(self, udid):
         self.udid = udid
+
+    def get_tcp_forward_port(self):
+        rst = self.cmd(f'''forward --list | find "{self.udid}"''')
+        port = None
+        if rst != "":
+            port = rst.split("tcp:")[-1]
+        return port
 
     def get_screen_size(self):
         command = f'adb -s {self.udid} shell wm size'
@@ -76,7 +82,7 @@ class Utils:
         """
         try:
             result = subprocess.run(f'''adb -s {udid} {cmd}''', shell=True, capture_output=True, text=True,
-                                    check=True,timeout=10).stdout
+                                    check=True, timeout=10).stdout
         except subprocess.CalledProcessError as e:
             return e.stderr
         return result
@@ -120,7 +126,7 @@ class Utils:
             m = screenOnRE.search(self.qucik_shell('dumpsys window policy'))
             if m:
                 return m.group(1) == 'SCREEN_STATE_ON'
-        raise AdbError("Couldn't determine screen ON state")
+        raise NicoError("Couldn't determine screen ON state")
 
     def is_locked(self):
         """
@@ -136,7 +142,7 @@ class Utils:
         lockScreenRE = re.compile('(?:mShowingLockscreen|isStatusBarKeyguard|showing)=(true|false)')
         m = lockScreenRE.search(self.qucik_shell('dumpsys window policy'))
         if not m:
-            raise AdbError("Couldn't determine screen lock state")
+            raise NicoError("Couldn't determine screen lock state")
         return (m.group(1) == 'true')
 
     def unlock(self):

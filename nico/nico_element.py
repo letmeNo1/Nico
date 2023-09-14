@@ -142,24 +142,28 @@ class NicoElement(NicoProxy):
         os.system(f'adb -s {self.udid} shell input text "{text}"')
         os.system(f'adb -s {self.udid} shell settings put global policy_control immersive.full=*')
 
-    def last_sibling(self):
+    def last_sibling(self,index=1):
+        if self.found_node is None:
+            self.found_node = self.find_function(query=self.query)
         previous_node = self.found_node.getprevious()
+        if index > 0:
+            for i in range(index):
+                previous_node = self.found_node.getprevious()
+                self.found_node = previous_node
         return NicoElement(udid=self.udid, found_node=previous_node)
 
     def next_sibling(self, index=1):
-        last_node = self.found_node.getprevious()
-        if index > 0:
-            for i in range(index):
-                last_node = self.found_node.getprevious()
-        return NicoElement(udid=self.udid, found_node=last_node)
-
-    def next_sibling(self, index=1):
+        if self.found_node is None:
+            self.found_node = self.find_function(query=self.query)
         next_node = self.found_node.getnext()
         if index > 0:
             for i in range(index):
                 next_node = self.found_node.getnext()
+                self.found_node = next_node
         return NicoElement(udid=self.udid, found_node=next_node)
 
     def parent(self):
+        if self.found_node is None:
+            self.found_node = self.find_function(query=self.query)
         parent_node = self.found_node.getparent()
         return NicoElement(udid=self.udid, found_node=parent_node)

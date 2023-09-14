@@ -1,5 +1,7 @@
 import socket
 
+from nico.logger_config import logger
+
 
 def send_tcp_request(port, message):
     try:
@@ -12,7 +14,10 @@ def send_tcp_request(port, message):
         response = client_socket.recv(1024)  # 一次最多接收 1024 字节数据
         client_socket.close()
         return response.decode()
-    except ConnectionRefusedError:
-        return ""
-    except ConnectionResetError:
-        return ""
+
+    except ConnectionRefusedError as b:
+        logger.error(b)
+        return str(b)
+    except ConnectionResetError as b:
+        logger.error(b)
+        return str(b)
