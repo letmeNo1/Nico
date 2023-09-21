@@ -1,6 +1,5 @@
 import os
 import re
-import signal
 import time
 import subprocess
 
@@ -176,4 +175,3 @@ class Utils:
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
         self.qucik_shell(f'rm /sdcard/{name}.png')
-

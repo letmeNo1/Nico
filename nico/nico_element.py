@@ -111,6 +111,31 @@ class NicoElement(NicoProxy):
         center_y = y + h // 2
         return center_x, center_y
 
+    def scroll(self, duration=200, direction='vertical_up'):
+        if direction not in ('vertical_up', "vertical_down", 'horizontal_left', "horizontal_right"):
+            raise ValueError(
+                'Argument `direction` should be one of "vertical_up" or "vertical_down" or "horizontal_left"'
+                'or "horizontal_right". Got {}'.format(repr(direction)))
+        to_x = 0
+        to_y = 0
+        from_x = self.center_coordinate()[0]
+        from_y = self.center_coordinate()[1]
+        if direction == "vertical_up":
+            to_x = from_x
+            to_y = from_y - from_y / 2
+        elif direction == "vertical_down":
+            to_x = from_x
+            to_y = from_y + from_y / 2
+        elif direction == "horizontal_left":
+            to_x = from_x - from_x / 2
+            to_y = from_y
+        elif direction == "horizontal_right":
+            to_x = from_x + from_x / 2
+            to_y = from_y
+        command = f'adb -s {self.udid} shell input swipe {from_x} {from_y} {to_x} {to_y} {duration}'
+        os.environ[f"{self.udid}_action_was_taken"] = "True"
+        os.system(command)
+
     def click(self, x=None, y=None):
         if x is None and y is None:
             x = self.center_coordinate()[0]
