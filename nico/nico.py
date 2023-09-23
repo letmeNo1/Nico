@@ -20,32 +20,36 @@ class UIStructureError(Exception):
 class AdbAutoNico:
     def __init__(self, udid, port="random"):
         self.udid = udid
-
-        if port != "random":
-            self.port = port
-        else:
-            random_number = random.randint(9000, 9999)
-            self.port = random_number
-
         # 先判断是否有已存在的端口
+        self.__set_running_port(port)
+
+        # 如果有已存在的端口则判断服务是正常开启
+        rst = "WinError" not in send_tcp_request(self.port, "print")
+        if rst:
+            logger.debug(f"{self.udid}'s test server is ready")
+        else:
+            logger.debug(f"{self.udid} test server disconnect, restart ")
+            self.__init_adb_auto(self.udid, self.port)
+            self.__remove_ui_xml(self.udid)
+        os.environ[f"{self.udid}_action_was_taken"] = "True"
+        self.close_keyboard()
+
+    def __set_running_port(self,port):
         exists_port = self.__get_tcp_forward_port(self.udid)
         if exists_port is None:
+
             logger.debug(f"{self.udid} no exists port")
+            if port != "random":
+                self.port = port
+            else:
+                random_number = random.randint(9000, 9999)
+                self.port = random_number
+            os.popen(f"adb -s {self.udid} forward tcp:{self.port} tcp:{self.port}").read()
+
             self.__init_adb_auto(self.udid, self.port)
             self.__remove_ui_xml(self.udid)
         else:
-            # 如果有已存在的端口则判断服务是正常开启
             self.port = int(exists_port)
-            os.popen(f"adb -s {self.udid} forward tcp:{self.port } tcp:{self.port }").read()
-            rst = "WinError" not in send_tcp_request(self.port, "print")
-            if rst:
-                logger.debug(f"{self.udid}'s test server is ready")
-            else:
-                logger.debug(f"{self.udid} test server disconnect, restart ")
-                self.__init_adb_auto(self.udid, self.port)
-                self.__remove_ui_xml(self.udid)
-        os.environ[f"{self.udid}_action_was_taken"] = "True"
-        self.close_keyboard()
 
     def __check_xml_exists(self, udid):
         temp_folder = tempfile.gettempdir()
@@ -118,6 +122,7 @@ class AdbAutoNico:
 
     # os.popen(commands)  # 执行外部命令
     def __call__(self, **query):
+        self.__set_running_port(self.port)
         return NicoElement(self.udid, self.port, **query)
 
 

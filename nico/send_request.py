@@ -16,8 +16,8 @@ def send_tcp_request(port, message):
         return response.decode()
 
     except ConnectionRefusedError as b:
-        logger.error(b)
-        return str(b)
+        logger.error(f"{str(b)} by {port}")
+        return f"{str(b)} by {port}"
     except ConnectionResetError as b:
-        logger.error(b)
-        return str(b)
+        logger.error(f"{str(b)} by {port}")
+        return f"{str(b)} by {port}"
