@@ -112,7 +112,7 @@ class AdbAutoNico:
                 logger.debug(f"{udid}'s test server is ready")
                 break
             time.sleep(1)
-        logger.debug(f"{udid}'s adb uiautomator was initialized successfully")
+        logger.debug(f"{udid}'s uiautomator was initialized successfully")
 
     def close_keyboard(self):
         utils = Utils(self.udid)
