@@ -1,19 +1,27 @@
 import hashlib
 import os
-import socket
 import subprocess
 import tempfile
 import time
 
-from apollo_nico.send_request import send_tcp_request
-from apollo_nico.utils import Utils, NicoError
+from nico.send_request import send_tcp_request
+from nico.adb_utils import AdbUtils, NicoError
 from lxml import etree
 
-from apollo_nico.logger_config import logger
+from nico.logger_config import logger
 
 
 def __restart_nico_server(udid, port):
-    utils = Utils(udid)
+    adb_utils = AdbUtils(udid)
+    for _ in range(5):
+        rst = adb_utils.cmd(f'''forward --list | find "{port}"''')
+        if udid not in rst:
+            adb_utils.cmd(f'''forward tcp:{port} tcp:{port}''')
+        else:
+            logger.debug(f"{udid}'s tcp already forward tcp:{port} tcp:{port}")
+            break
+    if rst.find("not found") > 0:
+        raise NicoError(rst)
     commands = f"""adb -s {udid} shell am instrument -r -w -e port {port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
     subprocess.Popen(commands, shell=True)
     for _ in range(10):
@@ -27,8 +35,8 @@ def __restart_nico_server(udid, port):
 
 
 def __check_file_exists_in_sdcard(udid, file_name):
-    utils = Utils(udid)
-    rst = utils.qucik_shell(f"ls {file_name}")
+    adb_utils = AdbUtils(udid)
+    rst = adb_utils.qucik_shell(f"ls {file_name}")
     return rst
 
 
@@ -36,17 +44,15 @@ def __dump_ui_xml(udid, port):
     for _ in range(5):
         response = send_tcp_request(port, "dump")
         if "xxx.xml" in response:
-            logger.debug("adb uiautomator dump successfully")
             return 1
         else:
-            logger.debug("adb uiautomator dump fail")
+            logger.debug("uiautomator dump fail")
         port = __restart_nico_server(udid, port)
 
 
 def __get_root_md5(port):
     response = send_tcp_request(port, "get_root")
     if "[" in response:
-        logger.debug("get root successfully")
         md5_hash = hashlib.md5(response.encode()).hexdigest()
         return md5_hash
     else:
@@ -91,7 +97,6 @@ def get_root_node(udid, port, force_reload=False):
 
 
 def get_root_node_with_output(udid, port, force_reload=False):
-    import lxml.etree as ET
     def custom_matches(_, text, pattern):
         import re
         text = str(text)

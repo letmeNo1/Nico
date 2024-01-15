@@ -13,7 +13,7 @@ class NicoError(Exception):
     pass
 
 
-class Utils:
+class AdbUtils:
     def __init__(self, udid):
         self.udid = udid
 
@@ -175,3 +175,21 @@ class Utils:
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
         self.qucik_shell(f'rm /sdcard/{name}.png')
+
+    def swipe(self,direction,scroll_time = 1,target_area=None):
+        x = int(self.get_screen_size()[0] / 2)
+        y1 = int(self.get_screen_size()[1] / 4)
+        y2 = int(self.get_screen_size()[1] / 2)
+        if target_area is not None:
+            x = int(self.get_screen_size()[0] * target_area.get_position()[0])
+            y1 = int((self.get_screen_size()[1] * target_area.get_position()[1]) / 4)
+            y2 = int((self.get_screen_size()[1] * target_area.get_position()[1]) / 2)
+        if direction not in ["down","up"]:
+            raise TypeError("Please use up or down")
+        else:
+            for i in range(int(scroll_time)):
+                if direction == "down":
+                    self.shell(f"input swipe {x} {y1} {x} {y2}")
+                elif direction == "up":
+                    self.shell(f"input swipe {x} {y2} {x} {y1}")
+

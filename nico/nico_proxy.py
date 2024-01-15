@@ -1,10 +1,10 @@
-import re
-from apollo_nico.get_uiautomator_xml import get_root_node, get_root_node_with_output
+from nico.get_uiautomator_xml import get_root_node, get_root_node_with_output
 
 import os
 import time
 
-from apollo_nico.logger_config import logger
+from nico.logger_config import logger
+
 
 class UIStructureError(Exception):
     pass
@@ -18,11 +18,11 @@ def find_element_by_query(root, query):
         attribute = "resource-id" if attribute == "id" else attribute
         attribute = "content-desc" if attribute == "content_desc" else attribute
 
-        if attribute.find("Matches") > 0:
-            attribute = attribute.replace("Matches", "")
+        if attribute.find("_matches") > 0:
+            attribute = attribute.replace("_matches", "")
             condition = f"matches(@{attribute},'{value}')"
-        elif attribute.find("Contains") > 0:
-            attribute = attribute.replace("Contains", "")
+        elif attribute.find("_contains") > 0:
+            attribute = attribute.replace("_contains", "")
             condition = f"contains(@{attribute},'{value}')"
         else:
             condition = f"@{attribute}='{value}'"
@@ -44,24 +44,26 @@ class NicoProxy:
         self.index = index
         self.found_node = found_node
 
-    def find_function(self, query, muti=False, index=0):
+    def _find_function(self, query, muti=False, index=0):
         action_was_taken = eval(os.getenv(f"{self.udid}_action_was_taken"))
         root = get_root_node(self.udid, self.port, force_reload=action_was_taken)
         found_rst = find_element_by_query(root, query)
         if found_rst is not None:
-            if muti:
+            if muti == "all":
+                return found_rst
+            elif muti is True:
                 return found_rst[index]
             else:
                 return found_rst[0]
         return None
 
-    def __wait_function(self, timeout, wait_disapper, query):
+    def __wait_function(self, timeout, wait_disappear, query):
         time_started_sec = time.time()
         query_string = list(query.values())[0]
         query_method = list(query.keys())[0]
         while time.time() < time_started_sec + timeout:
-            found_node = self.find_function(query)
-            if wait_disapper:
+            found_node = self._find_function(query)
+            if wait_disappear:
                 if found_node is None:
                     os.environ[f"{self.udid}_action_was_taken"] = "False"
                     time.time() - time_started_sec
@@ -69,7 +71,6 @@ class NicoProxy:
                     return 1
                 else:
                     os.environ[f"{self.udid}_action_was_taken"] = "True"
-                    logger.debug(f"no found by {query_method} = {query_string}, try again")
             else:
                 if found_node is not None:
                     os.environ[f"{self.udid}_action_was_taken"] = "False"
@@ -78,7 +79,6 @@ class NicoProxy:
                     return 1
                 else:
                     os.environ[f"{self.udid}_action_was_taken"] = "True"
-                    logger.debug(f"no found by {query_method} = {query_string}, try again")
 
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
         raise TimeoutError(error)
@@ -106,7 +106,7 @@ class NicoProxy:
             for index, query in enumerate(query_list):
                 query_string = list(query.values())[0]
                 query_method = list(query.keys())[0]
-                found_node = self.find_function(query)
+                found_node = self._find_function(query)
                 if found_node is not None:
                     time.time() - time_started_sec
                     logger.debug(f"Found element by {index}. {query_method} = {query_string}")
@@ -119,17 +119,17 @@ class NicoProxy:
         os.environ[f"{self.udid}_action_was_taken"] = "False"
         raise TimeoutError(error)
 
-
-
     def exists(self):
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"checking element is exists by {query_method}={query_string}...")
-        rst = self.find_function(self.query) is not None
+        rst = self._find_function(self.query) is not None
         return rst
 
     def get_root_xml(self):
-        print(get_root_node_with_output(self.udid, self.port, True))
+        PATH = get_root_node_with_output(self.udid, self.port, True)
+        print(PATH)
+        os.startfile(PATH)
 
     def get_root_node(self):
         return get_root_node(self.udid, self.port, force_reload=True)
