@@ -1,0 +1,4 @@
+[console_scripts]
+nico_dump = apollo_nico.console_scripts.dump_ui:main
+nico_screenshot = apollo_nico.console_scripts.screenshot:main
+

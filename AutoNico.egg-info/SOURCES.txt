@@ -1,12 +1,12 @@
 MANIFEST.in
 README.md
 setup.py
-Nico.egg-info/PKG-INFO
-Nico.egg-info/SOURCES.txt
-Nico.egg-info/dependency_links.txt
-Nico.egg-info/entry_points.txt
-Nico.egg-info/requires.txt
-Nico.egg-info/top_level.txt
+AutoNico.egg-info/PKG-INFO
+AutoNico.egg-info/SOURCES.txt
+AutoNico.egg-info/dependency_links.txt
+AutoNico.egg-info/entry_points.txt
+AutoNico.egg-info/requires.txt
+AutoNico.egg-info/top_level.txt
 auto_nico/__init__.py
 auto_nico/adb_utils.py
 auto_nico/dump_ui.py
@@ -22,8 +22,3 @@ auto_nico/console_scripts/dump_ui.py
 auto_nico/console_scripts/screenshot.py
 auto_nico/libs/__init__.py
 auto_nico/package/__init__.py
-nico.egg-info/PKG-INFO
-nico.egg-info/SOURCES.txt
-nico.egg-info/dependency_links.txt
-nico.egg-info/requires.txt
-nico.egg-info/top_level.txt

@@ -12,7 +12,7 @@ def parse_requirements(filename):
 
 
 setuptools.setup(
-    name="Nico",
+    name="AutoNico",
     version="1.0.0",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
