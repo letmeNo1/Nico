@@ -3,14 +3,10 @@ Nico - Automated Testing on Android Mobile
 
 -   [English](#Background)
 -   [中文版](#背景)
-- 
-Nico is an automated testing framework based on `UIAUTOMATION2`, which executes in the background and does not need to start the app in the foreground
 
 Background
 ==========
-Due to the operation mechanism of Poco, our application, Jabra Meeting, is unstable during operation and prone to issues such as flashbacks and returning to the desktop.
-
-Therefore, by developing this new Android testing framework, which does not rely on middleware forwarding, the impact of the testing framework on the system itself can be reduced.
+Nico is an automated testing framework based on `UIAUTOMATION2`, which executes in the background and does not need to start the app in the foreground
 
 Install 
 ===============
