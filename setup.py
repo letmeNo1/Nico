@@ -12,25 +12,32 @@ def parse_requirements(filename):
 
 
 setuptools.setup(
-    name="nico",
-    version="1.0.4",
-    author="hank.huang",
-    author_email="hank.huang550@gmail.com",
-    description="A cross-platform desktop automated testing framework.",
+    name="Nico",
+    version="1.0.0",
+    author="Hank Hang",
+    author_email="hanhuang@jabra.com",
+    description="Provide Basic Interface to control Mobile UI.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'nico': ['libs/android_test.apk', 'libs/app.apk']
+        'apollo_nico': ['package/android_test.apk', 'package/app.apk']
     },
     install_requires=[
-        'lxml',
+        'opencv-python'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    entry_points={
+        'console_scripts': [
+            'nico_dump = apollo_nico.console_scripts.dump_ui:main',
+            'nico_screenshot = apollo_nico.console_scripts.screenshot:main',
+
+        ],
+    },
     python_requires='>=3.6',
-    include_package_data = True)
+    include_package_data=True)
