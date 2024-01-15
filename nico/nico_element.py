@@ -1,9 +1,9 @@
 import os
 import re
 
-from nico.nico_proxy import NicoProxy
+from apollo_nico.nico_proxy import NicoProxy
 
-from nico.logger_config import logger
+from apollo_nico.logger_config import logger
 
 
 class UIStructureError(Exception):
@@ -192,3 +192,9 @@ class NicoElement(NicoProxy):
             self.found_node = self.find_function(query=self.query)
         parent_node = self.found_node.getparent()
         return NicoElement(udid=self.udid, found_node=parent_node)
+
+    def child(self,index =0):
+        if self.found_node is None:
+            self.found_node = self.find_function(query=self.query)
+        child_node = self.found_node.getchildren()[index]
+        return NicoElement(udid=self.udid, found_node=child_node)

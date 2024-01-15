@@ -3,22 +3,22 @@ import random
 import tempfile
 import time
 import subprocess
-import socket
+from apollo_nico.nico_proxy import NicoProxy
 
-from nico import utils
-from nico.nico_element import NicoElement
-from nico.send_request import send_tcp_request
-from nico.utils import Utils, NicoError
+from apollo_nico.nico_element import NicoElement
+from apollo_nico.send_request import send_tcp_request
+from apollo_nico.utils import Utils, NicoError
 
-from nico.logger_config import logger
+from apollo_nico.logger_config import logger
 
 
 class UIStructureError(Exception):
     pass
 
 
-class AdbAutoNico:
-    def __init__(self, udid, port="random"):
+class AdbAutoNico(NicoProxy):
+    def __init__(self, udid, port="random", **query):
+        super().__init__(udid, port, **query)
         self.udid = udid
         # 先判断是否有已存在的端口
         self.__set_running_port(port)
@@ -47,7 +47,6 @@ class AdbAutoNico:
             os.popen(f"adb -s {self.udid} forward tcp:{self.port} tcp:{self.port}").read()
 
             self.__init_adb_auto(self.udid, self.port)
-            self.__remove_ui_xml(self.udid)
         else:
             self.port = int(exists_port)
 
@@ -92,7 +91,7 @@ class AdbAutoNico:
         for i in ["android_test.apk", "app.apk"]:
             if f"package:{dict.get(i)}" not in rst:
                 logger.debug(f"{udid}'s start install {i}")
-                lib_path = os.path.dirname(__file__) + f"\libs\{i}"
+                lib_path = os.path.dirname(__file__) + f"\package\{i}"
                 rst = utils.cmd(f"install {lib_path}")
                 if rst.find("Success") >= 0:
                     logger.debug(f"{udid}'s adb install {i} successfully")

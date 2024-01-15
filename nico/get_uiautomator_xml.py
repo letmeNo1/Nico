@@ -5,25 +5,25 @@ import subprocess
 import tempfile
 import time
 
-from nico.send_request import send_tcp_request
-from nico.utils import Utils, NicoError
+from apollo_nico.send_request import send_tcp_request
+from apollo_nico.utils import Utils, NicoError
 from lxml import etree
 
-from nico.logger_config import logger
+from apollo_nico.logger_config import logger
 
 
 def __restart_nico_server(udid, port):
     utils = Utils(udid)
-    commands = f"""adb -s {udid} shell am instrument -r -w -e port {exists_port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+    commands = f"""adb -s {udid} shell am instrument -r -w -e port {port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
     subprocess.Popen(commands, shell=True)
     for _ in range(10):
-        response = send_tcp_request(exists_port, "print")
+        response = send_tcp_request(port, "print")
         if "200" in response:
             logger.debug(f"{udid}'s test server is ready")
             break
         time.sleep(1)
     logger.debug(f"{udid}'s adb uiautomator was initialized successfully")
-    return exists_port
+    return port
 
 
 def __check_file_exists_in_sdcard(udid, file_name):

@@ -1,10 +1,10 @@
 import re
-from nico.get_uiautomator_xml import get_root_node, get_root_node_with_output
+from apollo_nico.get_uiautomator_xml import get_root_node, get_root_node_with_output
 
 import os
 import time
 
-from nico.logger_config import logger
+from apollo_nico.logger_config import logger
 
 class UIStructureError(Exception):
     pass

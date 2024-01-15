@@ -1,10 +1,29 @@
 from nico.nico import AdbAutoNico
 
-poco = AdbAutoNico("34ddb49334dd")
-poco2 = AdbAutoNico("22367209daba64b1")
-poco2(text="Sign in on this device").wait_for_appearance(5)
-poco(text="Sign in on this device").wait_for_appearance(5)
-poco = AdbAutoNico("34ddb49334dd")
-poco2 = AdbAutoNico("22367209daba64b1")
-poco2(text="Sign in on this device").wait_for_appearance(5)
-poco(text="Sign in on this device").wait_for_appearance(5)
+
+class NicoBase:
+    def __init__(self, udid):
+        self.udid = udid
+        self.poco = AdbAutoNico(udid)
+
+
+class bb(NicoBase):
+    def __init__(self, udid):
+        super().__init__(udid)
+
+    def test(self):
+        self.poco(text="More").get_text()
+
+
+class ccc(bb):
+    def __init__(self, udid):
+        super().__init__(udid)
+
+    def test(self):
+        self.poco(text="More").get_text()
+
+cc =ccc("22367209daba64b1")
+cc.test()
+
+cc =ccc("34ddb49334dd")
+cc.test()
