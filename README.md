@@ -12,7 +12,7 @@ Install
 ===============
 
 ```
-pip install ApolloNico
+pip install AutoNico
 ```
 
 
@@ -38,7 +38,7 @@ Usage
 
 ## initialize an NicoServer by udid
  ```
-from nico.nico import AdbAutoNico
+from auto_nico.nico import AdbAutoNico
 
 nico = AdbAutoNico(udid)
 ```
@@ -250,7 +250,7 @@ take a photo from device
 
 e.g.
 `
-PS C:\Users\hanhuang\apollo-tools\ApolloModule\ApolloNico> nico_screenshot -u 122079aac2a29a1e -m      
+PS C:\Users\hanhuang\apollo-tools\ApolloModule\AutoNico> nico_screenshot -u 122079aac2a29a1e -m      
 `
 
 
@@ -292,7 +292,7 @@ C:\Users\hanhuang\AppData\Local\Temp/514f465834593398_ui.xml
 ## 通过udid初始化NicoServer
 
  ```
-from nico.nico import AdbAutoNico
+from auto_nico.nico import AdbAutoNico
 
 nico = AdbAutoNico(udid)
 ```
