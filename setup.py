@@ -13,7 +13,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.0.1",
+    version="1.0.2",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
     description="Provide Basic Interface to control Mobile UI.",
