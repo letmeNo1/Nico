@@ -1,6 +1,6 @@
 import socket
 
-from nico.logger_config import logger
+from auto_nico.logger_config import logger
 
 
 def send_tcp_request(port, message):

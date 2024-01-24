@@ -175,7 +175,7 @@ For all action method
 ## adb utils
 **initialize**
 ```
-from nico.adb_utils import AdbUtils
+from auto_nico.adb_utils import AdbUtils
 
 adb_utils = AdbUtils(udid)
 ```
@@ -424,7 +424,7 @@ nico = AdbAutoNico(udid)
 ## adb utils
 **初始化**
 ```
-from nico.adb_utils import AdbUtils
+from auto_nico.adb_utils import AdbUtils
 
 adb_utils = AdbUtils(udid)
 ```

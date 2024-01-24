@@ -1,4 +1,4 @@
-from nico.nico import AdbAutoNico
+from auto_nico.nico import AdbAutoNico
 
 
 def main():

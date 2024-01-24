@@ -1,8 +1,8 @@
 import os
 import tempfile
 import time
-from nico.logger_config import logger
-from nico.nico import AdbAutoNico
+from auto_nico.logger_config import logger
+from auto_nico.nico import AdbAutoNico
 from skimage.metrics import structural_similarity as ssim
 import cv2
 

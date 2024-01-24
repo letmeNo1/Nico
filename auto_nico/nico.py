@@ -3,13 +3,13 @@ import random
 import tempfile
 import time
 import subprocess
-from nico.nico_proxy import NicoProxy
+from auto_nico.nico_proxy import NicoProxy
 
-from nico.nico_element import NicoElement
-from nico.send_request import send_tcp_request
-from nico.adb_utils import AdbUtils, NicoError
+from auto_nico.nico_element import NicoElement
+from auto_nico.send_request import send_tcp_request
+from auto_nico.adb_utils import AdbUtils, NicoError
 
-from nico.logger_config import logger
+from auto_nico.logger_config import logger
 
 
 class UIStructureError(Exception):
