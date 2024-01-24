@@ -26,6 +26,7 @@ setuptools.setup(
     },
     install_requires=[
         'opencv-python'
+        'lxml'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
