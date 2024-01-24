@@ -22,7 +22,7 @@ setuptools.setup(
     url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'apollo_nico': ['package/android_test.apk', 'package/app.apk']
+        'auto_nico': ['package/android_test.apk', 'package/app.apk']
     },
     install_requires=[
         'opencv-python'
