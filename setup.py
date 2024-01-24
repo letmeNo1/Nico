@@ -25,7 +25,7 @@ setuptools.setup(
         'auto_nico': ['package/android_test.apk', 'package/app.apk']
     },
     install_requires=[
-        'opencv-python'
+        'opencv-python',
         'lxml'
     ],
     classifiers=[
