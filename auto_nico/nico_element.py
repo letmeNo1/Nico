@@ -1,9 +1,9 @@
 import os
 import re
 
-from auto_nico.nico_proxy import NicoProxy
+from apollo_nico.nico_proxy import NicoProxy
 
-from auto_nico.logger_config import logger
+from apollo_nico.logger_config import logger
 
 
 class UIStructureError(Exception):
@@ -182,7 +182,7 @@ class NicoElement(NicoProxy):
             x = x + x_offset
         if y_offset is not None:
             y = y + y_offset
-        command = f'adb -s {self.udid} shell swipe {x} {y} {x} {y} {duration}'
+        command = f'adb -s {self.udid} shell input swipe {x} {y} {x} {y} {duration}'
         os.environ[f"{self.udid}_action_was_taken"] = "True"
         os.system(command)
 
