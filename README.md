@@ -38,7 +38,7 @@ Usage
 
 ## initialize an NicoServer by udid
  ```
-from auto_nico.nico import AdbAutoNico
+from from auto_nico.nico.nico import AdbAutoNico
 
 nico = AdbAutoNico(udid)
 ```
@@ -175,7 +175,7 @@ For all action method
 ## adb utils
 **initialize**
 ```
-from auto_nico.adb_utils import AdbUtils
+from from auto_nico.nico.adb_utils import AdbUtils
 
 adb_utils = AdbUtils(udid)
 ```
@@ -292,7 +292,7 @@ C:\Users\hanhuang\AppData\Local\Temp/514f465834593398_ui.xml
 ## 通过udid初始化NicoServer
 
  ```
-from auto_nico.nico import AdbAutoNico
+from from auto_nico.nico.nico import AdbAutoNico
 
 nico = AdbAutoNico(udid)
 ```
@@ -424,7 +424,7 @@ nico = AdbAutoNico(udid)
 ## adb utils
 **初始化**
 ```
-from auto_nico.adb_utils import AdbUtils
+from from auto_nico.nico.adb_utils import AdbUtils
 
 adb_utils = AdbUtils(udid)
 ```

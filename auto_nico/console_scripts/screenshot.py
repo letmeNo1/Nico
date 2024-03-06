@@ -3,8 +3,8 @@ from pathlib import Path
 from datetime import datetime
 
 import cv2
-from auto_nico.adb_utils import AdbUtils
-from auto_nico.nico import AdbAutoNico
+from apollo_nico.adb_utils import AdbUtils
+from apollo_nico.nico import AdbAutoNico
 
 
 def main():

@@ -22,7 +22,7 @@ setuptools.setup(
     url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'auto_nico': ['package/android_test.apk', 'package/app.apk']
+        'from auto_nico.nico': ['package/android_test.apk', 'package/app.apk']
     },
     install_requires=[
         'opencv-python',
@@ -35,8 +35,8 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'nico_dump = auto_nico.console_scripts.dump_ui:main',
-            'nico_screenshot = auto_nico.console_scripts.screenshot:main',
+            'nico_dump = from auto_nico.nico.console_scripts.dump_ui:main',
+            'nico_screenshot = from auto_nico.nico.console_scripts.screenshot:main',
 
         ],
     },
