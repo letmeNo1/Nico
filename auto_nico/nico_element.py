@@ -1,9 +1,9 @@
 import os
 import re
 
-from apollo_nico.nico_proxy import NicoProxy
+from auto_nico.nico_proxy import NicoProxy
 
-from apollo_nico.logger_config import logger
+from auto_nico.logger_config import logger
 
 
 class UIStructureError(Exception):

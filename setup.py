@@ -13,7 +13,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.0.4",
+    version="1.0.5",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
     description="Provide Basic Interface to control Mobile UI.",
@@ -22,7 +22,7 @@ setuptools.setup(
     url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'from auto_nico.nico': ['package/android_test.apk', 'package/app.apk']
+        'auto_nico': ['package/android_test.apk', 'package/app.apk']
     },
     install_requires=[
         'opencv-python',
@@ -35,9 +35,9 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'nico_dump = from auto_nico.nico.console_scripts.dump_ui:main',
-            'nico_screenshot = from auto_nico.nico.console_scripts.screenshot:main',
-
+            'nico_dump = apollo_nico.console_scripts.dump_ui:main',
+            'nico_screenshot = apollo_nico.console_scripts.screenshot:main',
+            'nico_uninstall = apollo_nico.console_scripts.uninstall_apk:main',
         ],
     },
     python_requires='>=3.6',

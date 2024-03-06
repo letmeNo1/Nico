@@ -3,8 +3,8 @@ import tempfile
 import os
 import time
 
-from apollo_nico.logger_config import logger
-from apollo_nico.send_request import send_tcp_request
+from auto_nico.logger_config import logger
+from auto_nico.send_request import send_tcp_request
 
 import lxml.etree as ET
 
