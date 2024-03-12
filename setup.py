@@ -13,7 +13,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.0.4",
+    version="1.0.6",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
     description="Provide Basic Interface to control Mobile UI.",
@@ -37,7 +37,7 @@ setuptools.setup(
         'console_scripts': [
             'nico_dump = auto_nico.console_scripts.dump_ui:main',
             'nico_screenshot = auto_nico.console_scripts.screenshot:main',
-
+            'nico_uninstall = auto_nico.console_scripts.uninstall_apk:main',
         ],
     },
     python_requires='>=3.6',

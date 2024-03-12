@@ -2,8 +2,8 @@
 dist/
 .idea/
 *.pyc
-adb_uiautomator.egg-info/
 build/
 get_root_xml.py
 test2.py
 test3.py
+AutoNico.egg-info/

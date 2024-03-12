@@ -1,4 +1,4 @@
-from apollo_nico.adb_utils import AdbUtils
+from auto_nico.adb_utils import AdbUtils
 
 def main():
     import argparse
