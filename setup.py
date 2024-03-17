@@ -34,9 +34,9 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'nico_dump = AutoNico.console_scripts.dump_ui:main',
-            'nico_screenshot = AutoNico.console_scripts.screenshot:main',
-            'nico_ui = AutoNico.console_scripts.inspector_web.nico_inspector:main',
+            'nico_dump = auto_nico.console_scripts.dump_ui:main',
+            'nico_screenshot = auto_nico.console_scripts.screenshot:main',
+            'nico_ui = auto_nico.console_scripts.inspector_web.nico_inspector:main',
 
         ],
     },
