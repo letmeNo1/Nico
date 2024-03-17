@@ -19,8 +19,11 @@ def send_tcp_request(port, message):
             chunks.append(chunk)
         client_socket.close()
         response = b''.join(chunks)
-        response = response.decode()
-        return response
+        if message == "get_pic":
+            return response
+        else:
+            response = response.decode()
+            return response
 
     except ConnectionRefusedError as b:
         logger.error(f"{str(b)} by {port}")
@@ -28,3 +31,5 @@ def send_tcp_request(port, message):
     except ConnectionResetError as b:
         logger.error(f"{str(b)} by {port}")
         return f"{str(b)} by {port}"
+
+

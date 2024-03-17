@@ -2,9 +2,9 @@ import tempfile
 
 import os
 import time
+
 from auto_nico.logger_config import logger
 from auto_nico.send_request import send_tcp_request
-
 
 import lxml.etree as ET
 
@@ -44,6 +44,7 @@ def find_element_by_query(root, query):
 
 def get_root_node(udid, port, compressed, force_reload=False):
     temp_folder = tempfile.gettempdir()
+
     def dump_ui_xml(udid, port, compressed):
         temp_folder = tempfile.gettempdir()
         for _ in range(5):
@@ -167,7 +168,8 @@ class NicoProxy:
         rst = self._find_function(self.query) is not None
         return rst
 
-    def get_root_xml(self, compressed):
+    def get_root_xml(self, compressed, background_update=False):
         get_root_node(self.udid, self.port, compressed, True)
-        temp_folder = os.path.join(tempfile.gettempdir(),f"{self.udid}_ui.xml")
-        os.startfile(temp_folder)
+        temp_folder = os.path.join(tempfile.gettempdir(), f"{self.udid}_ui.xml")
+        if not background_update:
+            os.startfile(temp_folder)

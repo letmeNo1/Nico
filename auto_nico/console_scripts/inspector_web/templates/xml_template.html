@@ -1,0 +1,25 @@
+<!-- template.html -->
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"> <!-- 添加这一行 -->
+<title>XML Content</title>
+</head>
+<body>
+<button id="refresh-button">Refresh</button>
+<div class="content">
+    <h1>XML Content as HTML</h1>
+    <div class="content-inner">
+
+        {{ xml_content|safe }}
+    </div>
+    <ul id="info-list"></ul> <!-- 添加这一行 -->
+</div>
+<div class="image" id = "ui_image">
+    <img src="" alt="Image">
+    <canvas id="myCanvas"></canvas>
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

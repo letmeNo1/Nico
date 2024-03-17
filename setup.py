@@ -1,6 +1,4 @@
 import setuptools
-from setuptools import setup, find_packages
-import glob
 
 with open("README.md", "r", encoding='UTF-8') as fh:
     long_description = fh.read()
@@ -13,20 +11,21 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.0.7",
+    version="1.1.0",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
-    description="Provide Basic Interface to control Mobile UI.",
+    description="Provide Basic Interface to conrol Mobile UI.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'auto_nico': ['package/android_test.apk', 'package/app.apk']
+        'AutoNico': ['package/android_test.apk', 'package/app.apk','console_scripts/inspector_web/templates/xml_template.html',
+                        'console_scripts/inspector_web/static/*']
     },
     install_requires=[
         'opencv-python',
-        'lxml'
+        'lxml',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -35,9 +34,10 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'nico_dump = auto_nico.console_scripts.dump_ui:main',
-            'nico_screenshot = auto_nico.console_scripts.screenshot:main',
-            'nico_uninstall = auto_nico.console_scripts.uninstall_apk:main',
+            'nico_dump = AutoNico.console_scripts.dump_ui:main',
+            'nico_screenshot = AutoNico.console_scripts.screenshot:main',
+            'nico_ui = AutoNico.console_scripts.inspector_web.nico_inspector:main',
+
         ],
     },
     python_requires='>=3.6',

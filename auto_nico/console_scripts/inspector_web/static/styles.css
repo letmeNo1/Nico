@@ -1,0 +1,47 @@
+.hovered {
+    color: red;
+}
+.content::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+.content {
+    float: left;
+    width: 50%; /* 修改为50% */
+    height: 100%; /* 设置高度为视口的100% */
+    box-sizing: border-box; /* 包含内边距和边框在内的宽度 */
+}
+
+.content-inner {
+    width: 100%; /* 修改为90% */
+    height: 50%; /* 修改为90% */
+    overflow: auto; /* 添加这一行以在内容超出时显示滚动条 */
+}
+.image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.image {
+    position: relative; /* 添加这一行 */
+    float: right;
+    width: 50%; /* 修改为30% */
+    height: 100vh; /* 设置高度为视口的100% */
+    box-sizing: border-box;
+}
+#myCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+body {
+    height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+}
+#info-list {
+    font-size: 20px; /* 设置字体大小为20像素 */
+}
