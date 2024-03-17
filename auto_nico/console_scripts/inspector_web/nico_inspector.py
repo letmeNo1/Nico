@@ -155,7 +155,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-p1', type=int, help='Remote port to connect to')
     parser.add_argument('-p2', type=int, help='Port to run on')
-    parser.add_argument('-u', type=str, help='device_udid')
+    parser.add_argument('-s', type=str, help='device_udid')
     udid = parser.parse_args().u
     remote_port = parser.parse_args().p1
     inspect_port = parser.parse_args().p2
@@ -184,33 +184,3 @@ def main():
             os.environ['RemoteServerPort'] = str(remote_port)
             p = multiprocessing.Process(target=run_app, args=(inspect_port,))
             p.start()
-
-# if __name__ == "__main__":
-#     udid = "emulator-5554"
-#     remote_port = 5555
-#     inspect_port = 9000
-#     if is_port_in_use(remote_port):
-#         print(f"Port {remote_port} is already in use")
-#         exit()
-#     if is_port_in_use(inspect_port):
-#         print(f"Port {inspect_port} is already in use")
-#         exit()
-#     if udid is None:
-#         print("Please provide a device_udid")
-#         exit()
-#     check_adb_server(udid)
-#     install_package(udid)
-#     set_tcp_forward_port(udid, remote_port)
-#     if remote_port is None:
-#         print("Please provide a port to connect remote nico server!!!!")
-#         exit()
-#     else:
-#         if inspect_port is None:
-#             print("Please provide a port to run inspector UI!!!!")
-#             exit()
-#         else:
-#             commands = f"""adb -s {udid} shell am instrument -r -w -e port {remote_port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
-#             subprocess.Popen(commands, shell=True)
-#             os.environ['RemoteServerPort'] = str(remote_port)
-#             p = multiprocessing.Process(target=run_app, args=(inspect_port,))
-#             p.start()

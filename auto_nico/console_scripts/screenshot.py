@@ -11,7 +11,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-u', type=str, help='device_udid')
+    parser.add_argument('-s', type=str, help='device_udid')
 
     parser.add_argument('-m', action='store_true',
                         help='Activate special mode.')
