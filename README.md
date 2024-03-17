@@ -19,17 +19,32 @@ pip install AutoNico
 Element locate
 ===============
 
-Input `nico_dump {udid}` at  command line
+Input `nico_ui -s {udid} -p1 {the port that forwards the request} -p2 {the port that launches the UI inspector}` at  command line
 
-if success, it will return like this. Open the `{udid}_ui.xml` file to see the UI tree
+
+if success, it will start a server to show UI inspector
 ```
 input:
-nico_dump 1234567
+nico_ui -s emulator-5554 -p1 5000 -p2 6000
+
 
 output:
-2024-01-03 11:14:15,781 Nico - DEBUG - 514f465834593398's test server is ready
-2024-01-03 11:14:15,781 Nico - DEBUG - 514f465834593398's uiautomator was initialized successfully
-C:\Users\hanhuang\AppData\Local\Temp/514f465834593398_ui.xml
+
+forward tcp:5000 tcp:5000
+ * Serving Flask app 'auto_nico.console_scripts.inspector_web.nico_inspector'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:6000
+Press CTRL+C to quit
+INSTRUMENTATION_STATUS: class=hank.dump_hierarchy.HierarchyTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+hank.dump_hierarchy.HierarchyTest:
+INSTRUMENTATION_STATUS: test=TestCase1
+INSTRUMENTATION_STATUS_CODE: 1
+
 ```
 
 
