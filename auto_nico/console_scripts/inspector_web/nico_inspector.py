@@ -4,9 +4,9 @@ import os
 import random
 import socket
 
-from auto_nico.adb_utils import AdbUtils
-from auto_nico.nico import ADBServerError
-from auto_nico.send_request import send_tcp_request
+from apollo_nico.adb_utils import AdbUtils
+from apollo_nico.nico import ADBServerError
+from apollo_nico.send_request import send_tcp_request
 from flask import Flask, render_template
 import xml.etree.ElementTree as ET
 
@@ -159,18 +159,12 @@ def main():
     udid = parser.parse_args().s
     remote_port = parser.parse_args().p1
     inspect_port = parser.parse_args().p2
-    if is_port_in_use(remote_port):
-        print(f"Port {remote_port} is already in use")
-        return
-    if is_port_in_use(inspect_port):
-        print(f"Port {inspect_port} is already in use")
-        return
+
     if udid is None:
         print("Please provide a device_udid")
         return
     check_adb_server(udid)
     install_package(udid)
-    set_tcp_forward_port(udid, remote_port)
     if remote_port is None:
         print("Please provide a port to connect remote nico server!!!!")
         return
@@ -178,7 +172,14 @@ def main():
         if inspect_port is None:
             print("Please provide a port to run inspector UI!!!!")
             return
+        if is_port_in_use(remote_port):
+            print(f"Port {remote_port} is already in use")
+            return
+        if is_port_in_use(inspect_port):
+            print(f"Port {inspect_port} is already in use")
+            return
         else:
+            set_tcp_forward_port(udid, remote_port)
             commands = f"""adb -s {udid} shell am instrument -r -w -e port {remote_port} -e class hank.dump_hierarchy.HierarchyTest hank.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
             subprocess.Popen(commands, shell=True)
             os.environ['RemoteServerPort'] = str(remote_port)
