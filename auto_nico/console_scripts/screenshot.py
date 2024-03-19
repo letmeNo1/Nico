@@ -16,13 +16,13 @@ def main():
     parser.add_argument('-m', action='store_true',
                         help='Activate special mode.')
     args = parser.parse_args()
-    adb_utils = AdbUtils(args.u)
+    adb_utils = AdbUtils(args.s)
     desktop_path = Path.home() / 'Desktop'
     timestamp = datetime.now().strftime("Screenshot_%Y-%m-%d_%H%M%S")
     pic_path = f"{desktop_path}\{timestamp}.png"
 
     if args.m:
-        nico = AdbAutoNico(args.u)
+        nico = AdbAutoNico(args.s)
         eles = nico(text_matches=r'^(?=(?:.*?\d){2})').all()
         adb_utils.snapshot(timestamp, desktop_path)
         image = cv2.imread(f"{pic_path}")

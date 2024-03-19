@@ -9,6 +9,6 @@ def main():
         print("Please provide a device_udid")
         return
     args = parser.parse_args()
-    adb_utils = AdbUtils(args.u)
+    adb_utils = AdbUtils(args.s)
     adb_utils.qucik_shell("pm uninstall hank.dump_hierarchy")
     adb_utils.qucik_shell("pm uninstall hank.dump_hierarchy.test")

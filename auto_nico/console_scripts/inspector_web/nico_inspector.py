@@ -156,7 +156,7 @@ def main():
     parser.add_argument('-p1', type=int, help='Remote port to connect to')
     parser.add_argument('-p2', type=int, help='Port to run on')
     parser.add_argument('-s', type=str, help='device_udid')
-    udid = parser.parse_args().u
+    udid = parser.parse_args().s
     remote_port = parser.parse_args().p1
     inspect_port = parser.parse_args().p2
     if is_port_in_use(remote_port):
