@@ -7,7 +7,7 @@ from auto_nico.nico_proxy import NicoProxy
 
 from auto_nico.nico_element import NicoElement
 from auto_nico.send_request import send_tcp_request
-from auto_nico.adb_utils import AdbUtils, NicoError
+from auto_nico.adb_utils import AdbUtils
 
 from auto_nico.logger_config import logger
 
@@ -29,21 +29,9 @@ class AdbAutoNico(NicoProxy):
         self.__install_package()
         self.__check_adb_server(udid)
         self.__set_running_port(port)
-        rst = "200" in send_tcp_request(self.port, "print")
-        if rst:
-            logger.debug(f"{self.udid}'s test server is ready")
-            self.clear_sever = False
-        else:
-            self.clear_sever = True
-            logger.debug(f"{self.udid} test server disconnect, restart ")
-            self.__init_adb_auto()
+
         os.environ[f"{self.udid}_action_was_taken"] = "True"
         self.close_keyboard()
-
-    def __del__(self):
-        if self.clear_sever:
-            self.__clear_all_port_forward()
-            send_tcp_request(self.port, "close")
 
     def __check_adb_server(self, udid):
         rst = os.popen("adb devices").read()
@@ -63,6 +51,14 @@ class AdbAutoNico(NicoProxy):
                 self.port = random_number
         else:
             self.port = int(exists_port)
+            rst = "hierarchy rotation" in send_tcp_request(self.port, "print")
+            if rst:
+                logger.debug(f"{self.udid}'s test server is ready")
+                self.clear_sever = False
+            else:
+                self.clear_sever = True
+                logger.debug(f"{self.udid} test server disconnect, restart ")
+                self.__init_adb_auto()
 
     def __clear_all_port_forward(self):
         self.adb_utils.cmd(f"forward --remove tcp:{self.port}")
@@ -70,6 +66,16 @@ class AdbAutoNico(NicoProxy):
     def __install_package(self):
         rst = self.adb_utils.qucik_shell("dumpsys package hank.dump_hierarchy | grep versionName")
         # print(rst)
+        if "versionName" not in rst:
+            for i in ["android_test.apk", "app.apk"]:
+                logger.debug(f"{self.udid}'s start install {i}")
+                lib_path = os.path.dirname(__file__) + f"\package\{i}"
+                rst = self.adb_utils.cmd(f"install -t {lib_path}")
+                if rst.find("Success") >= 0:
+                    logger.debug(f"{self.udid}'s adb install {i} successfully")
+                else:
+                    logger.error(rst)
+            return 1
         if self.version > float(rst.split("=")[-1]):
             logger.debug(f"{self.udid}'s New version detected")
             for i in ["hank.dump_hierarchy", "hank.dump_hierarchy.test"]:
@@ -80,15 +86,7 @@ class AdbAutoNico(NicoProxy):
                 else:
                     logger.error(rst)
         rst = self.adb_utils.qucik_shell("dumpsys package hank.dump_hierarchy | grep versionName")
-        if "versionName" not in rst:
-            for i in ["android_test.apk", "app.apk"]:
-                logger.debug(f"{self.udid}'s start install {i}")
-                lib_path = os.path.dirname(__file__) + f"\package\{i}"
-                rst = self.adb_utils.cmd(f"install -t {lib_path}")
-                if rst.find("Success") >= 0:
-                    logger.debug(f"{self.udid}'s adb install {i} successfully")
-                else:
-                    logger.error(rst)
+
 
     def __get_tcp_forward_port(self):
         rst = self.adb_utils.cmd(f'''forward --list | find "{self.udid}"''')

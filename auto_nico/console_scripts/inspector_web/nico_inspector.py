@@ -4,9 +4,9 @@ import os
 import random
 import socket
 
-from apollo_nico.adb_utils import AdbUtils
-from apollo_nico.nico import ADBServerError
-from apollo_nico.send_request import send_tcp_request
+from auto_nico.adb_utils import AdbUtils
+from auto_nico.nico import ADBServerError
+from auto_nico.send_request import send_tcp_request
 from flask import Flask, render_template
 import xml.etree.ElementTree as ET
 
@@ -48,11 +48,8 @@ def xml_to_html_list(element, depth=0):
 
 @app.route('/refresh_image')
 def refresh_image():
-    # 发起TCP请求获取新的二进制数据
     port = int(os.environ.get('RemoteServerPort'))
     new_data = send_tcp_request(port, "get_pic")
-
-    # 使用BytesIO来模拟一个文件对象，并将数据写入到这个对象中
     base64_data = base64.b64encode(new_data)
     return base64_data
 
@@ -107,9 +104,13 @@ def check_adb_server(udid):
         raise ADBServerError("no devices connect")
 
 
+def clear_tcp_forward_port(udid, port):
+    adb_utils = AdbUtils(udid)
+    adb_utils.cmd(f'''forward --remove tcp:{port}''')
+
+
 def set_tcp_forward_port(udid, port):
     adb_utils = AdbUtils(udid)
-    adb_utils.cmd(f'''forward --remove-all''')
 
     print(f'''forward tcp:{port} tcp:{port}''')
 
@@ -142,13 +143,11 @@ def install_package(udid):
             else:
                 print(rst)
         install(udid)
-    rst = adb_utils.qucik_shell("dumpsys package hank.dump_hierarchy | grep versionName")
 
 
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
-
 
 
 def main():
@@ -172,6 +171,7 @@ def main():
         if inspect_port is None:
             print("Please provide a port to run inspector UI!!!!")
             return
+        clear_tcp_forward_port(udid, remote_port)
         if is_port_in_use(remote_port):
             print(f"Port {remote_port} is already in use")
             return

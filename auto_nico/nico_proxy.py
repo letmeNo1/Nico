@@ -16,17 +16,19 @@ class UIStructureError(Exception):
 def find_element_by_query(root, query):
     xpath_expression = ".//*"
     conditions = []
+    is_re = False
     for attribute, value in query.items():
         if attribute == "compressed":
             pass
         else:
-            attribute = "class" if attribute == "class_name" else attribute
-            attribute = "resource-id" if attribute == "id" else attribute
-            attribute = "content-desc" if attribute == "content_desc" else attribute
 
+            attribute = attribute.replace("class_name","class")  if "class_name"in attribute else attribute
+            attribute = attribute.replace("id","resource-id") if "id" in attribute else attribute
+            attribute = attribute.replace("content_desc","content-desc") if "content_desc" in attribute else attribute
             if attribute.find("_matches") > 0:
+                is_re = True
                 attribute = attribute.replace("_matches", "")
-                condition = f"matches(@{attribute},'{value}')"
+                condition = f"re:match(@{attribute},'{value}')"
             elif attribute.find("_contains") > 0:
                 attribute = attribute.replace("_contains", "")
                 condition = f"contains(@{attribute},'{value}')"
@@ -35,7 +37,12 @@ def find_element_by_query(root, query):
             conditions.append(condition)
     if conditions:
         xpath_expression += "[" + " and ".join(conditions) + "]"
-    matching_elements = root.xpath(xpath_expression)
+    if is_re:
+        ns = {"re": "http://exslt.org/regular-expressions"}
+        matching_elements = root.xpath(xpath_expression,namespaces=ns)
+    else:
+        matching_elements = root.xpath(xpath_expression)
+
     if len(matching_elements) == 0:
         return None
     else:
@@ -57,6 +64,7 @@ def get_root_node(udid, port, compressed, force_reload=False):
                 return root
             else:
                 logger.debug("uiautomator dump fail, retrying...")
+                time.sleep(1)
         raise UIStructureError("uiautomator dump fail")
 
     if force_reload:

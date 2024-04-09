@@ -5,7 +5,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', type=str, help='device_udid')
-    if parser.parse_args().u is None:
+    if parser.parse_args().s is None:
         print("Please provide a device_udid")
         return
     args = parser.parse_args()
