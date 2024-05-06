@@ -3,8 +3,9 @@ from pathlib import Path
 from datetime import datetime
 
 import cv2
-from auto_nico.adb_utils import AdbUtils
-from auto_nico.nico import AdbAutoNico
+
+from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.android.nico_android import NicoAndroid
 
 
 def main():
@@ -16,13 +17,13 @@ def main():
     parser.add_argument('-m', action='store_true',
                         help='Activate special mode.')
     args = parser.parse_args()
-    adb_utils = AdbUtils(args.s)
+    adb_utils = AdbUtils(args.u)
     desktop_path = Path.home() / 'Desktop'
     timestamp = datetime.now().strftime("Screenshot_%Y-%m-%d_%H%M%S")
     pic_path = f"{desktop_path}\{timestamp}.png"
 
     if args.m:
-        nico = AdbAutoNico(args.s)
+        nico = NicoAndroid(args.s)
         eles = nico(text_matches=r'^(?=(?:.*?\d){2})').all()
         adb_utils.snapshot(timestamp, desktop_path)
         image = cv2.imread(f"{pic_path}")

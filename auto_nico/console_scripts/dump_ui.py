@@ -1,4 +1,4 @@
-from auto_nico.nico import AdbAutoNico
+from auto_nico.android.nico_android import NicoAndroid
 
 
 def main():
@@ -9,5 +9,5 @@ def main():
     parser.add_argument('-c', type=str, help='compressed', default="true")
 
     args = parser.parse_args()
-    nico = AdbAutoNico(args.s)
-    nico.get_root_xml(args.c)
+    nico = NicoAndroid(args.s)
+    nico().get_root_xml(True)
