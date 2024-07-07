@@ -18,6 +18,8 @@ pip install AutoNico
 
 Element locate
 ===============
+![示例GIF](https://github.com/letmeNo1/Nico/blob/main/05c8044a-2ac3-45c8-87fa-d1feaa737368.gif))
+
 
 Input `nico_ui -s {udid} -p1 {the port that forwards the request} -p2 {the port that launches the UI inspector}` at  command line
 
