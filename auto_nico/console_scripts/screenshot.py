@@ -3,8 +3,9 @@ from pathlib import Path
 from datetime import datetime
 
 import cv2
-from auto_nico.adb_utils import AdbUtils
-from auto_nico.nico import AdbAutoNico
+
+from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.android.nico_android import NicoAndroid
 
 
 def main():
@@ -22,7 +23,7 @@ def main():
     pic_path = f"{desktop_path}\{timestamp}.png"
 
     if args.m:
-        nico = AdbAutoNico(args.u)
+        nico = NicoAndroid(args.s)
         eles = nico(text_matches=r'^(?=(?:.*?\d){2})').all()
         adb_utils.snapshot(timestamp, desktop_path)
         image = cv2.imread(f"{pic_path}")

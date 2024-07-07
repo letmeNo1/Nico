@@ -11,31 +11,49 @@ function initImageControl(){
     var scale = Math.min(displayedWidth / actualWidth, displayedHeight / actualHeight);
     var scaledWidth = scale * actualWidth;
     var scaledHeight = scale * actualHeight;
+    // 对于iOS 需要将所有元素的宽高都 * （图像真实宽高/第一个窗口的宽高(也就是调用获取的屏幕的宽高))
+    if (listItems[0].innerText.indexOf("iOS") !== -1) {
+         console.log(listItems[1].getAttribute('bounds'))
+         h_from_api = parseInt(listItems[1].getAttribute('bounds').split(',').pop().match(/\d+/)[0])
+         scale = scale * actualHeight/h_from_api
+
+    }
 
     var blankLeft = (displayedWidth - scaledWidth) / 2;
     var blankTop = (displayedHeight - scaledHeight) / 2;
 
     for (var i = 0; i < listItems.length; i++) {
-        var bounds = listItems[i].getAttribute('bounds'); /* 获取当前被悬停元素的bounds属性 */
-        var identifier = listItems[i].getAttribute('identifier'); /* 获取当前被悬停元素的bounds属性 */
-
+        var bounds = listItems[i].getAttribute('bounds');
+        var identifier_number = listItems[i].getAttribute('identifier_number');
         if (bounds) {
             var matches = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
                 if (matches) {
                     var x1 = parseInt(matches[1]) * scale + blankLeft;
                     var y1 = parseInt(matches[2]) * scale + blankTop; ;
-                    var x2 = parseInt(matches[3]) * scale + blankLeft;
-                    var y2 = parseInt(matches[4]) * scale + blankTop;
+                    if (listItems[0].innerText.indexOf("iOS") !== -1) {
+                        var x2 = parseInt(matches[3]) * scale;
+                        var y2 = parseInt(matches[4]) * scale;
+                    }else{
+                        var x2 = parseInt(matches[3]) * scale + blankLeft;
+                        var y2 = parseInt(matches[4]) * scale + blankTop;}
                 }
         }
+
         // 添加控件元素
         var imageControl = document.createElement('div');
-        imageControl.setAttribute('img-identifier', identifier);
+        imageControl.setAttribute('img-identifier_number', identifier_number);
         imageControl.style.position = 'absolute';
         imageControl.style.left = x1 + "px"; /* 相对于目标元素左侧距离 */
         imageControl.style.top = y1 + "px"; /* 相对于目标元素顶部距离 */
-        imageControl.style.width = x2 -x1 + "px"; /* 新元素宽度 */
-        imageControl.style.height = y2 -y1 + "px"; /* 新元素高度 */
+        if (listItems[0].innerText.indexOf("iOS") !== -1) {
+            imageControl.style.width = x2 + "px"; /* 新元素宽度 */
+            imageControl.style.height = y2 + "px"; /* 新元素高度 */
+        }else{
+            imageControl.style.width = x2 -x1 + "px"; /* 新元素宽度 */
+            imageControl.style.height = y2 -y1 + "px"; /* 新元素高度 */
+        }
+
+
         imageControl.style.backgroundColor = 'rgba(144, 238, 144, 0)';
         imageControl.className = 'imageControl';
         ui_image.appendChild(imageControl);
@@ -49,21 +67,13 @@ function addTextControlHoverListeners() {
 
             listItems[i].addEventListener('mouseover', function() {
                 this.classList.add('hovered');
-                var attrs = this.attributes; // 获取当前被悬停元素的所有属性
                 infoList.innerHTML = ''; // 清空ul元素的内容
-                for (var j = 0; j < attrs.length; j++) {
-                    if (attrs[j].name != 'class' && attrs[j].name != 'style' && attrs[j].name != 'identifier') {
-                        var attr = attrs[j];
-                        var li = document.createElement('li'); // 创建一个新的li元素
-                        li.textContent = attr.name + ': ' + attr.value; // 设置li元素的内容
-                        infoList.appendChild(li); // 将li元素添加到ul元素中
-                    }
-                }
-                var identifier = this.getAttribute("identifier");
-                console.log('[img-identifier="${identifier}"]')
+                xpath = this.getAttribute('xpath')
+                crate_attributes_list(this)
 
-                var img_element = document.querySelector(`[img-identifier="${identifier}"]`);
-                console.log(img_element)
+                var identifier_number = this.getAttribute("identifier_number");
+
+                var img_element = document.querySelector(`[img-identifier_number="${identifier_number}"]`);
                 img_element.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
 
             });
@@ -85,17 +95,49 @@ window.onload = function() {
 
 function crate_attributes_list(text_element){
     var infoList = document.getElementById('info-list'); // 获取新的ul元素
+    var first_node = document.getElementById('Title')
     var attrs = text_element.attributes; // 获取当前被悬停元素的所有属性
+    var platform = first_node.getAttribute("nico_ui_platform")
+
     infoList.innerHTML = ''; // 清空ul元素的内容
-    for (var j = 0; j < attrs.length; j++) {
-        console.log("hank"+ attrs[j].name != 'class')
-        if (attrs[j].name != 'class' && attrs[j].name != 'style' && attrs[j].name != 'identifier') {
-            var attr = attrs[j];
+    xpath = text_element.getAttribute('xpath')
+    package_name = first_node.getAttribute('current_package_name')
+    if (platform == "iOS") {
+        url = `/get_element_attribute?id=${package_name}&xpath=${xpath}`
+        console.log(url)
+
+        var element_attribute;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            async: false,
+            success: function(data) {
+                element_attribute = data;
+            }
+        });
+
+        // 将字典中的键值对添加到 NamedNodeMap 中
+       Object.entries(element_attribute).forEach(function([key, value]) {
             var li = document.createElement('li'); // 创建一个新的li元素
-            li.textContent = attr.name + ': ' + attr.value; // 设置li元素的内容
+            li.textContent = key + ': ' + value; // 设置li元素的内容
             infoList.appendChild(li); // 将li元素添加到ul元素中
+        });
+
+    }else{
+        var attrs = text_element.attributes; // 获取当前被悬停元素的所有属性
+        for (var j = 0; j < attrs.length; j++) {
+            console.log(attrs[j].name)
+            if (attrs[j].name != 'class' && attrs[j].name != 'style' && attrs[j].name != 'identifier_number') {
+                var attr = attrs[j];
+                var li = document.createElement('li'); // 创建一个新的li元素
+                li.textContent = attr.name + ': ' + attr.value; // 设置li元素的内容
+                infoList.appendChild(li); // 将li元素添加到ul元素中
+            }
         }
     }
+
+
 }
 
 
@@ -106,8 +148,8 @@ function addImageListeners() {
             console.log('"mousemove" event on canvas');
     
             this.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
-            var identifier = this.getAttribute("img-identifier");
-            var text_element = document.querySelector(`[identifier="${identifier}"]`);
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
 
             text_element.classList.add('hovered');
             crate_attributes_list(text_element)
@@ -118,8 +160,8 @@ function addImageListeners() {
             console.log('"mousemove" event on canvas');
     
             this.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
-            var identifier = this.getAttribute("img-identifier");
-            var text_element = document.querySelector(`[identifier="${identifier}"]`);
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
             crate_attributes_list(text_element)
             text_element.classList.add('hovered');
             text_element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
@@ -129,8 +171,8 @@ function addImageListeners() {
         });
         imageControlList[i].addEventListener('mouseout', function() {
             this.style.backgroundColor = 'rgba(144, 238, 144, 0)';
-            var identifier = this.getAttribute("img-identifier");
-            var text_element = document.querySelector(`[identifier="${identifier}"]`);
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
             text_element.classList.remove('hovered');
 
         });
