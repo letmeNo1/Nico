@@ -32,5 +32,5 @@ def send_tcp_request(port: int, message: str):
         logger.error(f"{str(b)} by {port}")
         return f"{str(b)} by {port}"
 
-result = send_tcp_request(7000,"dump:true")
+result = send_tcp_request(9424,"handleMultiTouchRequest")
 print(result)

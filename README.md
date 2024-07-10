@@ -138,9 +138,14 @@ nico = AdbAutoNico(udid)
     
 ### *exists*：
 
-* To determine if an element exists, it performs a single element lookup to see if the element exists on the page. The return value is `True` or `False`.
+* To determine if an element exists, it performs a single element lookup to see if the element exists on the page. The return value is `True` or `False`.  By default, timeout is not set. If you need to wait, please pass timeout
+
     ```
     nico(**query).exists()
+    ```
+    or 
+    ```
+    nico(**query).exists(5)
     ```
   
 ## Nico Element
@@ -187,6 +192,12 @@ For all action method
 
   * `scroll(self, duration=200, direction='vertical_up')`
     Simulate scroll, `direction` include `vertical_up` or `vertical_down` or `horizontal_left` or `horizontal_right`
+
+  * `swipe(self, to_x, to_y, plus_duration=0)`:
+    Simulate swipe action, plus_duration will affect the duration of swipe, The larger the value, the slower the swipe speed. Please note that if it exceeds 1800, it will turn into a drag
+
+  * `drag(self, to_x, to_y, plus_duration=0)`:
+    Simulate drag action, plus_duration will affect the duration of drag
 
 
 ## adb utils
@@ -392,9 +403,13 @@ nico = AdbAutoNico(udid)
     
 ### *exists*：
 
-* 为了确定元素是否存在，它会执行单元素查找，以确定元素是否存在于页面中。返回值是`True`或`False`。
-    ```
+* 为了确定元素是否存在，它会执行单元素查找，以确定元素是否存在于页面中。返回值是`True`或`False`。默认情况下，未设置超时。如果需要等待，请传入超时时间
+     ```
     nico(**query).exists()
+    ```
+    or 
+    ```
+    nico(**query).exists(5)
     ```
   
 ## Nico Element
@@ -437,6 +452,12 @@ nico = AdbAutoNico(udid)
 
   * `scroll(self, duration=200, direction='vertical_up')`
    模拟滚动，'方向'包括' vertical_up '或' vertical_down '或' horizontal_left '或' horizontal_right '
+
+  * `swipe(self, to_x, to_y, plus_duration=0)`:
+   模拟滑动，plus_duration将影响滑动的持续时间，值越大，滑动速度越慢。请注意，如果超过1800，它将变成拖动
+
+  * `drag(self, to_x, to_y, plus_duration=0)`:
+    模拟拖动动作，plus_duration将影响拖动的持续时间
 
 ## adb utils
 **初始化**

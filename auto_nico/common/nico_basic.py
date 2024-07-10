@@ -297,11 +297,20 @@ class NicoBasic:
         RunningCache(self.udid).set_action_was_taken(False)
         raise TimeoutError(error)
 
-    def exists(self):
+    def exists(self,timeout = None):
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"checking element is exists by {query_method}={query_string}...")
         rst = self._find_function(self.query) is not None
+        if timeout is not None:
+            time_started_sec = time.time()
+            while time.time() < time_started_sec + timeout:
+                if rst:
+                    return True
+                else:
+                    RunningCache(self.udid).clear_current_cache_ui_tree()
+                    rst = self._find_function(self.query) is not None
+            return False
         return rst
 
     def get_root_xml(self, compressed):

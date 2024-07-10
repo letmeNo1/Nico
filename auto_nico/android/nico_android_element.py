@@ -187,6 +187,22 @@ class NicoAndroidElement(NicoBasicElement):
         RunningCache(self.udid).clear_current_cache_ui_tree()
         os.system(command)
 
+    def swipe(self, to_x, to_y, duration=0):
+        from_x = self.center_coordinate()[0]
+        from_y = self.center_coordinate()[1]
+        duration = duration + 200
+        command = f'adb -s {self.udid} shell input swipe {from_x} {from_y} {to_x} {to_y} {duration}'
+        os.environ[f"{self.udid}_ui_tree"] = ""
+        os.system(command)
+
+    def drag(self, to_x, to_y, duration=0):
+        from_x = self.center_coordinate()[0]
+        from_y = self.center_coordinate()[1]
+        duration = duration + 2000
+        command = f'adb -s {self.udid} shell input swipe {from_x} {from_y} {to_x} {to_y} {duration}'
+        os.environ[f"{self.udid}_ui_tree"] = ""
+        os.system(command)
+
     def click(self, x=None, y=None, x_offset=None, y_offset=None):
         if x is None and y is None:
             x = self.center_coordinate()[0]
