@@ -31,6 +31,3 @@ def send_tcp_request(port: int, message: str):
     except ConnectionResetError as b:
         logger.error(f"{str(b)} by {port}")
         return f"{str(b)} by {port}"
-
-result = send_tcp_request(9424,"handleMultiTouchRequest")
-print(result)

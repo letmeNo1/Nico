@@ -55,9 +55,10 @@ Usage
 
 ## initialize an NicoServer by udid
  ```
-from from auto_nico.nico.nico import AdbAutoNico
+from auto_nico.android.nico_android import NicoAndroid
 
-nico = AdbAutoNico(udid)
+
+nico = NicoAndroid(udid)
 ```
 
 ## Find elements
@@ -320,9 +321,10 @@ C:\Users\hanhuang\AppData\Local\Temp/514f465834593398_ui.xml
 ## 通过udid初始化NicoServer
 
  ```
-from from auto_nico.nico.nico import AdbAutoNico
+from auto_nico.android.nico_android import NicoAndroid
 
-nico = AdbAutoNico(udid)
+
+nico = NicoAndroid(udid)
 ```
 
 ## 查找元素
@@ -454,10 +456,10 @@ nico = AdbAutoNico(udid)
    模拟滚动，'方向'包括' vertical_up '或' vertical_down '或' horizontal_left '或' horizontal_right '
 
   * `swipe(self, to_x, to_y, plus_duration=0)`:
-   模拟滑动，plus_duration将影响滑动的持续时间，值越大，滑动速度越慢。请注意，如果超过1800，它将变成拖动
+   模拟滑动，plus_duration将影响滑动的持续时间，单位为秒，值越大，滑动速度越慢。请注意，如果超过1.8秒，它将变成拖动
 
   * `drag(self, to_x, to_y, plus_duration=0)`:
-    模拟拖动动作，plus_duration将影响拖动的持续时间
+    模拟拖动动作，plus_duration将影响拖动的持续时间，单位为秒
 
 ## adb utils
 **初始化**

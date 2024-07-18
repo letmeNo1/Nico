@@ -10,8 +10,7 @@ from auto_nico.common.logger_config import logger
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.common.send_request import send_tcp_request
 from auto_nico.ios.tools.image_process import bytes_to_image, images_to_video
-
-
+from auto_nico.common.error import NicoError
 
 
 class IdbUtils:

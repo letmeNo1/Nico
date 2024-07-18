@@ -42,15 +42,17 @@ class AdbUtils:
             f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner""")
         commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
         subprocess.Popen(commands, shell=True)
+        runtime_cache = RunningCache(self.udid)
         for _ in range(10):
             response = send_tcp_request(port, "dump_tree:false")
             if "<hierarchy" in response and "</hierarchy>" in response:
-                runtime_cache = RunningCache(self.udid)
                 runtime_cache.clear_current_cache_ui_tree()
                 runtime_cache.set_current_cache_ui_tree(response)
                 logger.debug(f"{self.udid}'s test server is ready")
                 break
-            time.sleep(1)
+            time.sleep(2)
+        runtime_cache.set_current_running_port(port)
+
         logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
 
     def install_test_server_package(self, version):

@@ -1,5 +1,7 @@
 import json
+import random
 import time
+import re
 
 import os
 
@@ -22,9 +24,6 @@ from auto_nico.ios.tools.format_converter import converter
 
 from auto_nico.common.runtime_cache import RunningCache
 
-from auto_nico.android.tools.format_converter import convert_xpath
-
-
 class UIStructureError(Exception):
     pass
 
@@ -36,8 +35,8 @@ class NicoBasic:
 
     def _dump_ui_xml(self, configuration):
         response = None
-        port = RunningCache(self.udid).get_current_running_port()
         for _ in range(5):
+            port = RunningCache(self.udid).get_current_running_port()
             if "NicoAndroid" in self.__class__.__name__:
                 compressed = configuration.get("compressed")
                 response = send_tcp_request(port, f"dump:{str(compressed).lower()}").replace("class=",
@@ -57,11 +56,13 @@ class NicoBasic:
                 return root
 
             else:
-                logger.debug(f"{self.udid}'s UI tree dump fail, retrying...")
+                logger.debug(f"{self.udid}'s UI tree dump fail, retrying... current response is {response}")
                 time.sleep(1)
                 if "NicoAndroid" in self.__class__.__name__:
+                    random_number = random.randint(9000, 9999)
+                    running_port = random_number
                     adb_utils = AdbUtils(self.udid)
-                    adb_utils.restart_test_server(port)
+                    adb_utils.restart_test_server(running_port)
         raise UIStructureError(f"{self.udid}'s UI tree dump fail")
 
     def _get_root_node(self, configuration: dict):
@@ -101,6 +102,7 @@ class NicoBasic:
 
     def __find_function_by_xml(self, query, multi=False, index=0, return_all=False) -> Union[_Element, None, list]:
         def __find_element_by_query_by_xml(root, query) -> Union[list, None]:
+            platform = self.__class__.__name__,
             xpath_expression = ".//*"
             conditions = []
             is_re = False
@@ -108,8 +110,18 @@ class NicoBasic:
                 if attribute == "compressed":
                     pass
                 elif attribute == "xpath":
-                    xpath_expression = convert_xpath(value)
-                    matching_elements = root.xpath(xpath_expression)
+                    path_list = re.findall(r'(\w+)\[(\d+)\]', value)
+                    current_element = root
+                    for class_name, index in path_list:
+                        index = int(index)
+                        class_name = f".{class_name}" if "NicoAndroidElement" in platform else class_name
+
+                        matching_elements = [child for child in current_element if child.get("class_name") and f"{class_name}" in child.get("class_name")]
+                        current_element = matching_elements[index] if index < len(matching_elements) else None
+                        if current_element is None:
+                            return None
+                    return [current_element]
+
                 else:
                     if attribute.find("_matches") > 0:
                         is_re = True

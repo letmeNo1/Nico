@@ -93,6 +93,8 @@ class NicoIOSElement(NicoBasicElement):
         return center_x, center_y
 
     def click(self, x=None, y=None, x_offset=None, y_offset=None):
+        current_port = RunningCache(self.udid).get_current_running_port()
+
         if x is None and y is None:
             x = self.center_coordinate()[0]
             y = self.center_coordinate()[1]
@@ -100,7 +102,7 @@ class NicoIOSElement(NicoBasicElement):
             x = x + x_offset
         if y_offset is not None:
             y = y + y_offset
-        send_tcp_request(self.port, f"coordinate_action:{self.package_name}:click:{x}:{y}:none")
+        send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:click:{x}:{y}:none")
         RunningCache(self.udid).set_action_was_taken(True)
         logger.debug(f"click {x} {y}")
 
@@ -111,12 +113,12 @@ class NicoIOSElement(NicoBasicElement):
             x = x + x_offset
         if y_offset is not None:
             y = y + y_offset
-        send_tcp_request(self.port, f"coordinate_action:{self.package_name}:press:{x}:{y}:{float(duration)}")
+        send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:press:{x}:{y}:{float(duration)}")
         RunningCache(self.udid).set_action_was_taken(True)
         logger.debug(f"click {x} {y}")
 
     def set_text(self, text):
-        send_tcp_request(self.port, f"coordinate_action:{self.package_name}:enter_text:none:none:{text}")
+        send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:enter_text:none:none:{text}")
         RunningCache(self.udid).set_action_was_taken(True)
 
     def get(self, index):
@@ -125,7 +127,7 @@ class NicoIOSElement(NicoBasicElement):
         NAE.set_current_node(node)
         NAE.set_udid(self.udid)
         NAE.set_package_name(self.package_name)
-        NAE.set_port(self.port)
+        NAE.set_port(RunningCache(self.udid).get_current_running_port())
         return NAE
 
     def all(self):
@@ -137,7 +139,7 @@ class NicoIOSElement(NicoBasicElement):
         for ele in eles:
             NAE = NicoIOSElement()
             NAE.set_query(self.query)
-            NAE.set_port(self.port)
+            NAE.set_port(RunningCache(self.udid).get_current_running_port())
             NAE.set_udid(self.udid)
             NAE.set_package_name(self.package_name)
             NAE.set_current_node(ele)
@@ -149,7 +151,7 @@ class NicoIOSElement(NicoBasicElement):
         previous_node = self._last_sibling(index)
         NAE = NicoIOSElement()
         NAE.set_query(self.query)
-        NAE.set_port(self.port)
+        NAE.set_port(RunningCache(self.udid).get_current_running_port())
         NAE.set_udid(self.udid)
         NAE.set_package_name(self.package_name)
         NAE.set_current_node(previous_node)
@@ -159,7 +161,7 @@ class NicoIOSElement(NicoBasicElement):
         next_node = self._next_sibling(index)
         NAE = NicoIOSElement()
         NAE.set_query(self.query)
-        NAE.set_port(self.port)
+        NAE.set_port(RunningCache(self.udid).get_current_running_port())
         NAE.set_udid(self.udid)
         NAE.set_package_name(self.package_name)
         NAE.set_current_node(next_node)
@@ -169,7 +171,7 @@ class NicoIOSElement(NicoBasicElement):
         parent_node = self._parent()
         NAE = NicoIOSElement()
         NAE.set_query(self.query)
-        NAE.set_port(self.port)
+        NAE.set_port(RunningCache(self.udid).get_current_running_port())
         NAE.set_udid(self.udid)
         NAE.set_package_name(self.package_name)
         NAE.set_current_node(parent_node)
@@ -179,7 +181,7 @@ class NicoIOSElement(NicoBasicElement):
         child_node = self._child(index)
         NAE = NicoIOSElement()
         NAE.set_query(self.query)
-        NAE.set_port(self.port)
+        NAE.set_port(RunningCache(self.udid).get_current_running_port())
         NAE.set_udid(self.udid)
         NAE.set_package_name(self.package_name)
         NAE.set_current_node(child_node)
