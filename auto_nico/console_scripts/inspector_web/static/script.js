@@ -1,3 +1,23 @@
+var refreshInterval;
+
+function calculateCenter(bounds) {
+    // 使用正则表达式提取坐标
+    var matches = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+    if (matches) {
+        var x1 = parseInt(matches[1]);
+        var y1 = parseInt(matches[2]);
+        var x2 = parseInt(matches[3]);
+        var y2 = parseInt(matches[4]);
+
+        // 计算中心点坐标
+        var centerX = (x1 + x2) / 2;
+        var centerY = (y1 + y2) / 2;
+
+        return { centerX: centerX, centerY: centerY };
+    } else {
+        throw new Error("Invalid bounds format");
+    }
+}
 
 function initImageControl(){
     var listItems = document.getElementsByClassName('node');
@@ -59,39 +79,30 @@ function initImageControl(){
         ui_image.appendChild(imageControl);
     }
 }
+
 function addTextControlHoverListeners() {
-        var listItems = document.getElementsByClassName('node');
+    var listItems = document.getElementsByClassName('node');
+    var infoList = document.getElementById('info-list'); // 获取新的ul元素
+    for (var i = 0; i < listItems.length; i++) {
+        listItems[i].addEventListener('mouseover', function() {
+            this.classList.add('hovered');
+            infoList.innerHTML = ''; // 清空ul元素的内容
+            xpath = this.getAttribute('xpath')
+            crate_attributes_list(this)
 
-        var infoList = document.getElementById('info-list'); // 获取新的ul元素
-        for (var i = 0; i < listItems.length; i++) {
-
-            listItems[i].addEventListener('mouseover', function() {
-                this.classList.add('hovered');
-                infoList.innerHTML = ''; // 清空ul元素的内容
-                xpath = this.getAttribute('xpath')
-                crate_attributes_list(this)
-
-                var identifier_number = this.getAttribute("identifier_number");
-
-                var img_element = document.querySelector(`[img-identifier_number="${identifier_number}"]`);
-                img_element.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
-
-            });
-            listItems[i].addEventListener('mouseout', function() {
-                this.classList.remove('hovered');
-                var imageControlList = document.getElementsByClassName('imageControl'); // 获取新的ul元素
-                for (var i = 0; i < imageControlList.length; i++) {
-                    imageControlList[i].style.backgroundColor = 'rgba(144, 238, 144, 0)';
-                }
-
-            });
-        }
+            var identifier_number = this.getAttribute("identifier_number");
+            var img_element = document.querySelector(`[img-identifier_number="${identifier_number}"]`);
+            img_element.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
+        });
+        listItems[i].addEventListener('mouseout', function() {
+            this.classList.remove('hovered');
+            var imageControlList = document.getElementsByClassName('imageControl'); // 获取新的ul元素
+            for (var i = 0; i < imageControlList.length; i++) {
+                imageControlList[i].style.backgroundColor = 'rgba(144, 238, 144, 0)';
+            }
+        });
     }
-
-
-window.onload = function() {
-    refreshData();
-};
+}
 
 function crate_attributes_list(text_element){
     var infoList = document.getElementById('info-list'); // 获取新的ul元素
@@ -127,7 +138,6 @@ function crate_attributes_list(text_element){
     }else{
         var attrs = text_element.attributes; // 获取当前被悬停元素的所有属性
         for (var j = 0; j < attrs.length; j++) {
-            console.log(attrs[j].name)
             if (attrs[j].name != 'class' && attrs[j].name != 'style' && attrs[j].name != 'identifier_number') {
                 var attr = attrs[j];
                 var li = document.createElement('li'); // 创建一个新的li元素
@@ -136,49 +146,77 @@ function crate_attributes_list(text_element){
             }
         }
     }
-
-
 }
 
-
 function addImageListeners() {
+    var first_node = document.getElementById('Title')
+    var platform = first_node.getAttribute("nico_ui_platform")
     var imageControlList = document.getElementsByClassName('imageControl'); // 获取新的ul元素
     for (var i = 0; i < imageControlList.length; i++) {
         imageControlList[i].addEventListener('mouseover', function() {
             console.log('"mousemove" event on canvas');
-    
             this.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
             var identifier_number = this.getAttribute("img-identifier_number");
             var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
-
             text_element.classList.add('hovered');
             crate_attributes_list(text_element)
-
         });
 
         imageControlList[i].addEventListener('click', function() {
             console.log('"mousemove" event on canvas');
-    
             this.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
             var identifier_number = this.getAttribute("img-identifier_number");
             var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
             crate_attributes_list(text_element)
             text_element.classList.add('hovered');
             text_element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-
-           
-
         });
+
+        imageControlList[i].addEventListener('dblclick', function() {
+            console.log('"dblclick" event on canvas');
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
+            text_element.classList.add('hovered');
+            var center = calculateCenter(text_element.getAttribute("bounds"));
+            console.log(platform)
+
+            // 在这里添加双击事件的逻辑
+            if (platform == "iOS") {
+
+
+
+             }
+             else {
+                url = `/android_excute_action?action=click&x=${center.centerX}&y=${center.centerY}`;
+                console.log(url);
+                var element_attribute;
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    async: true, // 确保请求是异步的
+                    success: function(data) {
+                       setTimeout(function() {
+                            refreshData();
+                        }, 500); // 1000毫秒 = 1秒
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Request failed:', status, error);
+                        // 即使请求失败，也可以选择调用refreshData
+                        refreshData();
+                    }
+                });
+            }
+        });
+
+
         imageControlList[i].addEventListener('mouseout', function() {
             this.style.backgroundColor = 'rgba(144, 238, 144, 0)';
             var identifier_number = this.getAttribute("img-identifier_number");
             var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
             text_element.classList.remove('hovered');
-
         });
     }
-
-   
 }
 
 function refreshData() {
@@ -200,8 +238,6 @@ function refreshData() {
     });
 }
 
-$(document).ready(function() {
-    $('#refresh-button').click(function() {
-        refreshData();
-    });
-});
+window.onload = function() {
+    refreshData();
+};

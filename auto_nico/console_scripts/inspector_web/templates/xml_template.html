@@ -1,25 +1,50 @@
-<!-- template.html -->
 <!doctype html>
 <html>
 <head>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"> <!-- 添加这一行 -->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 <title>XML Content</title>
 </head>
 <body>
-<button id="refresh-button">Refresh</button>
+
 <div class="content">
     <h1>XML Content as HTML</h1>
     <div class="content-inner">
-
         {{ xml_content|safe }}
     </div>
-    <ul id="info-list"></ul> <!-- 添加这一行 -->
+    <ul id="info-list"></ul>
 </div>
-<div class="image" id = "ui_image">
+<div class="controls">
+    <button id="switch-button" class="c_button">Switch App</button>
+    <button id="home-button" class="c_button">Home</button>
+    <button id="back-button" class="c_button">Back</button>
+    <button id="menu-button" class="c_button">Menu</button>
+    <input type="text" id="text-input" class="styled-input" placeholder="Enter text here">
+    <button id="submit-button" class="c_button">Submit</button>
+    <button id="refresh-button" class="c_button">Refresh</button>
+    <button id="volume-up" class="c_button">Volume Up</button>
+    <button id="volume-down" class="c_button">Volume Down</button>
+    <button id="power" class="c_button">Power</button>
+    <button id="delete_text" class="c_button">Delete</button>
+
+
+    <div class="switch-container">
+        <label class="switch">
+            <input type="checkbox" id="realtime-switch">
+            <span class="slider round"></span>
+        </label>
+        <label for="realtime-switch">real-time display</label>
+    </div>
+
+
+</div>
+<div class="image" id="ui_image">
     <img src="" alt="Image">
     <canvas id="myCanvas"></canvas>
 </div>
+
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+<script src="{{ url_for('static', filename='button_script.js') }}"></script>
+
 </body>
 </html>

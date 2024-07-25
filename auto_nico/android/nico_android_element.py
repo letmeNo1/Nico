@@ -223,7 +223,7 @@ class NicoAndroidElement(NicoBasicElement):
             x = x + x_offset
         if y_offset is not None:
             y = y + y_offset
-        command = f'adb -s {self.udid} shell input swipe {x} {y} {x} {y} {duration*1000}'
+        command = f'adb -s {self.udid} shell input swipe {x} {y} {x} {y} {int(duration*1000)}'
         RunningCache(self.udid).clear_current_cache_ui_tree()
         os.system(command)
 

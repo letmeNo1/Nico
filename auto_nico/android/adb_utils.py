@@ -11,10 +11,12 @@ from auto_nico.common.send_request import send_tcp_request
 import cv2
 import numpy as np
 
+
 class AdbUtils:
     def __init__(self, udid):
         self.udid = udid
         self.runtime_cache = RunningCache(udid)
+        self.version = 1.2
 
     def get_tcp_forward_port(self):
         rst = self.cmd(f'''forward --list | find "{self.udid}"''')
@@ -36,9 +38,10 @@ class AdbUtils:
                 break
 
     def restart_test_server(self, port):
+        self.reinstall_test_server_package(self.version)
         self.cmd("forward --remove-all")
         self.cmd(f"forward tcp:{port} tcp:{port}")
-        logger.debug(
+        logger.info(
             f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner""")
         commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
         subprocess.Popen(commands, shell=True)
@@ -50,28 +53,38 @@ class AdbUtils:
                 runtime_cache.set_current_cache_ui_tree(response)
                 logger.debug(f"{self.udid}'s test server is ready")
                 break
+            else:
+                logger.info(f"{self.udid}'s uiautomator was initialized fail")
             time.sleep(2)
+
         runtime_cache.set_current_running_port(port)
 
-        logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
+        logger.info(f"{self.udid}'s uiautomator was initialized successfully")
+
+    def __install(self, udid, version):
+        for i in [f"dump_hierarchy_v{version}.apk", f"dump_hierarchy_androidTest_v{version}.apk"]:
+            logger.debug(f"{udid}'s start install {i}")
+            lib_path = (os.path.dirname(__file__) + f"\package\{i}").replace("console_scripts\inspector_web", "")
+            rst = self.cmd(f"install -t {lib_path}")
+            if rst.find("Success") >= 0:
+                logger.debug(f"{udid}'s adb install {i} successfully")
+            else:
+                logger.debug(rst)
+
+    def reinstall_test_server_package(self, version):
+        for i in ["nico.dump_hierarchy", "nico.dump_hierarchy.test"]:
+            logger.debug(f"{self.udid}'s start uninstall {i}")
+            rst = self.cmd(f"uninstall {i}")
+            if rst.find("Success") >= 0:
+                logger.debug(f"{self.udid}'s adb uninstall {i} successfully")
+        self.__install(self.udid, version)
 
     def install_test_server_package(self, version):
-        def install(udid):
-            for i in [f"dump_hierarchy_v{version}.apk", f"dump_hierarchy_androidTest_v{version}.apk"]:
-                logger.debug(f"{udid}'s start install {i}")
-                lib_path = (os.path.dirname(__file__) + f"\package\{i}").replace("console_scripts\inspector_web", "")
-                rst = self.cmd(f"install -t {lib_path}")
-                if rst.find("Success") >= 0:
-                    logger.debug(f"{udid}'s adb install {i} successfully")
-                else:
-                    logger.debug(rst)
-
         rst = self.qucik_shell("dumpsys package nico.dump_hierarchy | grep versionName")
         if "versionName" not in rst:
-            install(self.udid)
+            self.__install(self.udid, version)
         elif version > float(rst.split("=")[-1]):
             logger.debug(float(rst.split("=")[-1]))
-
             logger.debug(f"{self.udid}'s New version detected")
             for i in ["nico.dump_hierarchy", "nico.dump_hierarchy.test"]:
                 logger.debug(f"{self.udid}'s start uninstall {i}")
@@ -80,7 +93,9 @@ class AdbUtils:
                     logger.debug(f"{self.udid}'s adb uninstall {i} successfully")
                 else:
                     logger.debug(rst)
-            install(self.udid)
+            self.__install(self.udid, version)
+        else:
+            logger.debug(f"{self.udid}'s version is the latest")
 
     def check_adb_server(self):
         rst = os.popen("adb devices").read()

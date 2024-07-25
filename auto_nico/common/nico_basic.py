@@ -48,7 +48,6 @@ class NicoBasic:
                 response = converter(response)
 
             if "<hierarchy" in response and "</hierarchy>" in response:
-                # logger.debug(f"{self.udid}'s UI tree is dump success!!!")
                 runtime_cache = RunningCache(self.udid)
                 runtime_cache.clear_current_cache_ui_tree()
                 runtime_cache.set_current_cache_ui_tree(response)
@@ -56,14 +55,17 @@ class NicoBasic:
                 return root
 
             else:
-                logger.debug(f"{self.udid}'s UI tree dump fail, retrying... current response is {response}")
-                time.sleep(1)
+                adb_utils = AdbUtils(self.udid)
+                logger.info(f"{self.udid}'s UI tree dump fail, retrying... current response is {response}")
                 if "NicoAndroid" in self.__class__.__name__:
                     random_number = random.randint(9000, 9999)
                     running_port = random_number
-                    adb_utils = AdbUtils(self.udid)
                     adb_utils.restart_test_server(running_port)
+                time.sleep(5)
+
+
         raise UIStructureError(f"{self.udid}'s UI tree dump fail")
+
 
     def _get_root_node(self, configuration: dict):
         """

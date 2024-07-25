@@ -33,11 +33,9 @@ def main():
                 h = 50
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), -1)
         cv2.imwrite(pic_path, image)
-        print(f"screenshot save as: {pic_path}")
         os.startfile(desktop_path)
 
 
     else:
         adb_utils.snapshot(timestamp, desktop_path)
-        print(f"screenshot save as: {pic_path}")
         os.startfile(desktop_path)

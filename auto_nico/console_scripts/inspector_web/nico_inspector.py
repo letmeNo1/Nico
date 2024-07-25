@@ -75,7 +75,6 @@ def dump_ui_tree():
 
     else:
         bundle_list = idb_utils.get_app_list()
-        print(bundle_list)
         command = "get_current_bundleIdentifier"
         for item in bundle_list:
             if item:
@@ -95,7 +94,7 @@ def refresh_image():
     port = int(os.environ.get('RemoteServerPort'))
     platform = os.environ.get('nico_ui_platform')
     if platform == "android":
-        new_data = send_tcp_request(port, "get_png_pic:100")
+        new_data = send_tcp_request(port, "get_png_pic:1")
     else:
         new_data = send_tcp_request(port, "get_jpg_pic:1.0")
     base64_data = base64.b64encode(new_data)
@@ -118,7 +117,7 @@ def generate_image():
     port = int(os.environ.get('RemoteServerPort'))
     platform = os.environ.get('nico_ui_platform')
     if platform == "android":
-        new_data = send_tcp_request(port, "get_pic")
+        new_data = send_tcp_request(port, "get_png_pic:100")
     else:
         new_data = send_tcp_request(port, "get_jpg_pic:1.0")
 
@@ -148,6 +147,79 @@ def get_element_attribute():
     new_data_dict.update({"bounds": f'[{frame.get("X")},{frame.get("Y")}][{frame.get("Width")},{frame.get("Height")}]'})
 
     return new_data_dict
+
+
+@app.route("/android_excute_action")
+def android_excute_action():
+    action = request.args.get('action')
+    if action == "click":
+        x = request.args.get("x")
+        y = request.args.get("y")
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input tap {x} {y}''')
+        return "excute sucessful"
+    elif action == "input":
+        inputValue = request.args.get("inputValue")
+        inputValue = inputValue.replace("&", "\&").replace("\"", "")
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input text {inputValue}''')
+        return "excute sucessful"
+
+    elif action == "home":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_HOME''')
+        return "excute sucessful"
+
+    elif action == "back":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_BACK''')
+        return "excute sucessful"
+
+    elif action == "menu":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_MENU''')
+        return "excute sucessful"
+
+    elif action == "switch_app":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_APP_SWITCH''')
+        return "excute sucessful"
+
+    elif action == "switch_app":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_APP_SWITCH''')
+        return "excute sucessful"
+
+    elif action == "volume_up":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_VOLUME_UP''')
+        return "excute sucessful"
+
+    elif action == "volume_down":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_VOLUME_DOWN''')
+        return "excute sucessful"
+
+    elif action == "power":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_POWER''')
+        return "excute sucessful"
+
+    elif action == "delete_text":
+        udid = os.environ.get("nico_ui_udid")
+        adb_utils = AdbUtils(udid)
+        adb_utils.shell(f'''input keyevent KEYCODE_DEL''')
+        return "excute sucessful"
 
 
 @app.route('/')
@@ -235,6 +307,9 @@ def main():
         adb_utils.cmd(f'''forward tcp:{remote_port} tcp:{remote_port}''')
         adb_utils.check_adb_server()
         adb_utils.install_test_server_package(1.2)
+        ime_list = adb_utils.qucik_shell("ime list -s").split("\n")[0:-1]
+        for ime in ime_list:
+            adb_utils.qucik_shell(f"ime disable {ime}")
         commands = f"""adb -s {udid} shell am instrument -r -w -e port {remote_port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
         subprocess.Popen(commands, shell=True)
     else:
