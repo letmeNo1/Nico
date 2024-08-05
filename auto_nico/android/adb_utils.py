@@ -16,7 +16,7 @@ class AdbUtils:
     def __init__(self, udid):
         self.udid = udid
         self.runtime_cache = RunningCache(udid)
-        self.version = 1.2
+        self.version = 1.3
 
     def get_tcp_forward_port(self):
         rst = self.cmd(f'''forward --list | find "{self.udid}"''')
@@ -37,13 +37,12 @@ class AdbUtils:
                 logger.debug(f"{self.udid}'s tcp already forward tcp:{port} tcp:{port}")
                 break
 
-    def restart_test_server(self, port):
-        self.reinstall_test_server_package(self.version)
-        self.cmd("forward --remove-all")
+    def light_restart_test_server(self, port):
+        self.cmd(f"forward --remove-all")
         self.cmd(f"forward tcp:{port} tcp:{port}")
         logger.info(
             f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner""")
-        commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+        commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner"""
         subprocess.Popen(commands, shell=True)
         runtime_cache = RunningCache(self.udid)
         for _ in range(10):
@@ -54,8 +53,38 @@ class AdbUtils:
                 logger.debug(f"{self.udid}'s test server is ready")
                 break
             else:
-                logger.info(f"{self.udid}'s uiautomator was initialized fail")
+                logger.info(f"{self.udid}'s uiautomator was initialized fail, try again, {10 - _} times left")
             time.sleep(2)
+
+        runtime_cache.set_current_running_port(port)
+
+        logger.info(f"{self.udid}'s uiautomator was initialized successfully")
+
+    def restart_test_server(self, port):
+        runtime_cache = RunningCache(self.udid)
+        def __check_server_ready(current_port, timeout):
+            time_started_sec = time.time()
+            while time.time() < time_started_sec + timeout:
+                rst = "[android.view.accessibility.AccessibilityNodeInfo" in send_tcp_request(current_port, "get_root")
+                if rst:
+                    logger.info(f"{self.udid}'s test server is ready")
+                    return True
+                else:
+                    logger.info(f"rerun fail rst:{rst}")
+                    time.sleep(0.5)
+                    continue
+            return False
+
+        for _ in range(5):
+            logger.debug(
+                f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner""")
+            commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+            subprocess.Popen(commands, shell=True)
+            if __check_server_ready(port, 10):
+                break
+            logger.info(f"wait 3 s")
+            time.sleep(3)
+        logger.info(f"{self.udid}'s uiautomator was initialized successfully")
 
         runtime_cache.set_current_running_port(port)
 
@@ -63,20 +92,20 @@ class AdbUtils:
 
     def __install(self, udid, version):
         for i in [f"dump_hierarchy_v{version}.apk", f"dump_hierarchy_androidTest_v{version}.apk"]:
-            logger.debug(f"{udid}'s start install {i}")
+            logger.info(f"{udid}'s start install {i}")
             lib_path = (os.path.dirname(__file__) + f"\package\{i}").replace("console_scripts\inspector_web", "")
-            rst = self.cmd(f"install -t {lib_path}")
+            rst = self.cmd(fr"install -t {lib_path}")
             if rst.find("Success") >= 0:
-                logger.debug(f"{udid}'s adb install {i} successfully")
+                logger.info(f"{udid}'s adb install {lib_path} successfully")
             else:
-                logger.debug(rst)
+                logger.info(rst)
 
     def reinstall_test_server_package(self, version):
         for i in ["nico.dump_hierarchy", "nico.dump_hierarchy.test"]:
-            logger.debug(f"{self.udid}'s start uninstall {i}")
+            logger.info(f"{self.udid}'s start uninstall {i}")
             rst = self.cmd(f"uninstall {i}")
             if rst.find("Success") >= 0:
-                logger.debug(f"{self.udid}'s adb uninstall {i} successfully")
+                logger.info(f"{self.udid}'s adb uninstall {i} successfully")
         self.__install(self.udid, version)
 
     def install_test_server_package(self, version):
@@ -84,8 +113,8 @@ class AdbUtils:
         if "versionName" not in rst:
             self.__install(self.udid, version)
         elif version > float(rst.split("=")[-1]):
-            logger.debug(float(rst.split("=")[-1]))
-            logger.debug(f"{self.udid}'s New version detected")
+            logger.info(float(rst.split("=")[-1]))
+            logger.info(f"{self.udid}'s New version detected")
             for i in ["nico.dump_hierarchy", "nico.dump_hierarchy.test"]:
                 logger.debug(f"{self.udid}'s start uninstall {i}")
                 rst = self.cmd(f"uninstall {i}")

@@ -16,13 +16,13 @@ class NicoAndroid(NicoBasic):
         super().__init__(udid,  **query)
         self.udid = udid
         self.adb_utils = AdbUtils(udid)
-        self.version = 1.2
+        self.version = 1.3
         self.adb_utils.install_test_server_package(self.version)
         self.adb_utils.check_adb_server()
         self.__set_running_port(port)
         self.runtime_cache = RunningCache(udid)
         self.runtime_cache.set_initialized(True)
-        rst = "200" in send_tcp_request(RunningCache(udid).get_current_running_port(), "print")
+        rst = "HTTP/1.1 200 OK" in send_tcp_request(RunningCache(udid).get_current_running_port(), "print")
         if rst:
             logger.debug(f"{self.udid}'s test server is ready")
         else:
@@ -42,21 +42,38 @@ class NicoAndroid(NicoBasic):
                 running_port = random_number
         else:
             running_port = int(exists_port)
-        RunningCache(self.udid).set_current_running_port(running_port)
+        RunningCache(self.udid).set_current_running_port(running_port)\
+
+    def __check_server_ready(self,current_port,timeout):
+        time_started_sec = time.time()
+        while time.time() < time_started_sec + timeout:
+            respone =  send_tcp_request(current_port, "get_root")
+            rst = "[android.view.accessibility.AccessibilityNodeInfo" in respone
+            logger.info(f"{self.udid}'s respone is {respone} ")
+
+            if rst:
+
+                logger.info(f"{self.udid}'s test server is ready")
+                return True
+            else:
+                logger.info(f"rerun fail rst:{rst}")
+                time.sleep(0.5)
+                continue
+        return False
 
     def __start_test_server(self):
         current_port = RunningCache(self.udid).get_current_running_port()
-        logger.debug(
-            f"""adb -s {self.udid} shell am instrument -r -w -e port {current_port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner""")
-        commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {current_port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
-        subprocess.Popen(commands, shell=True)
-        for _ in range(10):
-            response = send_tcp_request(current_port, "print")
-            if "200" in response:
-                logger.debug(f"{self.udid}'s test server is ready")
+        for _ in range(5):
+            logger.debug(
+                f"""adb -s {self.udid} shell am instrument -r -w -e port {current_port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner""")
+            commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {current_port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+            subprocess.Popen(commands, shell=True)
+            time.sleep(3)
+            if self.__check_server_ready(current_port,10):
                 break
-            time.sleep(1)
-        logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
+            logger.info(f"wait 3 s")
+            time.sleep(3)
+        logger.info(f"{self.udid}'s uiautomator was initialized successfully")
 
     def __init_adb_auto(self, port):
         self.adb_utils.set_tcp_forward_port(port)
@@ -71,9 +88,10 @@ class NicoAndroid(NicoBasic):
     def __call__(self, **query):
         current_port = RunningCache(self.udid).get_current_running_port()
         self.adb_utils.check_adb_server()
-        rst = "200" in send_tcp_request(current_port, "print")
+        respond = send_tcp_request(current_port, "get_root")
+        rst = "[android.view.accessibility.AccessibilityNodeInfo" in  respond
         if not rst:
-            logger.debug(f"{self.udid} test server disconnect, restart ")
+            logger.info(f"{self.udid} test server disconnect, restart ")
             self.adb_utils.install_test_server_package(self.version)
             self.__init_adb_auto(current_port)
             self.close_keyboard()

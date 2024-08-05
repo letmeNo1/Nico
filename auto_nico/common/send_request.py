@@ -31,3 +31,8 @@ def send_tcp_request(port: int, message: str):
     except ConnectionResetError as b:
         logger.error(f"{str(b)} by {port}")
         return f"{str(b)} by {port}"
+    except ConnectionAbortedError as b:
+        logger.error(f"{str(b)} by {port}")
+        return f"{str(b)} by {port}"
+
+# send_tcp_request(9580,"print")

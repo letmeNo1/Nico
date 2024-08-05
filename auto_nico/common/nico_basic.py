@@ -24,6 +24,7 @@ from auto_nico.ios.tools.format_converter import converter
 
 from auto_nico.common.runtime_cache import RunningCache
 
+
 class UIStructureError(Exception):
     pass
 
@@ -35,13 +36,14 @@ class NicoBasic:
 
     def _dump_ui_xml(self, configuration):
         response = None
-        for _ in range(5):
+        for times in range(5):
             port = RunningCache(self.udid).get_current_running_port()
             if "NicoAndroid" in self.__class__.__name__:
                 compressed = configuration.get("compressed")
                 response = send_tcp_request(port, f"dump:{str(compressed).lower()}").replace("class=",
                                                                                              "class_name=").replace(
                     "resource-id=", "id=").replace("content-desc=", "content_desc=")
+                # print(response)
             elif "NicoIOS" in self.__class__.__name__:
                 package_name = configuration.get("package_name")
                 response = send_tcp_request(port, f"dump_tree:{package_name}")
@@ -56,16 +58,15 @@ class NicoBasic:
 
             else:
                 adb_utils = AdbUtils(self.udid)
-                logger.info(f"{self.udid}'s UI tree dump fail, retrying... current response is {response}")
+                logger.info(f"{self.udid}'s UI tree dump fail, retrying... current response is {response}, times is {times}")
                 if "NicoAndroid" in self.__class__.__name__:
+                    current_port = adb_utils.get_tcp_forward_port()
+                    adb_utils.clear_tcp_forward_port(current_port)
                     random_number = random.randint(9000, 9999)
-                    running_port = random_number
-                    adb_utils.restart_test_server(running_port)
-                time.sleep(5)
-
-
+                    new_port = random_number
+                    adb_utils.set_tcp_forward_port(new_port)
+                    adb_utils.restart_test_server(new_port)
         raise UIStructureError(f"{self.udid}'s UI tree dump fail")
-
 
     def _get_root_node(self, configuration: dict):
         """
@@ -118,7 +119,8 @@ class NicoBasic:
                         index = int(index)
                         class_name = f".{class_name}" if "NicoAndroidElement" in platform else class_name
 
-                        matching_elements = [child for child in current_element if child.get("class_name") and f"{class_name}" in child.get("class_name")]
+                        matching_elements = [child for child in current_element if
+                                             child.get("class_name") and f"{class_name}" in child.get("class_name")]
                         current_element = matching_elements[index] if index < len(matching_elements) else None
                         if current_element is None:
                             return None
@@ -128,12 +130,12 @@ class NicoBasic:
                     if attribute.find("_matches") > 0:
                         is_re = True
                         attribute = attribute.replace("_matches", "")
-                        condition = f"re:match(@{attribute},'{value}')"
+                        condition = f'''re:match(@{attribute},"{value}")'''
                     elif attribute.find("_contains") > 0:
                         attribute = attribute.replace("_contains", "")
-                        condition = f"contains(@{attribute},'{value}')"
+                        condition = f'''contains(@{attribute},"{value}")'''
                     else:
-                        condition = f"@{attribute}='{value}'"
+                        condition = f'''@{attribute}="{value}"'''
                     conditions.append(condition)
                     if conditions:
                         xpath_expression += "[" + " and ".join(conditions) + "]"
@@ -224,19 +226,52 @@ class NicoBasic:
         logger.debug(f"found element: {matching_element}")
         return json.loads(matching_element)
 
+    def __find_element_by_query_for_android(self, query, return_all=False) -> Union[dict, None]:
+        port = RunningCache(self.udid).get_current_running_port()
+        for attribute, value in query.items():
+            if attribute=="class_name":
+                attribute = "class"
+            if attribute.find("_contains") > 0:
+                type_ = attribute.replace("_contains", "Contains")
+            else:
+                type_ = attribute
+
+        if return_all:
+            matching_elements = send_tcp_request(port,
+                                                 f"find_elements_by_query:{type_}:{value}")
+            return json.loads(f"[{matching_elements}]")
+
+        else:
+            matching_element = send_tcp_request(port,
+                                                f"find_element_by_query:{type_}:{value}")
+            if matching_element.strip() == "Element not found" or matching_element.strip() == "":
+                return None
+            elif matching_element.strip()  == "Unknown selector type":
+                raise Exception(f"Unknown selector type: {type_}")
+        logger.info(f"found element: {matching_element}")
+        return json.loads(matching_element)
+
     def _find_function(self, query, use_xml=False) -> Union[dict, _Element]:
         platform = self.__class__.__name__,
+        if "matches" in list(query.keys())[0]:
+            use_xml = True
         if query.get("image") is not None:
             image_path = query.get("image")
             threshold = query.get("threshold")
             algorithms = query.get("algorithms")
             found_element = self.__find_function_by_image(image_path, threshold, algorithms)
-        elif "NicoAndroid" in str(platform) or use_xml:
-            found_element = self.__find_function_by_xml(query)
-        elif "NicoIOS" in str(platform):
-            found_element = self.__find_element_by_query_for_ios(query)
         else:
-            raise Exception("Unsupported platform")
+            if use_xml:
+                found_element = self.__find_function_by_xml(query)
+            else:
+                if "NicoAndroid" in str(platform):
+                    found_element = self.__find_function_by_xml(query)
+
+                    # found_element = self.__find_element_by_query_for_android(query)
+                elif "NicoIOS" in str(platform):
+                    found_element = self.__find_element_by_query_for_ios(query)
+                else:
+                    raise Exception("Unsupported platform")
         return found_element
 
     def _find_all_function(self, query):
@@ -267,6 +302,7 @@ class NicoBasic:
                     return 1
                 else:
                     RunningCache(self.udid).clear_current_cache_ui_tree()
+            time.sleep(0.2)
 
         if wait_disappear:
             error = "Can't wait element/elements disappear in %s s by %s = %s" % (timeout, query_method, query_string)
@@ -300,18 +336,20 @@ class NicoBasic:
                 found_node = self._find_function(query)
                 if found_node is not None:
                     time.time() - time_started_sec
-                    logger.debug(f"Found element by {index}. {query_method} = {query_string}")
+                    logger.info(f"Found element by {index}. {query_method} = {query_string}")
                     return index
                 else:
+                    logger.info(f"Not found element by {index}. {query_method} = {query_string}")
+
                     RunningCache(self.udid).clear_current_cache_ui_tree()
             find_times += 1
             if find_times == 1:
-                logger.debug(f"no found any, try again")
+                logger.info(f"no found any, try again")
         error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
         RunningCache(self.udid).set_action_was_taken(False)
         raise TimeoutError(error)
 
-    def exists(self,timeout = None):
+    def exists(self, timeout=None):
         query_string = list(self.query.values())[0]
         query_method = list(self.query.keys())[0]
         logger.debug(f"checking element is exists by {query_method}={query_string}...")
