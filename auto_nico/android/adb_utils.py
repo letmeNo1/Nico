@@ -26,6 +26,7 @@ class AdbUtils:
         return port
 
     def clear_tcp_forward_port(self, port):
+        logger.info(f"{self.udid}'s forward --remove tcp:{port}")
         self.cmd(f"forward --remove tcp:{port}")
 
     def set_tcp_forward_port(self, port):
@@ -34,31 +35,8 @@ class AdbUtils:
             if self.udid not in rst:
                 self.cmd(f'''forward tcp:{port} tcp:{port}''')
             else:
-                logger.debug(f"{self.udid}'s tcp already forward tcp:{port} tcp:{port}")
+                logger.info(f"{self.udid}'s tcp already forward tcp:{port} tcp:{port}")
                 break
-
-    def light_restart_test_server(self, port):
-        self.cmd(f"forward --remove-all")
-        self.cmd(f"forward tcp:{port} tcp:{port}")
-        logger.info(
-            f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner""")
-        commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner"""
-        subprocess.Popen(commands, shell=True)
-        runtime_cache = RunningCache(self.udid)
-        for _ in range(10):
-            response = send_tcp_request(port, "dump_tree:false")
-            if "<hierarchy" in response and "</hierarchy>" in response:
-                runtime_cache.clear_current_cache_ui_tree()
-                runtime_cache.set_current_cache_ui_tree(response)
-                logger.debug(f"{self.udid}'s test server is ready")
-                break
-            else:
-                logger.info(f"{self.udid}'s uiautomator was initialized fail, try again, {10 - _} times left")
-            time.sleep(2)
-
-        runtime_cache.set_current_running_port(port)
-
-        logger.info(f"{self.udid}'s uiautomator was initialized successfully")
 
     def restart_test_server(self, port):
         runtime_cache = RunningCache(self.udid)
@@ -67,10 +45,11 @@ class AdbUtils:
             while time.time() < time_started_sec + timeout:
                 rst = "[android.view.accessibility.AccessibilityNodeInfo" in send_tcp_request(current_port, "get_root")
                 if rst:
-                    logger.info(f"{self.udid}'s test server is ready")
+                    logger.info(f"{self.udid}'s test server is ready on {port}")
+                    runtime_cache.set_current_running_port(port)
                     return True
                 else:
-                    logger.info(f"rerun fail rst:{rst}")
+                    logger.info(f"{self.udid}'s test server isn't ready on {port}")
                     time.sleep(0.5)
                     continue
             return False
@@ -81,14 +60,11 @@ class AdbUtils:
             commands = f"""adb -s {self.udid} shell am instrument -r -w -e port {port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
             subprocess.Popen(commands, shell=True)
             if __check_server_ready(port, 10):
-                break
+                logger.info(f"{self.udid}'s uiautomator was initialized successfully")
+                return True
             logger.info(f"wait 3 s")
             time.sleep(3)
-        logger.info(f"{self.udid}'s uiautomator was initialized successfully")
-
-        runtime_cache.set_current_running_port(port)
-
-        logger.info(f"{self.udid}'s uiautomator was initialized successfully")
+        return False
 
     def __install(self, udid, version):
         for i in [f"dump_hierarchy_v{version}.apk", f"dump_hierarchy_androidTest_v{version}.apk"]:
@@ -111,6 +87,7 @@ class AdbUtils:
     def install_test_server_package(self, version):
         rst = self.qucik_shell("dumpsys package nico.dump_hierarchy | grep versionName")
         if "versionName" not in rst:
+            self.wait_for_boot_completed()
             self.__install(self.udid, version)
         elif version > float(rst.split("=")[-1]):
             logger.info(float(rst.split("=")[-1]))
@@ -126,12 +103,30 @@ class AdbUtils:
         else:
             logger.debug(f"{self.udid}'s version is the latest")
 
+    def is_device_boot_completed(self):
+        result = self.shell("getprop sys.boot_completed").strip()
+        print(result)
+        return result == "1"
+
+    def wait_for_boot_completed(self):
+        while not self.is_device_boot_completed():
+            print("Waiting for device to complete booting...")
+            time.sleep(5)
+        print("Device boot completed")
+
     def check_adb_server(self):
         rst = os.popen("adb devices").read()
         if self.udid in rst:
             pass
         else:
             raise ADBServerError("no devices connect")
+
+    def is_screen_off(self):
+        rst = self.shell("dumpsys power | grep 'Display Power'")
+        if "state=OFF" in rst:
+            return True
+        else:
+            return False
 
     def get_screen_size(self):
         command = f'adb -s {self.udid} shell wm size'
@@ -236,6 +231,7 @@ class AdbUtils:
                 return m.group(1) == 'SCREEN_STATE_ON'
         raise NicoError("Couldn't determine screen ON state")
 
+
     def is_locked(self):
         """
         Perform `adb shell dumpsys window policy` command and search for information if screen is locked or not
@@ -268,6 +264,9 @@ class AdbUtils:
         self.qucik_shell('input keyevent MENU')
         self.qucik_shell('input keyevent BACK')
 
+    def wake_up(self):
+        self.qucik_shell('input keyevent KEYCODE_WAKEUP')
+
     def keyevent(self, keyname):
         self.qucik_shell(f'input keyevent {keyname}')
 
@@ -279,6 +278,9 @@ class AdbUtils:
 
     def home(self):
         self.keyevent("HOME")
+
+    def switch_app(self):
+        self.keyevent("KEYCODE_APP_SWITCH")
 
     def get_image_object(self, quality=100):
         exists_port = self.runtime_cache.get_current_running_port()

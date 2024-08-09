@@ -26,17 +26,6 @@ body {
     box-sizing: border-box; /* 包含内边距和边框在内的宽度 */
 }
 
-.content2 {
-    float: right;
-    width: 50%;
-    height: 100%;
-    box-sizing: border-box;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
 .content-inner {
     width: 100%; /* 修改为100% */
     height: 50%; /* 修改为50% */
@@ -172,21 +161,4 @@ input:checked + .slider:before {
     border-radius: 4px;
     border: 1px solid #ccc;
     box-sizing: border-box;
-}
-
-.floating-button {
-        position: fixed;
-        right: 10px;
-        bottom: 10px;
-        z-index: 1000;
-        background-color: #007BFF;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-.floating-button:hover {
-    background-color: #0056b3;
 }

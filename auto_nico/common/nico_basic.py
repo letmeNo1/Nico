@@ -36,8 +36,9 @@ class NicoBasic:
 
     def _dump_ui_xml(self, configuration):
         response = None
+        runtime_cache = RunningCache(self.udid)
         for times in range(5):
-            port = RunningCache(self.udid).get_current_running_port()
+            port = runtime_cache.get_current_running_port()
             if "NicoAndroid" in self.__class__.__name__:
                 compressed = configuration.get("compressed")
                 response = send_tcp_request(port, f"dump:{str(compressed).lower()}").replace("class=",
@@ -50,7 +51,6 @@ class NicoBasic:
                 response = converter(response)
 
             if "<hierarchy" in response and "</hierarchy>" in response:
-                runtime_cache = RunningCache(self.udid)
                 runtime_cache.clear_current_cache_ui_tree()
                 runtime_cache.set_current_cache_ui_tree(response)
                 root = ET.fromstring(response.encode('utf-8'))
@@ -58,7 +58,7 @@ class NicoBasic:
 
             else:
                 adb_utils = AdbUtils(self.udid)
-                logger.info(f"{self.udid}'s UI tree dump fail, retrying... current response is {response}, times is {times}")
+                logger.info(f"{self.udid}'s UI tree dump fail on {port}, retrying... current response is {response}, times is {times}")
                 if "NicoAndroid" in self.__class__.__name__:
                     current_port = adb_utils.get_tcp_forward_port()
                     adb_utils.clear_tcp_forward_port(current_port)
@@ -66,7 +66,7 @@ class NicoBasic:
                     new_port = random_number
                     adb_utils.set_tcp_forward_port(new_port)
                     adb_utils.restart_test_server(new_port)
-        raise UIStructureError(f"{self.udid}'s UI tree dump fail")
+        raise UIStructureError(f"{self.udid}'s UI tree dump fail on {port}")
 
     def _get_root_node(self, configuration: dict):
         """

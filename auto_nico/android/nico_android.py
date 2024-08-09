@@ -24,7 +24,7 @@ class NicoAndroid(NicoBasic):
         self.runtime_cache.set_initialized(True)
         rst = "HTTP/1.1 200 OK" in send_tcp_request(RunningCache(udid).get_current_running_port(), "print")
         if rst:
-            logger.debug(f"{self.udid}'s test server is ready")
+            logger.debug(f"{self.udid}'s test server is ready on {RunningCache(udid).get_current_running_port()}")
         else:
             logger.debug(f"{self.udid} test server disconnect, restart ")
             self.__init_adb_auto(RunningCache(udid).get_current_running_port())
@@ -53,10 +53,10 @@ class NicoAndroid(NicoBasic):
 
             if rst:
 
-                logger.info(f"{self.udid}'s test server is ready")
+                logger.info(f"{self.udid}'s test server is ready on {current_port}")
                 return True
             else:
-                logger.info(f"rerun fail rst:{rst}")
+                logger.info(f"server is no ready on {current_port}")
                 time.sleep(0.5)
                 continue
         return False
@@ -88,6 +88,8 @@ class NicoAndroid(NicoBasic):
     def __call__(self, **query):
         current_port = RunningCache(self.udid).get_current_running_port()
         self.adb_utils.check_adb_server()
+        if self.adb_utils.is_screen_off():
+            self.adb_utils.wake_up()
         respond = send_tcp_request(current_port, "get_root")
         rst = "[android.view.accessibility.AccessibilityNodeInfo" in  respond
         if not rst:

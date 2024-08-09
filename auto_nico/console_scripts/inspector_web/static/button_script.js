@@ -105,16 +105,3 @@ $(document).ready(function() {
         });
     }
 });
-
-document.addEventListener('DOMContentLoaded', function() {
-    var controlsContainer = document.getElementById('controls-container');
-    controlsContainer.style.display = 'block'; // 初始化显示状态
-
-    document.getElementById('toggle-controls').addEventListener('click', function() {
-        if (controlsContainer.style.display === 'none') {
-            controlsContainer.style.display = 'block';
-        } else {
-            controlsContainer.style.display = 'none';
-        }
-    });
-});

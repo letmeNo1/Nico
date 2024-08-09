@@ -41,7 +41,7 @@ class NicoIOS(NicoBasic):
             raise IDBServerError("no devices connect")
 
     def __set_running_port(self, port):
-        exists_port = self.adb_utils.get_tcp_forward_port()
+        exists_port, pid = self.idb_utils.get_tcp_forward_port()
         if exists_port is None:
             logger.debug(f"{self.udid} no exists port")
             if port != "random":
