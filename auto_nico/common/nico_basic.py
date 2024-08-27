@@ -58,7 +58,8 @@ class NicoBasic:
 
             else:
                 adb_utils = AdbUtils(self.udid)
-                logger.info(f"{self.udid}'s UI tree dump fail on {port}, retrying... current response is {response}, times is {times}")
+                logger.info(
+                    f"{self.udid}'s UI tree dump fail on {port}, retrying... current response is {response}, times is {times}")
                 if "NicoAndroid" in self.__class__.__name__:
                     current_port = adb_utils.get_tcp_forward_port()
                     adb_utils.clear_tcp_forward_port(current_port)
@@ -127,23 +128,27 @@ class NicoBasic:
                     return [current_element]
 
                 else:
+                    value = f"'{value}'"
                     if attribute.find("_matches") > 0:
                         is_re = True
                         attribute = attribute.replace("_matches", "")
-                        condition = f'''re:match(@{attribute},"{value}")'''
+                        condition = f'''re:match(@{attribute},{value})'''
                     elif attribute.find("_contains") > 0:
+
                         attribute = attribute.replace("_contains", "")
-                        condition = f'''contains(@{attribute},"{value}")'''
+                        condition = f'''contains(@{attribute},{value})'''
                     else:
-                        condition = f'''@{attribute}="{value}"'''
+                        condition = f'''@{attribute}={value}'''
                     conditions.append(condition)
                     if conditions:
                         xpath_expression += "[" + " and ".join(conditions) + "]"
-                    if is_re:
-                        ns = {"re": "http://exslt.org/regular-expressions"}
-                        matching_elements = root.xpath(xpath_expression, namespaces=ns)
-                    else:
-                        matching_elements = root.xpath(xpath_expression)
+            if is_re:
+                ns = {"re": "http://exslt.org/regular-expressions"}
+                matching_elements = root.xpath(xpath_expression, namespaces=ns)
+            else:
+
+                matching_elements = root.xpath(xpath_expression)
+
             if len(matching_elements) == 0:
                 return None
             else:
@@ -229,7 +234,7 @@ class NicoBasic:
     def __find_element_by_query_for_android(self, query, return_all=False) -> Union[dict, None]:
         port = RunningCache(self.udid).get_current_running_port()
         for attribute, value in query.items():
-            if attribute=="class_name":
+            if attribute == "class_name":
                 attribute = "class"
             if attribute.find("_contains") > 0:
                 type_ = attribute.replace("_contains", "Contains")
@@ -246,7 +251,7 @@ class NicoBasic:
                                                 f"find_element_by_query:{type_}:{value}")
             if matching_element.strip() == "Element not found" or matching_element.strip() == "":
                 return None
-            elif matching_element.strip()  == "Unknown selector type":
+            elif matching_element.strip() == "Unknown selector type":
                 raise Exception(f"Unknown selector type: {type_}")
         logger.info(f"found element: {matching_element}")
         return json.loads(matching_element)
