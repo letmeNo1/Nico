@@ -128,7 +128,12 @@ class NicoBasic:
                     return [current_element]
 
                 else:
-                    value = f"'{value}'"
+                    if "'" in value:
+                        parts = value.split("'")
+                        value = "concat(" + ", ".join(
+                            [f"'{part}', \"'\"" for part in parts[:-1]] + [f"'{parts[-1]}'"]) + ")"
+                    else:
+                        value = f"'{value}'"
                     if attribute.find("_matches") > 0:
                         is_re = True
                         attribute = attribute.replace("_matches", "")
@@ -142,6 +147,7 @@ class NicoBasic:
                     conditions.append(condition)
                     if conditions:
                         xpath_expression += "[" + " and ".join(conditions) + "]"
+
             if is_re:
                 ns = {"re": "http://exslt.org/regular-expressions"}
                 matching_elements = root.xpath(xpath_expression, namespaces=ns)
