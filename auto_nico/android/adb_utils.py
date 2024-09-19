@@ -19,10 +19,10 @@ class AdbUtils:
         self.version = 1.3
 
     def get_tcp_forward_port(self):
-        rst = self.cmd(f'''forward --list | find "{self.udid}"''')
+        rst = self.cmd('forward --list')
         port = None
-        if rst != "":
-            port = rst.split("tcp:")[-1]
+        if self.udid in rst:
+            port = rst.split(f"{self.udid} tcp:")[-1]
         return port
 
     def clear_tcp_forward_port(self, port):
@@ -31,9 +31,9 @@ class AdbUtils:
 
     def set_tcp_forward_port(self, port):
         for _ in range(5):
-            rst = self.cmd(f'''forward --list | find "{port}"''')
+            rst = self.cmd('forward --list')
             if self.udid not in rst:
-                self.cmd(f'''forward tcp:{port} tcp:{port}''')
+                self.cmd(f'forward tcp:{port} tcp:{port}')
             else:
                 logger.info(f"{self.udid}'s tcp already forward tcp:{port} tcp:{port}")
                 break
