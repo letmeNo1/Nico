@@ -1,4 +1,4 @@
-Nico - Automated Testing on Android Mobile
+Nico - Automated Testing on Android and iOS Mobile
 =================================
 
 -   [English](#Background)
