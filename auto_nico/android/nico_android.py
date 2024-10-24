@@ -4,7 +4,7 @@ import time
 import subprocess
 
 from auto_nico.android.nico_android_element import NicoAndroidElement
-from auto_nico.common.logger_config import logger
+from loguru import logger
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.common.send_request import send_tcp_request
 from auto_nico.common.nico_basic import NicoBasic

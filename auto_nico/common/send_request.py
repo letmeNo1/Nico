@@ -1,5 +1,5 @@
 import socket
-from auto_nico.common.logger_config import logger
+from loguru import logger
 
 
 def send_tcp_request(port: int, message: str):

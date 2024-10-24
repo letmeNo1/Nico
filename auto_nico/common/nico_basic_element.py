@@ -5,7 +5,7 @@ from auto_nico.common.runtime_cache import RunningCache
 from lxml.etree import _Element
 
 from auto_nico.common.nico_basic import NicoBasic
-from auto_nico.common.logger_config import logger
+from loguru import logger
 
 
 class NicoBasicElement(NicoBasic):
@@ -16,6 +16,9 @@ class NicoBasicElement(NicoBasic):
         self.current_node = None
         self.query = query
         super().__init__(self.udid, **query)
+
+    def refresh_ui_tree(self):
+        RunningCache(self.udid).clear_current_cache_ui_tree()
 
     def set_udid(self, udid):
         self.udid = udid

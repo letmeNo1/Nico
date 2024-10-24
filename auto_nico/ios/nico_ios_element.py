@@ -1,7 +1,7 @@
 import os
 import re
 
-from auto_nico.common.logger_config import logger
+from loguru import logger
 from auto_nico.common.nico_basic_element import NicoBasicElement
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.common.send_request import send_tcp_request
@@ -93,7 +93,7 @@ class NicoIOSElement(NicoBasicElement):
         return center_x, center_y
 
     def click(self, x=None, y=None, x_offset=None, y_offset=None):
-        current_port = RunningCache(self.udid).get_current_running_port()
+        RunningCache(self.udid).get_current_running_port()
 
         if x is None and y is None:
             x = self.center_coordinate()[0]
@@ -103,7 +103,7 @@ class NicoIOSElement(NicoBasicElement):
         if y_offset is not None:
             y = y + y_offset
         send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:click:{x}:{y}:none")
-        RunningCache(self.udid).set_action_was_taken(True)
+        RunningCache(self.udid).clear_current_cache_ui_tree()
         logger.debug(f"click {x} {y}")
 
     def long_click(self, duration, x_offset=None, y_offset=None):
@@ -114,12 +114,12 @@ class NicoIOSElement(NicoBasicElement):
         if y_offset is not None:
             y = y + y_offset
         send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:press:{x}:{y}:{float(duration)}")
-        RunningCache(self.udid).set_action_was_taken(True)
+        RunningCache(self.udid).clear_current_cache_ui_tree()
         logger.debug(f"click {x} {y}")
 
     def set_text(self, text):
         send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:enter_text:none:none:{text}")
-        RunningCache(self.udid).set_action_was_taken(True)
+        RunningCache(self.udid).clear_current_cache_ui_tree()
 
     def get(self, index):
         node = self._get(index)

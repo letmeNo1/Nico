@@ -11,7 +11,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.2.10",
+    version="1.3.0",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
     description="Provide Basic Interface to conrol Mobile UI.",
@@ -24,8 +24,11 @@ setuptools.setup(
                         'console_scripts/inspector_web/static/*']
     },
     install_requires=[
-        'opencv-python',
-        'lxml',
+        "flask==3.0.3",
+        'lxml==5.1.0',
+        'numpy==1.24.4',
+        'opencv-python==4.9.0.80',
+        'loguru==0.7.2'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -6,7 +6,7 @@ import subprocess
 
 import psutil
 
-from auto_nico.common.logger_config import logger
+from loguru import logger
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.common.send_request import send_tcp_request
 from auto_nico.ios.tools.image_process import bytes_to_image, images_to_video
@@ -36,15 +36,15 @@ class IdbUtils:
             try:
                 if "tidevice" in psutil.Process(int(pid)).cmdline()[1]:
                     if platform.system() == "Windows":
-                        return lines[index].split()[1].split("->")[0].split(":")[-1],pid
+                        return lines[index].split()[1].split("->")[0].split(":")[-1], pid
                     else:
                         result = subprocess.run(f"lsof -Pan -p {pid} -i", capture_output=True, text=True, shell=True)
                         output = result.stdout
                         ports = re.findall(r':(\d+)', output)
-                        return ports[0],pid
+                        return ports[0], pid
             except:
                 continue
-        return None,None
+        return None, None
 
     def device_list(self):
         command = f'tidevice list'
@@ -54,10 +54,10 @@ class IdbUtils:
         commands = f"""tidevice --udid {self.udid} relay {port} {port}"""
         subprocess.Popen(commands, shell=True)
 
-
     def get_app_list(self):
         os.environ['PYTHONIOENCODING'] = 'utf-8'
-        result = subprocess.run(f"tidevice --udid {self.udid} applist", capture_output=True, text=True, encoding='utf-8')
+        result = subprocess.run(f"tidevice --udid {self.udid} applist", capture_output=True, text=True,
+                                encoding='utf-8')
         result_list = result.stdout.splitlines()
         return result_list
 
@@ -75,12 +75,15 @@ class IdbUtils:
         self.cmd(command)
         self.runtime_cache.set_current_running_package_name(package_name)
 
+    def activate_app(self, package_name):
+        exists_port = self.runtime_cache.get_current_running_port()
+        send_tcp_request(exists_port, f"activate_app:{package_name}")
 
     def start_recording(self):
         logger.debug("start recording")
         exists_port = self.runtime_cache.get_current_running_port()
         if exists_port is None:
-            exists_port,_ = self.get_tcp_forward_port()
+            exists_port, _ = self.get_tcp_forward_port()
         if exists_port is None:
             raise NicoError("Start the nico service first!!!!")
 
@@ -153,3 +156,23 @@ class IdbUtils:
     def get_pic(self, quality=1.0):
         exists_port = self.runtime_cache.get_current_running_port()
         return send_tcp_request(exists_port, f"get_jpg_pic:{quality}")
+
+    def click(self, x, y):
+        current_bundleIdentifier = self.runtime_cache.get_current_running_package()
+        if current_bundleIdentifier is None:
+            current_bundleIdentifier = self.get_current_bundleIdentifier(
+                self.runtime_cache.get_current_running_port())
+
+        send_tcp_request(self.runtime_cache.get_current_running_port(),
+                         f"coordinate_action:{current_bundleIdentifier}:click:{x}:{y}:none")
+        self.runtime_cache.clear_current_cache_ui_tree()
+
+    def get_current_bundleIdentifier(self, port):
+        bundle_list = self.get_app_list()
+        command = "get_current_bundleIdentifier"
+        for item in bundle_list:
+            if item:
+                item = item.split(" ")[0]
+                command = command + f":{item}"
+        package_name = send_tcp_request(port, command)
+        return package_name

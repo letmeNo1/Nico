@@ -45,14 +45,6 @@
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 <script src="{{ url_for('static', filename='button_script.js') }}"></script>
-<script>
-    $(document).ready(function() {
-        var element = document.querySelector('#Title');
-        if (element && element.getAttribute('nico_ui_platform') === 'iOS') {
-            document.querySelector('.controls').style.display = 'none';
-        }
-    });
-</script>
 
 </body>
 </html>

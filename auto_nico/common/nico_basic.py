@@ -15,7 +15,7 @@ from typing import Union
 
 import tempfile
 
-from auto_nico.common.logger_config import logger
+from loguru import logger
 from auto_nico.common.send_request import send_tcp_request
 
 import lxml.etree as ET
@@ -384,3 +384,10 @@ class NicoBasic:
         self._get_root_node(configuration)
         temp_folder = os.path.join(tempfile.gettempdir(), f"{self.udid}_ui.xml")
         os.startfile(temp_folder)
+
+    def get_root_xml_string(self, compressed=True):
+        configuration = {
+            "platform": self.__class__.__name__,
+            "compressed": compressed,
+        }
+        return self._get_root_node(configuration)

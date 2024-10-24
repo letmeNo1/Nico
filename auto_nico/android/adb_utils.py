@@ -3,7 +3,7 @@ import re
 import time
 import subprocess
 
-from auto_nico.common.logger_config import logger
+from loguru import logger
 
 from auto_nico.common.error import ADBServerError, NicoError
 from auto_nico.common.runtime_cache import RunningCache
@@ -19,10 +19,10 @@ class AdbUtils:
         self.version = 1.3
 
     def get_tcp_forward_port(self):
-        rst = self.cmd('forward --list')
+        rst = self.cmd(f'''forward --list | findstr /v local |findstr "{self.udid}"''')
         port = None
-        if self.udid in rst:
-            port = rst.split(f"{self.udid} tcp:")[-1]
+        if rst != "":
+            port = rst.split("tcp:")[-1]
         return port
 
     def clear_tcp_forward_port(self, port):
@@ -31,9 +31,9 @@ class AdbUtils:
 
     def set_tcp_forward_port(self, port):
         for _ in range(5):
-            rst = self.cmd('forward --list')
+            rst = self.cmd(f'''forward --list | find "{port}"''')
             if self.udid not in rst:
-                self.cmd(f'forward tcp:{port} tcp:{port}')
+                self.cmd(f'''forward tcp:{port} tcp:{port}''')
             else:
                 logger.info(f"{self.udid}'s tcp already forward tcp:{port} tcp:{port}")
                 break
@@ -70,7 +70,7 @@ class AdbUtils:
         for i in [f"dump_hierarchy_v{version}.apk", f"dump_hierarchy_androidTest_v{version}.apk"]:
             logger.info(f"{udid}'s start install {i}")
             lib_path = (os.path.dirname(__file__) + f"\package\{i}").replace("console_scripts\inspector_web", "")
-            rst = self.cmd(fr"install -t {lib_path}")
+            rst = self.cmd(fr'install -t "{lib_path}"')
             if rst.find("Success") >= 0:
                 logger.info(f"{udid}'s adb install {lib_path} successfully")
             else:
@@ -122,11 +122,13 @@ class AdbUtils:
             raise ADBServerError("no devices connect")
 
     def is_screen_off(self):
-        rst = self.shell("dumpsys power | grep 'Display Power'")
-        if "state=OFF" in rst:
-            return True
-        else:
+        rst = self.shell("dumpsys display | grep 'mScreenState'")
+        if "mScreenState=ON" in rst:
+            # logger.info(f"{self.udid}'s screen is on")
             return False
+        else:
+            logger.info(f"{self.udid}'s screen is off")
+            return True
 
     def get_screen_size(self):
         command = f'adb -s {self.udid} shell wm size'
@@ -298,9 +300,14 @@ class AdbUtils:
             time.sleep(1)
 
     def snapshot(self, name, path):
+        if not os.path.isabs(path):
+            path = os.path.abspath(path)
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
         self.qucik_shell(f'rm /sdcard/{name}.png')
+        full_path = f"{path}/{name}.png"
+        logger.info(full_path)
+        return full_path
 
     def swipe(self, direction, scroll_time=1, target_area=None):
         x = int(self.get_screen_size()[0] / 2)

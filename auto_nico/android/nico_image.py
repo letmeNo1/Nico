@@ -6,7 +6,7 @@ from auto_nico.android.nico_android import NicoAndroid
 from skimage.metrics import structural_similarity as ssim
 import cv2
 
-from auto_nico.common.logger_config import logger
+from loguru import logger
 
 
 class NicoImage:

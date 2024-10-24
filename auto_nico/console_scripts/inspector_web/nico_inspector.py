@@ -306,7 +306,7 @@ def main():
         adb_utils.clear_tcp_forward_port(remote_port)
         adb_utils.cmd(f'''forward tcp:{remote_port} tcp:{remote_port}''')
         adb_utils.check_adb_server()
-        adb_utils.install_test_server_package(1.2)
+        adb_utils.install_test_server_package(1.3)
         ime_list = adb_utils.qucik_shell("ime list -s").split("\n")[0:-1]
         for ime in ime_list:
             adb_utils.qucik_shell(f"ime disable {ime}")

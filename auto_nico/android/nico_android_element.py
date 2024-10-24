@@ -1,7 +1,7 @@
 import os
 import re
 
-from auto_nico.common.logger_config import logger
+from loguru import logger
 from auto_nico.common.nico_basic_element import NicoBasicElement
 from auto_nico.common.runtime_cache import RunningCache
 
