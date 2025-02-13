@@ -27,7 +27,7 @@ class NicoIOS(NicoBasic):
             logger.debug(f"{self.udid}'s test server is ready")
         else:
             logger.debug(f"{self.udid} test server disconnect, restart ")
-            self.__init_adb_auto()
+            self.__init_idb_auto()
         if package_name is None:
             self.package_name = self.__get_current_bundleIdentifier(RunningCache(udid).get_current_running_port())
         self.runtime_cache.set_action_was_taken(True)
@@ -96,7 +96,7 @@ class NicoIOS(NicoBasic):
         path = temp_folder + f"/{udid}_ui.xml"
         os.remove(path)
 
-    def __init_adb_auto(self):
+    def __init_idb_auto(self):
         self.__set_tcp_forward_port()
         self.__start_test_server()
 

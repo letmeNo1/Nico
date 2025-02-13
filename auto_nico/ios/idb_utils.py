@@ -4,6 +4,8 @@ import re
 import time
 import subprocess
 
+import cv2
+import numpy as np
 import psutil
 
 from loguru import logger
@@ -46,6 +48,7 @@ class IdbUtils:
                 continue
         return None, None
 
+
     def device_list(self):
         command = f'tidevice list'
         return os.popen(command).read()
@@ -78,6 +81,10 @@ class IdbUtils:
     def activate_app(self, package_name):
         exists_port = self.runtime_cache.get_current_running_port()
         send_tcp_request(exists_port, f"activate_app:{package_name}")
+
+    def terminate_app(self, package_name):
+        exists_port = self.runtime_cache.get_current_running_port()
+        send_tcp_request(exists_port, f"terminate_app:{package_name}")
 
     def start_recording(self):
         logger.debug("start recording")
@@ -156,6 +163,13 @@ class IdbUtils:
     def get_pic(self, quality=1.0):
         exists_port = self.runtime_cache.get_current_running_port()
         return send_tcp_request(exists_port, f"get_jpg_pic:{quality}")
+
+    def get_image_object(self, quality=100):
+        exists_port = self.runtime_cache.get_current_running_port()
+        a = send_tcp_request(exists_port, f"get_jpg_pic:{quality}")
+        nparr = np.frombuffer(a, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        return image
 
     def click(self, x, y):
         current_bundleIdentifier = self.runtime_cache.get_current_running_package()

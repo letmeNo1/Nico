@@ -8,6 +8,7 @@ import os
 import cv2
 from auto_nico.common.kmeans_run import kmeans_run
 from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.ios.idb_utils import IdbUtils
 from lxml.etree import _Element
 
 from auto_nico.ios.XCUIElementType import get_value_by_element_type
@@ -46,7 +47,7 @@ class NicoBasic:
                     "resource-id=", "id=").replace("content-desc=", "content_desc=")
                 # print(response)
             elif "NicoIOS" in self.__class__.__name__:
-                package_name = configuration.get("package_name")
+                package_name = runtime_cache.get_current_running_package()
                 response = send_tcp_request(port, f"dump_tree:{package_name}")
                 response = converter(response)
 
@@ -95,11 +96,27 @@ class NicoBasic:
             original_image = adb_utils.get_image_object(100)
             target_image = cv2.imread(image_path)
             if threshold is None:
-                threshold = 0.8
+                threshold = 0.9
             if algorithms is None:
                 algorithms = "SIFT"
             x, y, h, w = kmeans_run(target_image, original_image, threshold, algorithms)
             if x is not None:
+                return {"bounds": f"[{x},{y}][{w},{h}]"}
+            else:
+                return None
+        elif "NicoIOSElement" in platform:
+            idb_utils = IdbUtils(self.udid)
+            original_image = idb_utils.get_image_object(100)
+            height, width = original_image.shape[:2]
+            target_image = cv2.imread(image_path)
+            if threshold is None:
+                threshold = 0.8
+            if algorithms is None:
+                algorithms = "SIFT"
+            x, y, h, w = kmeans_run(target_image, original_image, threshold, algorithms,3)
+
+            if x is not None:
+                logger.debug(f"Found image at {x}, {y}, {w}, {h}")
                 return {"bounds": f"[{x},{y}][{w},{h}]"}
             else:
                 return None

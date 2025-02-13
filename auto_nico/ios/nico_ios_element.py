@@ -1,11 +1,11 @@
 import os
 import re
 
-from loguru import logger
 from auto_nico.common.nico_basic_element import NicoBasicElement
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.common.send_request import send_tcp_request
 from auto_nico.ios.XCUIElementType import get_element_type_by_value
+from loguru import logger
 
 
 class UIStructureError(Exception):

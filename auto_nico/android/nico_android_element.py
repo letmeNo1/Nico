@@ -1,5 +1,6 @@
 import os
 import re
+import subprocess
 
 from loguru import logger
 from auto_nico.common.nico_basic_element import NicoBasicElement
@@ -152,6 +153,22 @@ class NicoAndroidElement(NicoBasicElement):
         x = left
         y = top
         return x, y, width, height
+
+    @property
+    def description(self):
+        from cathin.common.utils import _crop_and_encode_image
+        from cathin.common.request_api import _call_generate_image_caption_api
+        import cv2
+        import numpy as np
+        logger.debug("Description being generated")
+        result = subprocess.run(['adb', '-s', self.udid, 'exec-out', 'screencap', '-p'], stdout=subprocess.PIPE)
+        screenshot_data = result.stdout
+        nparr = np.frombuffer(screenshot_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        cropped_image = _crop_and_encode_image(img, [self.bounds])
+        text = _call_generate_image_caption_api(cropped_image[0]).get("descriptions")
+        logger.debug("Description generated successfully")
+        return text
 
     def get_bounds(self):
         return self.bounds

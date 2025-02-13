@@ -272,6 +272,9 @@ class AdbUtils:
     def keyevent(self, keyname):
         self.qucik_shell(f'input keyevent {keyname}')
 
+    def switch_app(self):
+        self.keyevent("KEYCODE_APP_SWITCH")
+
     def back(self):
         self.keyevent("BACK")
 
@@ -284,12 +287,19 @@ class AdbUtils:
     def switch_app(self):
         self.keyevent("KEYCODE_APP_SWITCH")
 
-    def get_image_object(self, quality=100):
-        exists_port = self.runtime_cache.get_current_running_port()
-        a = send_tcp_request(exists_port, f"get_png_pic:{quality}")
-        nparr = np.frombuffer(a, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        return image
+    def get_image_object(self, quality=100,use_adb=True):
+        if use_adb:
+            result = subprocess.run(['adb', '-s', self.udid, 'exec-out', 'screencap', '-p'], stdout=subprocess.PIPE)
+            screenshot_data = result.stdout
+            nparr = np.frombuffer(screenshot_data, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            return image
+        else:
+            exists_port = self.runtime_cache.get_current_running_port()
+            a = send_tcp_request(exists_port, f"get_png_pic:{quality}")
+            nparr = np.frombuffer(a, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            return image
 
     def get_root_node(self):
         exists_port = self.runtime_cache.get_current_running_port()

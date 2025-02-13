@@ -1,4 +1,3 @@
-import os
 import random
 import time
 import subprocess
@@ -86,12 +85,18 @@ class NicoAndroid(NicoBasic):
             adb_utils.qucik_shell(f"ime disable {ime}")
 
     def __call__(self, **query):
+        if any('ocr' in key for key in query):
+            from cathin.Android.android_driver import AndroidDriver
+            modified_query = {key.replace('ocr_', ''): value if 'ocr_' in key else value for key, value in
+                              query.items()}
+            android = AndroidDriver(self.udid)
+            return android(**modified_query)
         current_port = RunningCache(self.udid).get_current_running_port()
         self.adb_utils.check_adb_server()
         if self.adb_utils.is_screen_off():
             self.adb_utils.wake_up()
         respond = send_tcp_request(current_port, "get_root")
-        rst = "[android.view.accessibility.AccessibilityNodeInfo" in  respond
+        rst = "[android.view.accessibility.AccessibilityNodeInfo" in respond
         if not rst:
             logger.info(f"{self.udid} test server disconnect, restart ")
             self.adb_utils.install_test_server_package(self.version)

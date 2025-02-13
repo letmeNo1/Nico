@@ -30,6 +30,7 @@ class NicoBasicElement(NicoBasic):
         self.query = query
 
     def set_package_name(self, package_name):
+        RunningCache(self.udid).set_current_running_package_name(package_name)
         self.package_name = package_name
 
     def set_current_node(self, current_node):
