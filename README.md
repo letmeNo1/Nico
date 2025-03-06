@@ -1,4 +1,4 @@
-重要！！！目前nico ios 部分暂时不支持ios 17以上，go-ios也无法启动xcuitest（只能启动wda），已给go-ios作者提issues了，等待他修复吧。
+支持iOS 17+ 
 
 Nico - Automated Testing on Android and iOS Mobile
 =================================
