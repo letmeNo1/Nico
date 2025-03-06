@@ -1,5 +1,7 @@
+import json
 import os
 import platform
+import random
 import re
 import time
 import subprocess
@@ -48,14 +50,20 @@ class IdbUtils:
                 continue
         return None, None
 
+    def is_greater_than_ios_17(self):
+        from packaging.version import Version
+        return Version(self.get_system_info().get("ProductVersion")) >= Version("17.0.0")
 
     def device_list(self):
         command = f'tidevice list'
         return os.popen(command).read()
 
     def set_port_forward(self, port):
+
         commands = f"""tidevice --udid {self.udid} relay {port} {port}"""
         subprocess.Popen(commands, shell=True)
+        self.runtime_cache.set_current_running_port(port)
+
 
     def get_app_list(self):
         os.environ['PYTHONIOENCODING'] = 'utf-8'
@@ -73,10 +81,94 @@ class IdbUtils:
             test_server_package_list[1]
         return {"test_server_package": test_server_package.split(" ")[0], "main_package": main_package.split(" ")[0]}
 
+    def get_wda_server_package(self):
+        app_list = self.get_app_list()
+        test_server_package = [s for s in app_list if s.startswith('com.facebook')]
+        return test_server_package[0].split(" ")[0]
+
     def start_app(self, package_name):
         command = f'launch {package_name}'
         self.cmd(command)
         self.runtime_cache.set_current_running_package_name(package_name)
+
+    def _init_test_server(self):
+        self._set_tcp_forward_port()
+        self.__start_test_server()
+
+    def _init_wda_server(self):
+        self._start_tunnel()
+        self._set_tcp_forward_port()
+        self.__start_wad_server()
+
+    def __start_test_server(self):
+        current_port = RunningCache(self.udid).get_current_running_port()
+        test_server_package_dict = self.get_test_server_package()
+        logger.debug(
+            f"""tidevice  --udid {self.udid} xcuitest --bundle-id {test_server_package_dict.get("test_server_package")} --target-bundle-id {test_server_package_dict.get("main_package")} -e USE_PORT:{current_port}""")
+
+        commands = f"""tidevice  --udid {self.udid} xcuitest --bundle-id {test_server_package_dict.get("test_server_package")} --target-bundle-id {test_server_package_dict.get("main_package")} -e USE_PORT:{current_port}"""
+        subprocess.Popen(commands, shell=True)
+        for _ in range(10):
+            response = send_tcp_request(current_port, "print")
+            if "200 OK" in response:
+                logger.debug(f"{self.udid}'s test server is ready")
+                break
+            time.sleep(1)
+        logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
+
+    def __start_wad_server(self):
+        test_server_package_dict = self.get_test_server_package()
+        current_port = RunningCache(self.udid).get_current_running_port()
+        command = f"ios runwda --bundleid {test_server_package_dict.get('main_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}"
+        logger.debug(command)
+        subprocess.Popen(command, shell=True)
+        for _ in range(10):
+            import wda
+            c = wda.Client(f'http://localhost:{current_port}')
+            if c.is_ready():
+                logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
+
+    def _start_tunnel(self):
+        rst = os.popen("ios tunnel ls").read()
+        logger.debug(f"{self.udid}'s uiautomator rst is {rst}")
+        if self.udid in rst:
+            logger.debug(f"tunnel for {self.udid} is started")
+        else:
+            logger.debug(f"ios tunnel start --udid={self.udid}")
+
+            command = f"ios tunnel start --udid={self.udid}"
+            subprocess.Popen(command, shell=True)
+            for _ in range(10):
+                rst = os.popen("ios tunnel ls").read()
+                if self.udid in rst:
+                    logger.debug(f"tunnel for {self.udid} is started")
+                    return
+                time.sleep(1)
+            raise NicoError(f"tunnel for {self.udid} is not started")
+
+    def _set_tcp_forward_port(self):
+        current_port = RunningCache(self.udid).get_current_running_port()
+        logger.debug(
+            f"""tidevice --udid {self.udid} relay {current_port} {current_port}""")
+        commands = f"""tidevice --udid {self.udid} relay {current_port} {current_port}"""
+        try:
+            subprocess.Popen(commands, shell=True)
+        except OSError:
+            print("start fail")
+            subprocess.Popen(commands, shell=True)
+
+    def _set_running_port(self, port):
+        exists_port, pid = self.get_tcp_forward_port()
+        if exists_port is None:
+            logger.debug(f"{self.udid} no exists port")
+            if port != "random":
+                running_port = port
+            else:
+                random_number = random.randint(9000, 9999)
+                running_port = random_number
+        else:
+            running_port = int(exists_port)
+        RunningCache(self.udid).set_current_running_port(running_port)
 
     def activate_app(self, package_name):
         exists_port = self.runtime_cache.get_current_running_port()
@@ -120,6 +212,15 @@ class IdbUtils:
     def stop_app(self, package_name):
         command = f'kill {package_name}'
         self.cmd(command)
+
+    def get_system_info(self):
+        data_string = self.cmd("info")
+        data_dict = {}
+        for line in data_string.strip().split('\n'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                data_dict[key.strip()] = value.strip()
+        return data_dict
 
     def cmd(self, cmd):
         udid = self.udid
