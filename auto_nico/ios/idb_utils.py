@@ -74,12 +74,9 @@ class IdbUtils:
 
     def get_test_server_package(self):
         app_list = self.get_app_list()
-        test_server_package_list = [s for s in app_list if s.startswith('nico.')]
-        test_server_package = test_server_package_list[0] if "xctrunner" in test_server_package_list[0] else \
-            test_server_package_list[1]
-        main_package = test_server_package_list[0] if "xctrunner" not in test_server_package_list[0] else \
-            test_server_package_list[1]
-        return {"test_server_package": test_server_package.split(" ")[0], "main_package": main_package.split(" ")[0]}
+        xctrunner_package_name = [s for s in app_list if "dump_hierarchyUITests-Runner" in s][0].split(" ")[0]
+        main_package_name = [s for s in app_list if "nico_dump" in s][0].split(" ")[0]
+        return {"test_server_package": xctrunner_package_name, "main_package": main_package_name}
 
     def get_wda_server_package(self):
         app_list = self.get_app_list()
