@@ -60,6 +60,10 @@ from auto_nico.android.nico_android import NicoAndroid
 
 
 nico = NicoAndroid(udid)
+
+from auto_nico.ios.nico_ios import NicoIOS
+
+nico = NicoIOS(udid)
 ```
 
 ## Find elements
