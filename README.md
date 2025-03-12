@@ -292,26 +292,24 @@ Nico是一个基于`UIAUTOMATION2`的自动化测试框架，全程后台执行�
 ===============
 
 ```
-pip install Nico
+pip install AutoNico
 ```
 
 
 元素定位
 ===============
 
-在命令行输入`nico_dump {udid}`
+在命令行输入`nico_ui -s {udid}`
 
-如果成功，它将像这样返回。打开`{udid}_ui.xml`文件查看UI树
+如果成功，则会返回一个url地址提供查看元素
 
 ```
 输入:
-nico_dump 1234567
+nico_ui -s udid
 
 输出:
 
 2024-01-03 11:14:15,781 Nico - DEBUG - 514f465834593398's test server is ready
-2024-01-03 11:14:15,781 Nico - DEBUG - 514f465834593398's uiautomator was initialized successfully
-C:\Users\hanhuang\AppData\Local\Temp/514f465834593398_ui.xml
 
 ```
 
