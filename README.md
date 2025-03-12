@@ -60,10 +60,24 @@ from auto_nico.android.nico_android import NicoAndroid
 
 
 nico = NicoAndroid(udid)
+nico(text="Use Wi-Fi").wait_for_appearance()
+nico(text="AndroidWifi").wait_for_appearance()
+nico(text="Add network").wait_for_appearance()
+nico(text="Searching for Wi-Fi networks").wait_for_appearance()
+nico(text="Wi-Fi preferences").wait_for_appearance()
+nico(text="Saved networks").wait_for_appearance()
+
 
 from auto_nico.ios.nico_ios import NicoIOS
 
-nico = NicoIOS(udid)
+nico = NicoIOS("UDID")
+nico(text="Use Wi-Fi").wait_for_appearance()
+nico(text="AndroidWifi").wait_for_appearance()
+nico(text="Add network").wait_for_appearance()
+nico(text="Searching for Wi-Fi networks").wait_for_appearance()
+nico(text="Wi-Fi preferences").wait_for_appearance()
+nico(text="Saved networks").wait_for_appearance()
+
 ```
 
 ## Find elements
@@ -328,6 +342,23 @@ from auto_nico.android.nico_android import NicoAndroid
 
 
 nico = NicoAndroid(udid)
+nico(text="Use Wi-Fi").wait_for_appearance()
+nico(text="AndroidWifi").wait_for_appearance()
+nico(text="Add network").wait_for_appearance()
+nico(text="Searching for Wi-Fi networks").wait_for_appearance()
+nico(text="Wi-Fi preferences").wait_for_appearance()
+nico(text="Saved networks").wait_for_appearance()
+
+
+from auto_nico.ios.nico_ios import NicoIOS
+
+nico = NicoIOS("UDID")
+nico(text="Use Wi-Fi").wait_for_appearance()
+nico(text="AndroidWifi").wait_for_appearance()
+nico(text="Add network").wait_for_appearance()
+nico(text="Searching for Wi-Fi networks").wait_for_appearance()
+nico(text="Wi-Fi preferences").wait_for_appearance()
+nico(text="Saved networks").wait_for_appearance()
 ```
 
 ## 查找元素
