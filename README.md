@@ -29,8 +29,7 @@ Input `nico_ui -s {udid} -p1 {the port that forwards the request} -p2 {the port 
 if success, it will start a server to show UI inspector
 ```
 input:
-nico_ui -s emulator-5554 -p1 5000 -p2 6000
-
+nico_ui -s emulator-5554
 
 output:
 
