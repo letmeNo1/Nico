@@ -1,11 +1,12 @@
 
-- [中文版](#背景)
+- [中文版](# Nico - 跨平台移动自动化测试框架)
 
 
 # Nico - Cross-Platform Mobile Automation Framework
 [![GitHub stars](https://img.shields.io/github/stars/yourusername/Nico.svg?style=social)](https://github.com/yourusername/Nico/stargazers)
 [![PyPI version](https://badge.fury.io/py/AutoNico.svg)](https://badge.fury.io/py/AutoNico)
 ![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue)
+
 For iOS, need to compile [nico_dump] (https://github.com/letmeNo1/IOSHierarchyDumper)
 Install to your iphone device
 
