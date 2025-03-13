@@ -11,7 +11,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.3.4",
+    version="1.3.5",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
     description="Provide Basic Interface to conrol Mobile UI.",

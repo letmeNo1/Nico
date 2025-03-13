@@ -76,7 +76,3 @@ class NicoIOS(NicoBasic):
         NIE.set_port(current_port)
         NIE.set_package_name(self.package_name)
         return NIE
-
-
-a = NicoIOS("00008140-001C7CD80202801C")
-a(text="General").click()
