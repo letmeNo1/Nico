@@ -274,9 +274,10 @@ idb.turn_volume_up()
 
 ## 📄 License
 MIT License - See [LICENSE](https://github.com/yourusername/Nico/blob/main/LICENSE) file for details.
-```
+
 
 <a name="chinese-version"></a>
+
 # Nico - 跨平台移动自动化测试框架
 [![GitHub stars](https://img.shields.io/github/stars/yourusername/Nico.svg?style=social)](https://github.com/yourusername/Nico/stargazers)
 [![PyPI version](https://badge.fury.io/py/AutoNico.svg)](https://badge.fury.io/py/AutoNico)
@@ -310,6 +311,7 @@ MIT License - See [LICENSE](https://github.com/yourusername/Nico/blob/main/LICEN
 ### 1. 安装
 ```bash
 pip install AutoNico
+
 ```
 
 ### 2. 启动UI Inspector
