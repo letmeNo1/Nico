@@ -1,25 +1,15 @@
-
-- [中文版](# Nico - 跨平台移动自动化测试框架)
-
-
 # Nico - Cross-Platform Mobile Automation Framework
 [![GitHub stars](https://img.shields.io/github/stars/yourusername/Nico.svg?style=social)](https://github.com/yourusername/Nico/stargazers)
 [![PyPI version](https://badge.fury.io/py/AutoNico.svg)](https://badge.fury.io/py/AutoNico)
 ![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue)
 
 For iOS, need to compile [nico_dump](https://github.com/letmeNo1/IOSHierarchyDumper)
-Install to your iphone device
+Install to your iPhone device
 
-## 🌟 Core Features
-- **Cross-platform Support**: Android (UIAutomation2) and iOS (XCUITest)
-- **Background Execution**: Runs tests in background without user interference
-- **Smart Element Locators**: Property queries, regex matching, fuzzy search
-- **Rich Action Library**: 30+ operations including click, swipe, input, screenshot
-- **Visual Debugging**: Built-in UI Inspector for real-time interface inspection
-
+<a name="background"></a>
 ## 📖 Full Documentation Table of Contents
-- [Background](#background)
-
+- [English](#background)
+- [Chinese Version](#chinese-version)
 - [Installation](#installation)
 - [Element Locators](#element-locators)
 - [User Guide](#user-guide)
@@ -59,233 +49,28 @@ nico(identifier="login_button").wait_for_appearance().click()
 nico(xpath="//XCUIElementTypeTextField").set_text("user@example.com")
 ```
 
-## 📄 Full Feature Documentation
-
-### 🔍 Element Locators
-#### Launch UI Inspector
-```bash
-nico_ui -s {udid}
-```
-
-#### Supported Query Parameters
-| Parameter Type | Android Supported Fields       | iOS Supported Fields            |
-|----------------|--------------------------------|---------------------------------|
-| Basic Attributes | text, resource_id, class_name | text, identifier, class_name    |
-| State Attributes | clickable, enabled, checked   | value, xpath                    |
-| Layout Attributes | index, package, content_desc  | index                           |
-
-#### Query Examples
-```python
-# Fuzzy match
-nico(text_contains="WiFi").wait_for_appearance()
-
-# Regex match
-nico(text_matches="^Search.*").click()
-
-# Combined conditions
-nico(class_name="Button", enabled=True).all()
-```
-
-### 📱 User Guide
-#### Initialize Device
-```python
-# Android initialization
-from auto_nico.android.nico_android import NicoAndroid
-nico_android = NicoAndroid("emulator-5554")
-
-# iOS initialization
-from auto_nico.ios.nico_ios import NicoIOS
-nico_ios = NicoIOS("00008020-00105C883A42001E")
-```
-
-#### Element Waiting Strategies
-```python
-# Wait for element appearance
-nico(text="Login").wait_for_appearance(timeout=10)
-
-# Wait for element disappearance
-nico(class_name="Loading").wait_for_disappearance()
-
-# Wait for any condition
-index = nico().wait_for_any([
-    nico(text="Success"),
-    nico(text="Error")
-], timeout=15)
-```
-
-### 🛠️ NicoElement API
-#### Property Access
-```python
-element = nico(text="Username")
-print(element.get_text())        # Get text
-print(element.get_resource_id()) # Get resource ID
-print(element.get_enabled())    # Get enabled state
-```
-
-#### Element Relationships
-```python
-parent = element.parent()
-sibling = element.next_sibling(2)
-child = element.child(0)
-```
-
-#### Action Methods
-```python
-# Click operation
-element.click(x_offset=10, y_offset=20)
-
-# Input operation
-element.set_text("password", append=True)
-
-# Swipe operation
-element.swipe(to_x=500, to_y=1000, duration=1.5)
-
-# Scroll operation
-element.scroll(direction="vertical_down")
-```
-
-
-### 🧰 ADB Toolset (Android Only)
-Complete Android device control through `AdbUtils`:
-
-#### Initialization
-```python
-from auto_nico.android.adb_utils import AdbUtils
-adb = AdbUtils("emulator-5554")  # Initialize with UDID
-
-# Or get from Nico instance
-nico = NicoAndroid("emulator-5554")
-adb = nico.adb_utils
-```
-
-#### Full Interface List
-
-| Method Name                | Description                          | Parameters                     | Return Value               |
-|----------------------------|--------------------------------------|--------------------------------|----------------------------|
-| `get_tcp_forward_port()`   | Get TCP forwarding port              | None                           | `int` port / `None`        |
-| `get_screen_size()`        | Get screen dimensions                | None                           | `tuple(width, height)`     |
-| `start_app(package_name)`  | Launch application                   | `package_name`: App package     | None                       |
-| `stop_app(package_name)`   | Stop application                     | `package_name`: App package     | None                       |
-| `restart_app(package_name)`| Restart application                  | `package_name`: App package     | None                       |
-| `qucik_shell(cmd)`         | Execute adb shell command            | `cmd`: Command string           | `str` command output       |
-| `cmd(cmd)`                 | Execute full adb command             | `cmd`: Command string           | `str` command output       |
-| `is_keyboard_shown()`      | Check if keyboard is visible         | None                           | `bool`                     |
-| `is_screenon()`            | Check if screen is on                | None                           | `bool`                     |
-| `is_locked()`              | Check if screen is locked            | None                           | `bool`                     |
-| `unlock()`                 | Unlock screen                        | None                           | None                       |
-| `back()`                   | Simulate back button                 | None                           | None                       |
-| `menu()`                   | Simulate menu button                 | None                           | None                       |
-| `home()`                   | Simulate home button                 | None                           | None                       |
-| `snapshot(name, path)`     | Take screenshot and save             | `name`: File name, `path`: Save path | None                     |
-
-#### Advanced Usage Example
-```python
-# Check device status
-if adb.is_screenon() and not adb.is_locked():
-    print("Device unlocked and active")
-else:
-    adb.unlock()
-
-# Launch app and wait for element
-adb.start_app("com.android.settings")
-nico(text="Wi-Fi").wait_for_appearance()
-
-# Execute custom adb command
-result = adb.cmd("shell dumpsys window displays")
-print("Display info:", result)
-```
-
-
-### 🧰 IDB Toolset (iOS Only)
-Complete iOS device control through `IdbUtils`:
-
-#### Initialization
-```python
-from auto_nico.ios.idb_utils import IdbUtils
-idb = IdbUtils("00008020-00105C883A42001E")  # Initialize with UDID
-
-# Or get from Nico instance
-nico = NicoIOS("00008020-00105C883A42001E")
-idb = nico.idb_utils
-```
-
-#### Full Interface List
-
-| Method Name                     | Description                          | Parameters                     | Return Value               |
-|---------------------------------|--------------------------------------|--------------------------------|----------------------------|
-| `get_tcp_forward_port()`        | Get TCP forwarding port              | None                           | `int` port / `None`        |
-| `is_greater_than_ios_17()`      | Check iOS version ≥17                | None                           | `bool`                     |
-| `device_list()`                 | Get connected devices                | None                           | `str` device list          |
-| `set_port_forward(port)`        | Set port forwarding                  | `port`: Target port             | None                       |
-| `get_app_list()`                | Get installed apps                   | None                           | `List[str]` app list       |
-| `get_test_server_package()`     | Get test server package info         | None                           | `dict` with `test_server` and `main_package` |
-| `get_wda_server_package()`      | Get WDA server package               | None                           | `str` WDA package name     |
-| `start_app(package_name)`       | Launch application                   | `package_name`: App package     | None                       |
-| `stop_app(package_name)`        | Stop application                     | `package_name`: App package     | None                       |
-| `restart_app(package_name)`     | Restart application                  | `package_name`: App package     | None                       |
-| `start_recording()`             | Start screen recording               | None                           | None                       |
-| `stop_recording(path)`          | Stop recording and save video        | `path`: Save path (default `output.mp4`) | None |
-| `get_output_device_name()`      | Get device name                      | None                           | `str` device name          |
-| `get_system_info()`             | Get system information               | None                           | `dict` system info         |
-| `cmd(cmd)`                      | Execute tidevice command             | `cmd`: Command string           | `str` command output       |
-| `activate_app(package_name)`    | Activate application                 | `package_name`: App package     | None                       |
-| `terminate_app(package_name)`   | Terminate application                | `package_name`: App package     | None                       |
-| `home()`                        | Simulate home button                 | None                           | None                       |
-| `get_volume()`                  | Get current volume                   | None                           | `int` volume percentage    |
-| `turn_volume_up()`              | Increase volume                      | None                           | None                       |
-| `turn_volume_down()`            | Decrease volume                      | None                           | None                       |
-| `snapshot(name, path)`          | Take screenshot and save             | `name`: File name, `path`: Save path | None |
-| `get_pic(quality=1.0)`          | Get screen image (binary data)       | `quality`: Image quality (0.0-1.0) | `bytes` image data         |
-| `get_image_object(quality=100)` | Get OpenCV image object              | `quality`: Image quality (0-100) | `numpy.ndarray` image      |
-| `click(x, y)`                   | Simulate click at coordinates        | `x`: X coordinate, `y`: Y coordinate | None |
-| `get_current_bundleIdentifier(port)` | Get current app bundle ID      | `port`: Service port            | `str` bundle ID            |
-
-#### Advanced Usage Example
-```python
-# Screen recording
-idb.start_recording()
-# Perform test actions
-idb.click(100, 200)
-idb.stop_recording("./test.mp4")
-
-# High-quality screenshot
-image_data = idb.get_pic(0.9)
-with open("high_quality.jpg", "wb") as f:
-    f.write(image_data)
-
-# System volume control
-current_volume = idb.get_volume()
-print(f"Current volume: {current_volume}%")
-idb.turn_volume_up()
-```
-
-
-## 🤝 Contribution Guidelines
-1. Code submission guidelines:
-   ```python
-   # Follow PEP8 guidelines
-   def my_function():
-       """This is a docstring example"""
-       pass
-   ```
-2. Issue reporting: [GitHub Issues](https://github.com/yourusername/Nico/issues)
-3. Contribution guide: [CONTRIBUTING.md](https://github.com/yourusername/Nico/blob/main/CONTRIBUTING.md)
-
-## 📄 License
-MIT License - See [LICENSE](https://github.com/yourusername/Nico/blob/main/LICENSE) file
-
-
-
-
+<a name="chinese-version"></a>
 # Nico - 跨平台移动自动化测试框架
 [![GitHub stars](https://img.shields.io/github/stars/yourusername/Nico.svg?style=social)](https://github.com/yourusername/Nico/stargazers)
 [![PyPI version](https://badge.fury.io/py/AutoNico.svg)](https://badge.fury.io/py/AutoNico)
 ![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue)
 
 对于iOS, 需要自行编译[nico_dump](https://github.com/letmeNo1/IOSHierarchyDumper)
-安装到iphone设备上
+安装到iPhone设备上
 
-
+<a name="background-cn"></a>
+## 📖 完整文档目录
+- [English](#background)
+- [中文版](#chinese-version)
+- [安装](#installation-cn)
+- [元素定位](#element-locators-cn)
+- [使用指南](#user-guide-cn)
+- [NicoElement API](#nicoelement-api-cn)
+- [ADB工具集](#adb-utils-cn)
+- [IDB工具集](#idb-utils-cn)
+- [命令行快捷方式](#command-line-shortcuts-cn)
+- [最佳实践](#best-practices-cn)
+- [贡献指南](#contribution-guidelines-cn)
 
 ## 🌟 核心特性
 - **跨平台支持**：同时支持Android (UIAutomation2)和iOS (XCUITest)
@@ -293,19 +78,6 @@ MIT License - See [LICENSE](https://github.com/yourusername/Nico/blob/main/LICEN
 - **智能元素定位**：支持属性查询、正则匹配、模糊匹配
 - **丰富操作库**：点击/滑动/输入/截图等30+操作方法
 - **可视化调试**：内置UI Inspector实时查看界面结构
-
-## 📖 完整文档目录
-- [English](#background)
-- [中文版](#背景)
-- [安装](#安装)
-- [元素定位](#元素定位)
-- [使用指南](#使用指南)
-- [NicoElement API](#nicoelement-api)
-- [ADB工具集](#adb-utils)
-- [IDB工具集](#idb-utils)
-- [命令行快捷方式](#命令行快捷方式)
-- [最佳实践](#最佳实践)
-- [贡献指南](#贡献指南)
 
 ## 🚀 快速开始
 ### 1. 安装
@@ -336,6 +108,7 @@ nico(identifier="login_button").wait_for_appearance().click()
 nico(xpath="//XCUIElementTypeTextField").set_text("user@example.com")
 ```
 
+<a name="element-locators-cn"></a>
 ## 📄 完整功能文档
 
 ### 🔍 元素定位
@@ -421,7 +194,7 @@ element.swipe(to_x=500, to_y=1000, duration=1.5)
 element.scroll(direction="vertical_down")
 ```
 
-
+<a name="adb-utils-cn"></a>
 ### 🧰 ADB工具集（Android专用）
 通过`AdbUtils`类提供完整的Android设备控制能力：
 
@@ -472,7 +245,7 @@ result = adb.cmd("shell dumpsys window displays")
 print("Display信息：", result)
 ```
 
-
+<a name="idb-utils-cn"></a>
 ### 🧰 IDB工具集（iOS专用）
 通过`IdbUtils`类提供完整的iOS设备控制能力：
 
@@ -536,8 +309,6 @@ print(f"当前音量: {current_volume}%")
 idb.turn_volume_up()
 ```
 
-
-
 ## 🤝 参与贡献
 1. 提交代码规范：
    ```python
@@ -551,4 +322,4 @@ idb.turn_volume_up()
 
 ## 📄 许可证
 MIT License - 请查看 [LICENSE](https://github.com/yourusername/Nico/blob/main/LICENSE) 文件
-
+```
