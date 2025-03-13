@@ -7,7 +7,7 @@
 [![PyPI version](https://badge.fury.io/py/AutoNico.svg)](https://badge.fury.io/py/AutoNico)
 ![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue)
 
-For iOS, need to compile [nico_dump] (https://github.com/letmeNo1/IOSHierarchyDumper)
+For iOS, need to compile [nico_dump](https://github.com/letmeNo1/IOSHierarchyDumper)
 Install to your iphone device
 
 ## 🌟 Core Features
