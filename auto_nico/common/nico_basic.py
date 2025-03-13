@@ -17,7 +17,7 @@ from typing import Union
 import tempfile
 
 from loguru import logger
-from auto_nico.common.send_request import send_tcp_request
+from auto_nico.common.send_request import send_tcp_request, send_http_request
 
 import lxml.etree as ET
 
@@ -113,7 +113,7 @@ class NicoBasic:
                 threshold = 0.8
             if algorithms is None:
                 algorithms = "SIFT"
-            x, y, h, w = kmeans_run(target_image, original_image, threshold, algorithms,3)
+            x, y, h, w = kmeans_run(target_image, original_image, threshold, algorithms, 3)
 
             if x is not None:
                 logger.debug(f"Found image at {x}, {y}, {w}, {h}")
@@ -208,19 +208,26 @@ class NicoBasic:
         for attribute, value in query.items():
             if attribute == "xpath":
                 xpath_expression = value
-                matching_element = send_tcp_request(port,
-                                                    f"find_element_by_query:{package_name}:xpath:{xpath_expression}")
+                matching_element = send_http_request(port,
+                                                     f"find_element_by_query",
+                                                     {"bundle_id": package_name, "query_method": "xpath",
+                                                      "query_value": xpath_expression})
                 if matching_element == "":
                     return None
                 logger.debug(f"found element: {matching_element}")
                 return json.loads(matching_element)
             elif attribute == "custom":
                 if return_all:
-                    matching_element = send_tcp_request(port,
-                                                        f"find_elements_by_query:{package_name}:predicate:{value}")
+                    matching_element = send_http_request(port,
+                                                         f"find_elements_by_query",
+                                                         {"bundle_id": package_name, "query_method": "predicate",
+                                                          "query_value": value})
+
                 else:
-                    matching_element = send_tcp_request(port,
-                                                        f"find_element_by_query:{package_name}:predicate:{value}")
+                    matching_element = send_http_request(port,
+                                                         f"find_element_by_query",
+                                                         {"bundle_id": package_name, "query_method": "predicate",
+                                                          "query_value": value})
                 if matching_element == "":
                     return None
                 logger.debug(f"found element: {matching_element}")
@@ -242,13 +249,15 @@ class NicoBasic:
                 NSPredicate_list.append(condition)
         NSPredicate = " AND ".join(NSPredicate_list)
         if return_all:
-            matching_elements = send_tcp_request(port,
-                                                 f"find_elements_by_query:{package_name}:predicate:{NSPredicate}")
+            matching_elements = send_http_request(port, "find_elements_by_query",
+                                                  {"bundle_id": package_name, "query_method": "predicate",
+                                                   "query_value": NSPredicate})
             return json.loads(f"[{matching_elements}]")
 
         else:
-            matching_element = send_tcp_request(port,
-                                                f"find_element_by_query:{package_name}:predicate:{NSPredicate}")
+            matching_element = send_http_request(port, "find_element_by_query",
+                                                 {"bundle_id": package_name, "query_method": "predicate",
+                                                  "query_value": NSPredicate})
             if matching_element == "":
                 return None
         logger.debug(f"found element: {matching_element}")

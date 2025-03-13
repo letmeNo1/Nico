@@ -1,4 +1,5 @@
 import socket
+import requests
 from loguru import logger
 
 
@@ -10,10 +11,10 @@ def send_tcp_request(port: int, message: str):
         client_socket.sendall(message.encode())
         client_socket.sendall('\n'.encode())
 
-        # 接收服务器响应
+        # Receive server response
         chunks = []
         while True:
-            chunk = client_socket.recv(1024)  # 一次最多接收 1024 字节数据
+            chunk = client_socket.recv(1024)  # Receive up to 1024 bytes at a time
             if not chunk:
                 break
             chunks.append(chunk)
@@ -35,4 +36,20 @@ def send_tcp_request(port: int, message: str):
         logger.error(f"{str(b)} by {port}")
         return f"{str(b)} by {port}"
 
-# send_tcp_request(9580,"print")
+
+def send_http_request(port: int, method, params: dict = None):
+    try:
+        url = f"http://localhost:{port}/{method}"
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            content_type = response.headers.get('Content-Type')
+            if content_type == 'image/jpeg':
+                logger.debug(f"Request successful, response content: Image content:{response.content[:100]}")
+                return response.content
+            else:
+                logger.debug(response.text[:100])
+                return response.text
+        else:
+            print(f"Request failed, status code: {response.status_code}")
+    except requests.RequestException as e:
+        print(f"An error occurred during the request: {e}")

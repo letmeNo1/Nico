@@ -1,9 +1,7 @@
 import os
-import tempfile
-import time
+
 
 import lxml.etree as ET
-from auto_nico.common.error import NicoError
 from auto_nico.common.send_request import send_tcp_request
 
 

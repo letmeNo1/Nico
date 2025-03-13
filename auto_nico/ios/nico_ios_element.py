@@ -3,7 +3,7 @@ import re
 
 from auto_nico.common.nico_basic_element import NicoBasicElement
 from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_tcp_request
+from auto_nico.common.send_request import send_tcp_request, send_http_request
 from auto_nico.ios.XCUIElementType import get_element_type_by_value
 from loguru import logger
 
@@ -102,7 +102,10 @@ class NicoIOSElement(NicoBasicElement):
             x = x + x_offset
         if y_offset is not None:
             y = y + y_offset
-        send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:click:{x}:{y}:none")
+        send_http_request(RunningCache(self.udid).get_current_running_port(),
+                          f"coordinate_action",
+                          {"bundle_id": self.package_name, "action": "click", "xPixel": x, "yPixel": y,
+                           "action_parms": "none"})
         RunningCache(self.udid).clear_current_cache_ui_tree()
         logger.debug(f"click {x} {y}")
 

@@ -13,7 +13,7 @@ import subprocess
 from flask import Flask, render_template, request
 
 from auto_nico.common.common_utils import is_port_in_use
-from auto_nico.common.send_request import send_tcp_request
+from auto_nico.common.send_request import send_tcp_request, send_http_request
 from auto_nico.ios.XCUIElementType import get_element_type_by_value
 from auto_nico.ios.tools.format_converter import converter
 
@@ -74,16 +74,9 @@ def dump_ui_tree():
         root = add_xpath_att(ET.fromstring(xml.encode('utf-8')))
 
     else:
-        bundle_list = idb_utils.get_app_list()
-        command = "get_current_bundleIdentifier"
-        for item in bundle_list:
-            if item:
-                item = item.split(" ")[0]
-                command = command + f":{item}"
-        package_name = send_tcp_request(port, command)
+        package_name = idb_utils.get_current_bundleIdentifier(port)
         os.environ['current_package_name'] = package_name
-
-        xml = send_tcp_request(port, f"dump_tree:{package_name}")
+        xml = send_http_request(port, f"dump_tree", {"bundle_id": package_name})
         xml = converter(xml)
         root = ET.fromstring(xml.encode('utf-8'))
     return root
@@ -96,7 +89,7 @@ def refresh_image():
     if platform == "android":
         new_data = send_tcp_request(port, "get_png_pic:1")
     else:
-        new_data = send_tcp_request(port, "get_jpg_pic:1.0")
+        new_data = send_http_request(port, "get_jpg_pic", {"compression_quality": 1.0})
     base64_data = base64.b64encode(new_data)
     return base64_data
 
@@ -119,8 +112,7 @@ def generate_image():
     if platform == "android":
         new_data = send_tcp_request(port, "get_png_pic:100")
     else:
-        new_data = send_tcp_request(port, "get_jpg_pic:1.0")
-
+        new_data = send_http_request(port, "get_jpg_pic", {"compression_quality": 1.0})
     # 使用BytesIO来模拟一个文件对象，并将数据写入到这个对象中
     base64_data = base64.b64encode(new_data)
     return base64_data
@@ -133,7 +125,8 @@ def get_element_attribute():
     port = int(os.environ.get('RemoteServerPort'))
     if xpath is None or xpath == "null":
         return ""
-    new_data = send_tcp_request(port, f"find_element_by_query:{id}:xpath:{xpath}")
+    new_data = send_http_request(port, f"find_element_by_query",
+                                 {"bundle_id": id, "query_method": "xpath", "query_value": xpath})
     if new_data == "":
         return ""
     new_data_dict = dict(json.loads(new_data))
@@ -317,12 +310,14 @@ def main():
         port, pid = idb_utils.get_tcp_forward_port()
         if port:
             remote_port = port
+            idb_utils.runtime_cache.set_current_running_port(port)
         else:
             idb_utils.set_port_forward(remote_port)
-        test_server_package_dict = idb_utils.get_test_server_package()
+        if idb_utils.is_greater_than_ios_17():
+            idb_utils._init_wda_server()
+        else:
+            idb_utils._init_test_server()
 
-        commands = f"""tidevice  --udid {udid} xcuitest --bundle-id {test_server_package_dict.get("test_server_package")} --target-bundle-id {test_server_package_dict.get("main_package")} -e USE_PORT:{remote_port}"""
-        subprocess.Popen(commands, shell=True)
     os.environ['RemoteServerPort'] = str(remote_port)
     os.environ['nico_ui_udid'] = udid
     time.sleep(5)

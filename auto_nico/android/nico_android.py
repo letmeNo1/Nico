@@ -1,3 +1,4 @@
+import os
 import random
 import time
 import subprocess
@@ -85,12 +86,6 @@ class NicoAndroid(NicoBasic):
             adb_utils.qucik_shell(f"ime disable {ime}")
 
     def __call__(self, **query):
-        if any('ocr' in key for key in query):
-            from cathin.Android.android_driver import AndroidDriver
-            modified_query = {key.replace('ocr_', ''): value if 'ocr_' in key else value for key, value in
-                              query.items()}
-            android = AndroidDriver(self.udid)
-            return android(**modified_query)
         current_port = RunningCache(self.udid).get_current_running_port()
         self.adb_utils.check_adb_server()
         if self.adb_utils.is_screen_off():

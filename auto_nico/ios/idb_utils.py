@@ -12,7 +12,7 @@ import psutil
 
 from loguru import logger
 from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_tcp_request
+from auto_nico.common.send_request import send_tcp_request, send_http_request
 from auto_nico.ios.tools.image_process import bytes_to_image, images_to_video
 from auto_nico.common.error import NicoError
 
@@ -64,7 +64,6 @@ class IdbUtils:
         subprocess.Popen(commands, shell=True)
         self.runtime_cache.set_current_running_port(port)
 
-
     def get_app_list(self):
         os.environ['PYTHONIOENCODING'] = 'utf-8'
         result = subprocess.run(f"tidevice --udid {self.udid} applist", capture_output=True, text=True,
@@ -90,40 +89,25 @@ class IdbUtils:
 
     def _init_test_server(self):
         self._set_tcp_forward_port()
+        if self.get_system_info().get("ProductVersion") >= "17.0.0":
+            self._start_tunnel()
         self.__start_test_server()
-
-    def _init_wda_server(self):
-        self._start_tunnel()
-        self._set_tcp_forward_port()
-        self.__start_wad_server()
 
     def __start_test_server(self):
         current_port = RunningCache(self.udid).get_current_running_port()
         test_server_package_dict = self.get_test_server_package()
         logger.debug(
-            f"""tidevice  --udid {self.udid} xcuitest --bundle-id {test_server_package_dict.get("test_server_package")} --target-bundle-id {test_server_package_dict.get("main_package")} -e USE_PORT:{current_port}""")
+            f"ios runwda --bundleid {test_server_package_dict.get('main_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}")
 
-        commands = f"""tidevice  --udid {self.udid} xcuitest --bundle-id {test_server_package_dict.get("test_server_package")} --target-bundle-id {test_server_package_dict.get("main_package")} -e USE_PORT:{current_port}"""
+        commands = f"ios runwda --bundleid {test_server_package_dict.get('main_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}"
         subprocess.Popen(commands, shell=True)
         for _ in range(10):
-            response = send_tcp_request(current_port, "print")
-            if "200 OK" in response:
+            response = send_http_request(current_port, "check_status")
+            if response is not None:
                 logger.debug(f"{self.udid}'s test server is ready")
                 break
             time.sleep(1)
         logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
-
-    def __start_wad_server(self):
-        test_server_package_dict = self.get_test_server_package()
-        current_port = RunningCache(self.udid).get_current_running_port()
-        command = f"ios runwda --bundleid {test_server_package_dict.get('main_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}"
-        logger.debug(command)
-        subprocess.Popen(command, shell=True)
-        for _ in range(10):
-            import wda
-            c = wda.Client(f'http://localhost:{current_port}')
-            if c.is_ready():
-                logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
 
     def _start_tunnel(self):
         rst = os.popen("ios tunnel ls").read()
@@ -169,11 +153,11 @@ class IdbUtils:
 
     def activate_app(self, package_name):
         exists_port = self.runtime_cache.get_current_running_port()
-        send_tcp_request(exists_port, f"activate_app:{package_name}")
+        send_http_request(exists_port, "activate_app", {"bundle_id": package_name})
 
     def terminate_app(self, package_name):
         exists_port = self.runtime_cache.get_current_running_port()
-        send_tcp_request(exists_port, f"terminate_app:{package_name}")
+        send_http_request(exists_port, "terminate_app", {"bundle_id": package_name})
 
     def start_recording(self):
         logger.debug("start recording")
@@ -203,7 +187,7 @@ class IdbUtils:
 
     def get_output_device_name(self):
         exists_port = self.runtime_cache.get_current_running_port()
-        respo = send_tcp_request(exists_port, "device_info:get_output_device_name")
+        respo = send_http_request(exists_port, "device_info", {"value": "get_output_device_name"})
         return respo
 
     def stop_app(self, package_name):
@@ -241,30 +225,30 @@ class IdbUtils:
 
     def home(self):
         exists_port = self.runtime_cache.get_current_running_port()
-        return send_tcp_request(exists_port, "device_action:home")
+        return send_http_request(exists_port, "device_action", {"action": "home"})
 
     def get_volume(self):
         exists_port = self.runtime_cache.get_current_running_port()
-        return send_tcp_request(exists_port, "device_info:get_output_volume")
+        return send_http_request(exists_port, "device_info", {"value": "get_output_volume"})
 
     def turn_volume_up(self):
         exists_port = self.runtime_cache.get_current_running_port()
-        send_tcp_request(exists_port, "device_action:volume_up")
+        send_http_request(exists_port, "device_action", {"action": "volume_up"})
 
     def turn_volume_down(self):
         exists_port = self.runtime_cache.get_current_running_port()
-        send_tcp_request(exists_port, "device_action:volume_down")
+        send_http_request(exists_port, "device_action", {"action": "volume_down"})
 
     def snapshot(self, name, path):
         self.cmd(f'screenshot {path}/{name}.jpg')
 
     def get_pic(self, quality=1.0):
         exists_port = self.runtime_cache.get_current_running_port()
-        return send_tcp_request(exists_port, f"get_jpg_pic:{quality}")
+        return send_http_request(exists_port, f"get_jpg_pic", {"compression_quality": quality})
 
     def get_image_object(self, quality=100):
         exists_port = self.runtime_cache.get_current_running_port()
-        a = send_tcp_request(exists_port, f"get_jpg_pic:{quality}")
+        a = send_http_request(exists_port, f"get_jpg_pic", {"compression_quality": quality})
         nparr = np.frombuffer(a, np.uint8)
         image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         return image
@@ -275,16 +259,23 @@ class IdbUtils:
             current_bundleIdentifier = self.get_current_bundleIdentifier(
                 self.runtime_cache.get_current_running_port())
 
-        send_tcp_request(self.runtime_cache.get_current_running_port(),
-                         f"coordinate_action:{current_bundleIdentifier}:click:{x}:{y}:none")
+        send_http_request(self.runtime_cache.get_current_running_port(),
+                          f"coordinate_action",
+                          {"bundle_id": current_bundleIdentifier, "action": "click", "xPixel": x, "yPixel": y,
+                           "action_parms": "none"})
         self.runtime_cache.clear_current_cache_ui_tree()
 
     def get_current_bundleIdentifier(self, port):
         bundle_list = self.get_app_list()
-        command = "get_current_bundleIdentifier"
+        method = "get_current_bundleIdentifier"
+        params = {
+            "bundle_ids": ""
+        }
+        command = []  # Use a list to collect bundle IDs
         for item in bundle_list:
             if item:
                 item = item.split(" ")[0]
-                command = command + f":{item}"
-        package_name = send_tcp_request(port, command)
-        return package_name
+                command.append(item)  # Append item to the list
+        params["bundle_ids"] = ",".join(command)  # Join list items with commas
+
+        return send_http_request(port, method, params)
