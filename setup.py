@@ -11,7 +11,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.3.2",
+    version="1.3.4",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
     description="Provide Basic Interface to conrol Mobile UI.",
@@ -26,7 +26,7 @@ setuptools.setup(
     install_requires=[
         "flask==3.0.3",
         'lxml==5.1.0',
-        'numpy==1.24.4',
+        'numpy>=1.24.4',
         'opencv-python==4.9.0.80',
         'loguru==0.7.2',
         'py-ios==0.1.3'
