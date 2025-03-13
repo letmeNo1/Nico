@@ -26,3 +26,5 @@ except requests.RequestException as e:
 #
 # except requests.RequestException as e:
 #     print(f"请求发生错误：{e}")
+
+from auto_nico.android.adb_utils import AdbUtils
