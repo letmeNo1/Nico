@@ -288,6 +288,8 @@ MIT License - See [LICENSE](https://github.com/yourusername/Nico/blob/main/LICEN
 对于iOS, 需要自行编译[nico_dump](https://github.com/letmeNo1/IOSHierarchyDumper)
 安装到iPhone设备上
 
+qq交流群：1029838186
+
 <a name="background-cn"></a>
 ## 📖 完整文档目录
 - [English](#background)
