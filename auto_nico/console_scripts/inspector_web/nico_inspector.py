@@ -113,7 +113,6 @@ def generate_image():
         new_data = send_tcp_request(port, "get_png_pic:100")
     else:
         new_data = send_http_request(port, "get_jpg_pic", {"compression_quality": 1.0})
-    # 使用BytesIO来模拟一个文件对象，并将数据写入到这个对象中
     base64_data = base64.b64encode(new_data)
     return base64_data
 
@@ -313,10 +312,7 @@ def main():
             idb_utils.runtime_cache.set_current_running_port(port)
         else:
             idb_utils.set_port_forward(remote_port)
-        if idb_utils.is_greater_than_ios_17():
-            idb_utils._init_wda_server()
-        else:
-            idb_utils._init_test_server()
+        idb_utils._init_test_server()
 
     os.environ['RemoteServerPort'] = str(remote_port)
     os.environ['nico_ui_udid'] = udid

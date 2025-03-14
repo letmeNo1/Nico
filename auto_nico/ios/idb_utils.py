@@ -74,8 +74,7 @@ class IdbUtils:
     def get_test_server_package(self):
         app_list = self.get_app_list()
         xctrunner_package_name = [s for s in app_list if "dump_hierarchyUITests-Runner" in s][0].split(" ")[0]
-        main_package_name = [s for s in app_list if "nico_dump" in s][0].split(" ")[0]
-        return {"test_server_package": xctrunner_package_name, "main_package": main_package_name}
+        return {"test_server_package": xctrunner_package_name}
 
     def get_wda_server_package(self):
         app_list = self.get_app_list()
@@ -97,9 +96,9 @@ class IdbUtils:
         current_port = RunningCache(self.udid).get_current_running_port()
         test_server_package_dict = self.get_test_server_package()
         logger.debug(
-            f"ios runwda --bundleid {test_server_package_dict.get('main_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}")
+            f"ios runwda --bundleid {test_server_package_dict.get('test_server_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}")
 
-        commands = f"ios runwda --bundleid {test_server_package_dict.get('main_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}"
+        commands = f"ios runwda --bundleid {test_server_package_dict.get('test_server_package')} --testrunnerbundleid {test_server_package_dict.get('test_server_package')} --xctestconfig=dump_hierarchyUITests.xctest --udid={self.udid} --env=USE_PORT={current_port}"
         subprocess.Popen(commands, shell=True)
         for _ in range(10):
             response = send_http_request(current_port, "check_status")
@@ -279,3 +278,9 @@ class IdbUtils:
         params["bundle_ids"] = ",".join(command)  # Join list items with commas
 
         return send_http_request(port, method, params)
+
+    def get_xpaths(self,id,xpath):
+        exists_port = self.runtime_cache.get_current_running_port()
+
+        return send_http_request(exists_port, f"find_element_by_query",
+                          {"bundle_id": id, "query_method": "predicate", "query_value": xpath})
