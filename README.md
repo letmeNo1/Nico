@@ -561,8 +561,8 @@ MIT License - 请查看 [LICENSE](https://github.com/yourusername/Nico/blob/main
 
 ## 💰 打赏
 如果觉得此项目对您有帮助，扫码请我喝杯☕️
-![db49678ac84897884760ad4f53b0d00](https://github.com/user-attachments/assets/de7d11d1-ae83-4109-88e7-c06b2963b8a6)
-![c6eca301bf96c6bdfdaecbed10983e3](https://github.com/user-attachments/assets/44fb1d7d-7048-4442-80e3-c01195afaeb2)
 
+<img src="https://github.com/user-attachments/assets/de7d11d1-ae83-4109-88e7-c06b2963b8a6" width="200" />
+<img src="https://github.com/user-attachments/assets/44fb1d7d-7048-4442-80e3-c01195afaeb2" width="200" />
 
 
