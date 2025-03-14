@@ -45,7 +45,8 @@ nico_ui -s {udid}  # View real-time interface structure
 from auto_nico.android.nico_android import NicoAndroid
 
 nico = NicoAndroid("emulator-5554")
-nico(text="Add network").wait_for_appearance().click()
+nico(text="Add network").wait_for_appearance()
+nico(text="Add network").click()
 nico(class_name="EditText").set_text("TestSSID")
 nico(text="Save").click()
 
@@ -53,7 +54,8 @@ nico(text="Save").click()
 from auto_nico.ios.nico_ios import NicoIOS
 
 nico = NicoIOS("00008020-00105C883A42001E")
-nico(identifier="login_button").wait_for_appearance().click()
+nico(identifier="login_button").wait_for_appearance()
+nico(identifier="login_button").click()
 nico(xpath="//XCUIElementTypeTextField").set_text("user@example.com")
 ```
 
@@ -325,7 +327,8 @@ nico_ui -s {udid}  # 查看实时界面结构
 from auto_nico.android.nico_android import NicoAndroid
 
 nico = NicoAndroid("emulator-5554")
-nico(text="Add network").wait_for_appearance().click()
+nico(text="Add network").wait_for_appearance()
+nico(identifier="login_button").click()
 nico(class_name="EditText").set_text("TestSSID")
 nico(text="Save").click()
 
@@ -333,7 +336,8 @@ nico(text="Save").click()
 from auto_nico.ios.nico_ios import NicoIOS
 
 nico = NicoIOS("00008020-00105C883A42001E")
-nico(identifier="login_button").wait_for_appearance().click()
+nico(identifier="login_button").wait_for_appearance()
+nico(identifier="login_button").click()
 nico(xpath="//XCUIElementTypeTextField").set_text("user@example.com")
 ```
 
