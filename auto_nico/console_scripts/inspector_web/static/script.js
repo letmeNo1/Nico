@@ -222,10 +222,18 @@ function addImageListeners() {
 function refreshData() {
     bounds_list = []
     // 发送GET请求到服务器，刷新图片
-    $.get('/refresh_image', function(data) {
-        var img = document.getElementById('dynamicImage');
-        img.src = 'data:image/png;base64,' + data;
-    });
+    $(document).ready(function() {
+            // 为按钮添加点击事件处理程序
+            $('#refreshButton').click(function() {
+                // 使用 $.get 方法发送请求
+                $.get('http://localhost:5000/get_image', function(data) {
+                    var img = document.getElementById('dynamicImage');
+                    img.src = 'data:image/png;base64,' + data;
+                }).fail(function(error) {
+                    console.error('请求出错:', error);
+                });
+            });
+       });
 
     // 发送GET请求到服务器，刷新XML
     $.get('/refresh_ui_xml', function(data) {

@@ -12,15 +12,15 @@ import subprocess
 
 from flask import Flask, render_template, request
 
-from apollo_nico.common.common_utils import is_port_in_use
-from apollo_nico.common.send_request import send_http_request
-from apollo_nico.ios.XCUIElementType import get_element_type_by_value
-from apollo_nico.ios.tools.format_converter import converter
+from auto_nico.common.common_utils import is_port_in_use
+from auto_nico.common.send_request import send_http_request
+from auto_nico.ios.XCUIElementType import get_element_type_by_value
+from auto_nico.ios.tools.format_converter import converter
 
-from apollo_nico.android.adb_utils import AdbUtils
-from apollo_nico.ios.idb_utils import IdbUtils
+from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.ios.idb_utils import IdbUtils
 
-from apollo_nico.android.tools.format_converter import add_xpath_att
+from auto_nico.android.tools.format_converter import add_xpath_att
 
 app = Flask(__name__)
 
@@ -320,3 +320,4 @@ def main():
 
     p = multiprocessing.Process(target=run_app, args=(inspect_port,))
     p.start()
+
