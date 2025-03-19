@@ -21,8 +21,8 @@ function calculateCenter(bounds) {
 
 function initImageControl(){
     var listItems = document.getElementsByClassName('node');
-    var ui_image = document.getElementById('ui_image');
-    var img = document.getElementById('image_')
+    var ui_image = document.getElementById('dynamicImage');
+    var img = document.getElementById('dynamicImage')
     var displayedWidth = img.clientWidth;
     var displayedHeight = img.clientHeight;
     var actualWidth = img.naturalWidth;
@@ -223,9 +223,8 @@ function refreshData() {
     bounds_list = []
     // 发送GET请求到服务器，刷新图片
     $.get('/refresh_image', function(data) {
-        var img = document.querySelector('img');
+        var img = document.getElementById('dynamicImage');
         img.src = 'data:image/png;base64,' + data;
-        img.setAttribute("id","image_")
     });
 
     // 发送GET请求到服务器，刷新XML

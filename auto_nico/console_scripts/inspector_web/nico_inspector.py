@@ -12,15 +12,15 @@ import subprocess
 
 from flask import Flask, render_template, request
 
-from auto_nico.common.common_utils import is_port_in_use
-from auto_nico.common.send_request import send_tcp_request, send_http_request
-from auto_nico.ios.XCUIElementType import get_element_type_by_value
-from auto_nico.ios.tools.format_converter import converter
+from apollo_nico.common.common_utils import is_port_in_use
+from apollo_nico.common.send_request import send_http_request
+from apollo_nico.ios.XCUIElementType import get_element_type_by_value
+from apollo_nico.ios.tools.format_converter import converter
 
-from auto_nico.android.adb_utils import AdbUtils
-from auto_nico.ios.idb_utils import IdbUtils
+from apollo_nico.android.adb_utils import AdbUtils
+from apollo_nico.ios.idb_utils import IdbUtils
 
-from auto_nico.android.tools.format_converter import add_xpath_att
+from apollo_nico.android.tools.format_converter import add_xpath_att
 
 app = Flask(__name__)
 
@@ -68,7 +68,7 @@ def dump_ui_tree():
 
     port = int(os.environ.get('RemoteServerPort'))
     if platform == "android":
-        xml = send_tcp_request(port, "dump_tree:true").replace("class", "class_name").replace("resource-id=",
+        xml = send_http_request(port, "dump",{"compressed":"true"}).replace("class", "class_name").replace("resource-id=",
                                                                                               "id=").replace(
             "content-desc=", "content_desc=")
         root = add_xpath_att(ET.fromstring(xml.encode('utf-8')))
@@ -87,7 +87,7 @@ def refresh_image():
     port = int(os.environ.get('RemoteServerPort'))
     platform = os.environ.get('nico_ui_platform')
     if platform == "android":
-        new_data = send_tcp_request(port, "get_png_pic:1")
+        new_data = send_http_request(port, "screenshot",{"quality":80})
     else:
         new_data = send_http_request(port, "get_jpg_pic", {"compression_quality": 1.0})
     base64_data = base64.b64encode(new_data)
@@ -110,7 +110,7 @@ def generate_image():
     port = int(os.environ.get('RemoteServerPort'))
     platform = os.environ.get('nico_ui_platform')
     if platform == "android":
-        new_data = send_tcp_request(port, "get_png_pic:100")
+        new_data = send_http_request(port, "screenshot",{"quality":80})
     else:
         new_data = send_http_request(port, "get_jpg_pic", {"compression_quality": 1.0})
     base64_data = base64.b64encode(new_data)
@@ -296,7 +296,7 @@ def main():
     if platform == "android":
         adb_utils = AdbUtils(udid)
         adb_utils.clear_tcp_forward_port(remote_port)
-        adb_utils.cmd(f'''forward tcp:{remote_port} tcp:{remote_port}''')
+        adb_utils.cmd(f'''forward tcp:{remote_port} tcp:8000''')
         adb_utils.check_adb_server()
         adb_utils.install_test_server_package(1.3)
         ime_list = adb_utils.qucik_shell("ime list -s").split("\n")[0:-1]

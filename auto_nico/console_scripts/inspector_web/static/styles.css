@@ -117,7 +117,7 @@ input:checked + .slider:before {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-right: 20px; /* 添加间距 */
+    margin-bottom: 10px; /* 修改为底部间距 */
 }
 
 .c_button:hover {
@@ -126,12 +126,10 @@ input:checked + .slider:before {
 
 .controls {
     display: flex;
-    flex-wrap: wrap; /* 添加这一行 */
-    align-items: center;
-    justify-content: flex-end;
+    flex-direction: column; /* 改为垂直排列 */
+    align-items: flex-end; /* 靠右对齐 */
     padding: 20px;
     box-sizing: border-box;
-    width: 50%; /* 设置宽度为50% */
     position: absolute;
     top: 0;
     right: 0;
@@ -146,7 +144,7 @@ input:checked + .slider:before {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-right: 20px; /* 添加间距 */
+    margin-bottom: 10px; /* 修改为底部间距 */
 }
 
 .button:hover {
@@ -156,9 +154,13 @@ input:checked + .slider:before {
 /* 为输入框添加样式 */
 .styled-input {
     padding: 10px;
-    margin: 4px 2px;
+    margin-bottom: 10px; /* 修改为底部间距 */
     font-size: 16px;
     border-radius: 4px;
     border: 1px solid #ccc;
     box-sizing: border-box;
+}
+
+#ui_image {
+    margin-bottom: 10%;
 }
