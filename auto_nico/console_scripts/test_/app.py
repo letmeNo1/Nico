@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 @app.route("/image")
 def get_image():
-    device_id = "988e5041555a4a434c"  # 默认设备 ID
+    device_id = "emulator-5554"  # 默认设备 ID
     # 非第一次请求设备画面，判断距离第一次请求是否超过 2 秒，没超过则等待，超过则大概率 pyscrcpy server 已经启动好了
     if device_id in request_cache:
         sequence, request_time = request_cache[device_id]
@@ -66,7 +66,7 @@ def index():
 
 @app.route("/action", methods=["POST"])
 def action():
-    device_id = "988e5041555a4a434c"  # 默认设备 ID
+    device_id = "emulator-5554"  # 默认设备 ID
     if device_id not in clients:
         return jsonify({"message": f"设备 {device_id} 的客户端未找到"}), 400
     client = clients[device_id]
@@ -89,4 +89,4 @@ def action():
 
 if __name__ == '__main__':
     # 启动 Flask 应用
-    app.run(host="0.0.0.0", port=3408)
+    app.run(host="0.0.0.0", port=3448)

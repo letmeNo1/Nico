@@ -1,11 +1,10 @@
 let intervalId;
-let isDragging = false;
 let longPressTimeout;
 const longPressDuration = 500; // 500 milliseconds for long press
 let startX, startY;
 
 async function fetchImage() {
-    const deviceId = "988e5041555a4a434c"; // Replace with your actual device ID
+    const deviceId = "emulator-5554"; // Replace with your actual device ID
     const imageElement = document.getElementById('dynamicImage');
     const overlay = document.getElementById('action-layer');
     try {
@@ -40,7 +39,7 @@ async function fetchImage() {
 
 function startFetching() {
     if (!intervalId) {
-        intervalId = setInterval(fetchImage, 30); // Fetch image every 30 milliseconds
+        intervalId = setInterval(fetchImage, 100); // Fetch image every 30 milliseconds
     }
 }
 
