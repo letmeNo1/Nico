@@ -37,13 +37,14 @@ def send_tcp_request(port: int, message: str):
         return f"{str(b)} by {port}"
 
 
-def send_http_request(port: int, method, params: dict = None):
+def send_http_request(port: int, method, params: dict = None, timeout=10):
     try:
         url = f"http://localhost:{port}/{method}"
-        response = requests.get(url, params=params)
+        # add timeout to the request
+        response = requests.get(url, params=params, timeout=timeout)
         if response.status_code == 200:
             content_type = response.headers.get('Content-Type')
-            if content_type == 'image/jpeg':
+            if content_type == 'image/jpeg' or content_type == 'image/png':
                 logger.debug(f"Request successful, response content: Image content:{response.content[:100]}")
                 return response.content
             else:

@@ -45,10 +45,9 @@ class NicoBasic:
                 response = send_tcp_request(port, f"dump:{str(compressed).lower()}").replace("class=",
                                                                                              "class_name=").replace(
                     "resource-id=", "id=").replace("content-desc=", "content_desc=")
-                # print(response)
             elif "NicoIOS" in self.__class__.__name__:
                 package_name = runtime_cache.get_current_running_package()
-                response = send_tcp_request(port, f"dump_tree:{package_name}")
+                response = send_http_request(port, f"dump_tree", {"bundle_id": package_name})
                 response = converter(response)
 
             if "<hierarchy" in response and "</hierarchy>" in response:
@@ -218,6 +217,8 @@ class NicoBasic:
                 return json.loads(matching_element)
             elif attribute == "custom":
                 if return_all:
+
+
                     matching_element = send_http_request(port,
                                                          f"find_elements_by_query",
                                                          {"bundle_id": package_name, "query_method": "predicate",
@@ -250,8 +251,8 @@ class NicoBasic:
         NSPredicate = " AND ".join(NSPredicate_list)
         if return_all:
             matching_elements = send_http_request(port, "find_elements_by_query",
-                                                  {"bundle_id": package_name, "query_method": "predicate",
-                                                   "query_value": NSPredicate})
+                                                  {"bundle_id": package_name,
+                                                   "predicate": NSPredicate})
             return json.loads(f"[{matching_elements}]")
 
         else:

@@ -16,7 +16,7 @@ class AdbUtils:
     def __init__(self, udid):
         self.udid = udid
         self.runtime_cache = RunningCache(udid)
-        self.version = 1.3
+        self.version = 1.4
 
     def get_tcp_forward_port(self):
         rst = self.cmd(f'''forward --list | findstr /v local |findstr "{self.udid}"''')

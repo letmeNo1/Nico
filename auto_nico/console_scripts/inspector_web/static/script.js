@@ -21,8 +21,8 @@ function calculateCenter(bounds) {
 
 function initImageControl(){
     var listItems = document.getElementsByClassName('node');
-    var ui_image = document.getElementById('dynamicImage');
-    var img = document.getElementById('dynamicImage')
+    var ui_image = document.getElementById('ui_image');
+    var img = document.getElementById('image_')
     var displayedWidth = img.clientWidth;
     var displayedHeight = img.clientHeight;
     var actualWidth = img.naturalWidth;
@@ -222,18 +222,11 @@ function addImageListeners() {
 function refreshData() {
     bounds_list = []
     // 发送GET请求到服务器，刷新图片
-    $(document).ready(function() {
-            // 为按钮添加点击事件处理程序
-            $('#refreshButton').click(function() {
-                // 使用 $.get 方法发送请求
-                $.get('http://localhost:5000/get_image', function(data) {
-                    var img = document.getElementById('dynamicImage');
-                    img.src = 'data:image/png;base64,' + data;
-                }).fail(function(error) {
-                    console.error('请求出错:', error);
-                });
-            });
-       });
+    $.get('/refresh_image', function(data) {
+        var img = document.querySelector('img');
+        img.src = 'data:image/png;base64,' + data;
+        img.setAttribute("id","image_")
+    });
 
     // 发送GET请求到服务器，刷新XML
     $.get('/refresh_ui_xml', function(data) {

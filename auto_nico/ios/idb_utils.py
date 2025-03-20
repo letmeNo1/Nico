@@ -111,7 +111,9 @@ class IdbUtils:
     def _start_tunnel(self):
         rst = os.popen("ios tunnel ls").read()
         logger.debug(f"{self.udid}'s uiautomator rst is {rst}")
-        if self.udid in rst:
+        data = json.loads(rst)
+        udids = [item["udid"] for item in data]
+        if str(self.udid).strip() in udids:
             logger.debug(f"tunnel for {self.udid} is started")
         else:
             logger.debug(f"ios tunnel start --udid={self.udid}")
@@ -194,7 +196,7 @@ class IdbUtils:
         self.cmd(command)
 
     def get_system_info(self):
-        data_string = self.cmd("info")
+        data_string = os.popen(f"tidevice --udid {self.udid} info").read()
         data_dict = {}
         for line in data_string.strip().split('\n'):
             if ':' in line:
@@ -208,8 +210,11 @@ class IdbUtils:
         @return: bool
         """
         try:
-            result = subprocess.run(f'''tidevice --udid {udid} {cmd}''', shell=True, capture_output=True, text=True,
-                                    check=True, timeout=10).stdout
+            if self.is_greater_than_ios_17():
+                print(f'''ios {cmd} --udid={udid}''')
+                result = subprocess.run(f'''ios {cmd} --udid={udid}''', shell=True, capture_output=True, text=True,
+                                        check=True, timeout=10).stdout
+            result = subprocess.run(f'''tidevice --udid {udid} {cmd}''', shell=True, capture_output=True, text=True,check=True, timeout=10).stdout
         except subprocess.CalledProcessError as e:
             return e.stderr
         return result

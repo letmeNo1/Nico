@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three Section Layout</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .section {
+            box-sizing: border-box;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .section1 {
+            width: 40%;
+            background-color: #3498db;
+        }
+
+        .section2 {
+            width: 50%;
+            background-color: #2ecc71;
+        }
+
+        .section3 {
+            width: 10%;
+            background-color: #e74c3c;
+        }
+
+        .section2 img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+       .c_button {
+            margin: 5px;
+            padding: 5px 10px;
+            width: 90%;
+        }
+
+       .styled-input {
+            margin: 5px;
+            padding: 5px;
+            width: 90%;
+        }
+
+       .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+       .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+       .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+       .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+       .slider.round {
+            border-radius: 34px;
+        }
+
+       .slider.round:before {
+            border-radius: 50%;
+        }
+
+       .switch-container {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="section section1">
+        <div class="content">
+            <h1>XML Content as HTML</h1>
+            <div class="content-inner">
+                {{ xml_content|safe }}
+            </div>
+            <ul id="info-list"></ul>
+        </div>
+    </div>
+    <div class="section section2">
+        <img id="dynamicImage" src="https://dummyimage.com/800x600/ff0000/ffffff" alt="placeholder">
+    </div>
+    <div class="section section3">
+        <div class="controls">
+            <button id="switch-button" class="c_button">Switch App</button>
+            <button id="home-button" class="c_button">Home</button>
+            <button id="back-button" class="c_button">Back</button>
+            <button id="menu-button" class="c_button">Menu</button>
+            <input type="text" id="text-input" class="styled-input" placeholder="Enter text here">
+            <button id="submit-button" class="c_button">Submit</button>
+            <button id="refresh-button" class="c_button">Refresh</button>
+            <button id="volume-up" class="c_button">Volume Up</button>
+            <button id="volume-down" class="c_button">Volume Down</button>
+            <button id="power" class="c_button">Power</button>
+            <button id="delete_text" class="c_button">Delete</button>
+
+            <div class="switch-container">
+                <label class="switch">
+                    <input type="checkbox" id="realtime-switch">
+                    <span class="slider round"></span>
+                </label>
+                <label for="realtime-switch">real-time display</label>
+            </div>
+        </div>
+    </div>
+    <script>
+        function refreshImage() {
+            const randomWidth = Math.floor(Math.random() * 1000);
+            const randomHeight = Math.floor(Math.random() * 1000);
+            const img = document.getElementById('dynamicImage');
+            img.src = `https://dummyimage.com/${randomWidth}x${randomHeight}/ff0000/ffffff`;
+        }
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='button_script.js') }}"></script>
+</body>
+
+</html>

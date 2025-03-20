@@ -22,6 +22,8 @@ from auto_nico.ios.idb_utils import IdbUtils
 
 from auto_nico.android.tools.format_converter import add_xpath_att
 
+from auto_nico.console_scripts.inspector_web.pyscrcpy.test import start_scrcpy
+
 app = Flask(__name__)
 
 
@@ -266,7 +268,6 @@ def main():
         print('Please enter the correct platform "i","iOS","a","android"')
 
     os.environ['nico_ui_platform'] = platform
-
     remote_port = parser.parse_args().p1
     inspect_port = parser.parse_args().p2
     if remote_port is None:
@@ -298,7 +299,7 @@ def main():
         adb_utils.clear_tcp_forward_port(remote_port)
         adb_utils.cmd(f'''forward tcp:{remote_port} tcp:8000''')
         adb_utils.check_adb_server()
-        adb_utils.install_test_server_package(1.3)
+        adb_utils.install_test_server_package(1.4)
         ime_list = adb_utils.qucik_shell("ime list -s").split("\n")[0:-1]
         for ime in ime_list:
             adb_utils.qucik_shell(f"ime disable {ime}")
@@ -320,4 +321,3 @@ def main():
 
     p = multiprocessing.Process(target=run_app, args=(inspect_port,))
     p.start()
-
