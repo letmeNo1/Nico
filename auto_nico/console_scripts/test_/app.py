@@ -1,3 +1,12 @@
+import argparse
+import base64
+import os
+import socket
+import subprocess
+
+from apollo_nico.android.adb_utils import AdbUtils
+from apollo_nico.common.send_request import send_http_request
+from apollo_nico.ios.idb_utils import IdbUtils
 from flask import Flask, Response, jsonify, render_template, request
 import io
 import time
@@ -8,10 +17,15 @@ from scrcpy_utils import (
 
 app = Flask(__name__)
 
+def find_available_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
 
-@app.route("/image")
+
+@app.route("/dynamic_image")
 def get_image():
-    device_id = "emulator-5554"  # 默认设备 ID
+    device_id = os.getenv("nico_ui_udid")  # 从请求参数中获取 device_id
     # 非第一次请求设备画面，判断距离第一次请求是否超过 2 秒，没超过则等待，超过则大概率 pyscrcpy server 已经启动好了
     if device_id in request_cache:
         sequence, request_time = request_cache[device_id]
@@ -59,6 +73,20 @@ def get_image():
     return jsonify({"message": "画面超时，强制重启 scrcpy server", "starting": starting})
 
 
+@app.route('/static_image')
+def generate_image():
+    port = int(os.environ.get('RemoteServerPort'))
+    platform = os.environ.get('nico_ui_platform')
+    if platform == "android":
+        new_data = send_http_request(port, "screenshot", {"quality": 80})
+    else:
+        new_data = send_http_request(port, "get_jpg_pic", {"compression_quality": 1.0})
+    print(new_data)
+    if new_data is None:
+        return jsonify({"error": "Failed to get image data"}), 500
+    base64_data = base64.b64encode(new_data).decode('utf-8')
+    return jsonify({"image": base64_data})
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template('index.html')
@@ -66,7 +94,7 @@ def index():
 
 @app.route("/action", methods=["POST"])
 def action():
-    device_id = "emulator-5554"  # 默认设备 ID
+    device_id = os.getenv("nico_ui_udid")
     if device_id not in clients:
         return jsonify({"message": f"设备 {device_id} 的客户端未找到"}), 400
     client = clients[device_id]
@@ -84,9 +112,58 @@ def action():
     elif data.get("actionType") == "touch_move":
         client.control.touch_move(x, y)
 
-    return jsonify({"message": "Click action sent successfully"})
+    return jsonify({"message": f"{data.get('actionType')} sent successfully"})
 
 
 if __name__ == '__main__':
-    # 启动 Flask 应用
-    app.run(host="0.0.0.0", port=3448)
+    parser = argparse.ArgumentParser(description='设备控制服务')
+    parser.add_argument('-s', '--udid', required=True, help='设备 UDID')
+    parser.add_argument('-plat', type=str, help='platform "i","iOS","a","android"')
+
+    args = parser.parse_args()
+    udid = args.udid
+    platform = parser.parse_args().plat
+    if platform is None:
+        if len(args.udid) > 20:
+            platform = "iOS"
+        else:
+            platform = "android"
+    elif platform in ["i", "iOS", "a", "android"]:
+        if platform == "i":
+            platform = "iOS"
+        elif platform == "a":
+            platform = "android"
+        else:
+            pass
+    else:
+        print('Please enter the correct platform "i","iOS","a","android"')
+    os.environ['nico_ui_udid'] = udid
+    remote_port = find_available_port()
+    os.environ['RemoteServerPort'] = str(remote_port)
+    os.environ['nico_ui_platform'] = platform
+
+    if platform == "android":
+        adb_utils = AdbUtils(udid)
+        adb_utils.clear_tcp_forward_port(remote_port)
+        adb_utils.cmd(f'''forward tcp:{remote_port} tcp:8000''')
+        adb_utils.check_adb_server()
+        adb_utils.install_test_server_package(1.4)
+        ime_list = adb_utils.qucik_shell("ime list -s").split("\n")[0:-1]
+        for ime in ime_list:
+            adb_utils.qucik_shell(f"ime disable {ime}")
+        commands = f"""adb -s {udid} shell am instrument -r -w -e port {remote_port} -e class nico.dump_hierarchy.HierarchyTest nico.dump_hierarchy.test/androidx.test.runner.AndroidJUnitRunner"""
+        subprocess.Popen(commands, shell=True)
+    else:
+        idb_utils = IdbUtils(udid)
+        port, pid = idb_utils.get_tcp_forward_port()
+        if port:
+            remote_port = port
+            idb_utils.runtime_cache.set_current_running_port(port)
+        else:
+            idb_utils.set_port_forward(remote_port)
+        idb_utils._init_test_server()
+    # 启动服务
+    port = find_available_port()
+
+    # 启动服务
+    app.run(host="0.0.0.0", port=port, threaded=True)

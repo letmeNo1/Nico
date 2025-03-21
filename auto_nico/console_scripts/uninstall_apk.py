@@ -1,4 +1,4 @@
-from auto_nico.android.adb_utils import AdbUtils
+from apollo_nico.android.adb_utils import AdbUtils
 
 
 def main():

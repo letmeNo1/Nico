@@ -116,3 +116,24 @@ input:checked + .slider:before {
     justify-content: center;
     width: 90%;
 }
+
+ /* 加载动画样式 */
+
+
+.container {
+    width: 100%;
+    height: 100vh; /* 容器占满视口高度 */
+}
+#dynamicImage {
+    width: auto;
+    height: 100%;
+    z-index: 0;
+
+}
+#action-layer {
+    position: absolute;
+    width: auto;
+    height: 100%;
+    z-index: 1;
+
+}

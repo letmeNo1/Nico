@@ -1,10 +1,10 @@
 import os
 import re
 
-from auto_nico.common.nico_basic_element import NicoBasicElement
-from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_tcp_request, send_http_request
-from auto_nico.ios.XCUIElementType import get_element_type_by_value
+from apollo_nico.common.nico_basic_element import NicoBasicElement
+from apollo_nico.common.runtime_cache import RunningCache
+from apollo_nico.common.send_request import send_tcp_request, send_http_request
+from apollo_nico.ios.XCUIElementType import get_element_type_by_value
 from loguru import logger
 
 

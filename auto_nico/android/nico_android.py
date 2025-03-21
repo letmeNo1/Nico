@@ -3,13 +3,13 @@ import random
 import time
 import subprocess
 
-from auto_nico.android.nico_android_element import NicoAndroidElement
+from apollo_nico.android.nico_android_element import NicoAndroidElement
 from apollo_cathin.Android.android_driver import AndroidDriver
 from loguru import logger
-from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_http_request
-from auto_nico.common.nico_basic import NicoBasic
-from auto_nico.android.adb_utils import AdbUtils
+from apollo_nico.common.runtime_cache import RunningCache
+from apollo_nico.common.send_request import send_http_request
+from apollo_nico.common.nico_basic import NicoBasic
+from apollo_nico.android.adb_utils import AdbUtils
 
 
 class NicoAndroid(NicoBasic):

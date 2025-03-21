@@ -12,17 +12,16 @@ import subprocess
 
 from flask import Flask, render_template, request
 
-from auto_nico.common.common_utils import is_port_in_use
-from auto_nico.common.send_request import send_http_request
-from auto_nico.ios.XCUIElementType import get_element_type_by_value
-from auto_nico.ios.tools.format_converter import converter
+from apollo_nico.common.common_utils import is_port_in_use
+from apollo_nico.common.send_request import send_http_request
+from apollo_nico.ios.XCUIElementType import get_element_type_by_value
+from apollo_nico.ios.tools.format_converter import converter
 
-from auto_nico.android.adb_utils import AdbUtils
-from auto_nico.ios.idb_utils import IdbUtils
+from apollo_nico.android.adb_utils import AdbUtils
+from apollo_nico.ios.idb_utils import IdbUtils
 
-from auto_nico.android.tools.format_converter import add_xpath_att
+from apollo_nico.android.tools.format_converter import add_xpath_att
 
-from auto_nico.console_scripts.inspector_web.pyscrcpy.test import start_scrcpy
 
 app = Flask(__name__)
 
@@ -249,7 +248,6 @@ def main():
     parser.add_argument('-plat', type=str, help='platform "i","iOS","a","android"')
 
     udid = parser.parse_args().s
-    # udid = "dbde29f994e7ed382a592d6504eb9a4e9e4eb660"
 
     platform = parser.parse_args().plat
     if platform is None:

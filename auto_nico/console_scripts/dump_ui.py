@@ -1,4 +1,4 @@
-from auto_nico.android.nico_android import NicoAndroid
+from apollo_nico.android.nico_android import NicoAndroid
 
 
 def main():

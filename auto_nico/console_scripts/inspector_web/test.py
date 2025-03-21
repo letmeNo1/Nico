@@ -1,5 +1,5 @@
 import cv2
-from auto_nico.console_scripts.inspector_web.pyscrcpy import Client  # 修正模块路径
+from apollo_nico.console_scripts.inspector_web.pyscrcpy import Client  # 修正模块路径
 from flask import Flask, Response, render_template
 import threading
 
