@@ -4,9 +4,9 @@ import os
 import socket
 import subprocess
 
-from apollo_nico.android.adb_utils import AdbUtils
-from apollo_nico.common.send_request import send_http_request
-from apollo_nico.ios.idb_utils import IdbUtils
+from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.common.send_request import send_http_request
+from auto_nico.ios.idb_utils import IdbUtils
 from flask import Flask, Response, jsonify, render_template, request
 import io
 import time

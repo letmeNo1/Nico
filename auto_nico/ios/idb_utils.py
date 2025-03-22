@@ -11,10 +11,10 @@ import numpy as np
 import psutil
 
 from loguru import logger
-from apollo_nico.common.runtime_cache import RunningCache
-from apollo_nico.common.send_request import send_tcp_request, send_http_request
-from apollo_nico.ios.tools.image_process import bytes_to_image, images_to_video
-from apollo_nico.common.error import NicoError
+from auto_nico.common.runtime_cache import RunningCache
+from auto_nico.common.send_request import send_tcp_request, send_http_request
+from auto_nico.ios.tools.image_process import bytes_to_image, images_to_video
+from auto_nico.common.error import NicoError
 
 
 class IdbUtils:

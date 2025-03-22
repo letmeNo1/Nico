@@ -4,8 +4,8 @@ from datetime import datetime
 
 import cv2
 
-from apollo_nico.android.adb_utils import AdbUtils
-from apollo_nico.android.nico_android import NicoAndroid
+from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.android.nico_android import NicoAndroid
 
 
 def main():

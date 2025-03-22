@@ -5,9 +5,9 @@ import subprocess
 
 from loguru import logger
 
-from apollo_nico.common.error import ADBServerError, NicoError
-from apollo_nico.common.runtime_cache import RunningCache
-from apollo_nico.common.send_request import send_tcp_request
+from auto_nico.common.error import ADBServerError, NicoError
+from auto_nico.common.runtime_cache import RunningCache
+from auto_nico.common.send_request import send_tcp_request
 import cv2
 import numpy as np
 

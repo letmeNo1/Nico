@@ -3,8 +3,8 @@ import re
 import subprocess
 
 from loguru import logger
-from apollo_nico.common.nico_basic_element import NicoBasicElement
-from apollo_nico.common.runtime_cache import RunningCache
+from auto_nico.common.nico_basic_element import NicoBasicElement
+from auto_nico.common.runtime_cache import RunningCache
 
 
 class UIStructureError(Exception):

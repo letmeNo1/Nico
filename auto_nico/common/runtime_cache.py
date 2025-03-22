@@ -2,7 +2,7 @@ import os
 
 
 import lxml.etree as ET
-from apollo_nico.common.send_request import send_tcp_request
+from auto_nico.common.send_request import send_tcp_request
 
 
 def set_large_env_var(var_name, var_value, max_length=30000):
