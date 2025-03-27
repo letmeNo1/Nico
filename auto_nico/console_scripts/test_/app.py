@@ -4,6 +4,7 @@ import os
 import socket
 import subprocess
 
+from apollo_nico.console_scripts.inspector_web.nico_inspector import xml_to_html_list,dump_ui_tree
 from auto_nico.android.adb_utils import AdbUtils
 from auto_nico.common.send_request import send_http_request
 from auto_nico.ios.idb_utils import IdbUtils
@@ -81,7 +82,6 @@ def generate_image():
         new_data = send_http_request(port, "screenshot", {"quality": 80})
     else:
         new_data = send_http_request(port, "get_jpg_pic", {"compression_quality": 1.0})
-    print(new_data)
     if new_data is None:
         return jsonify({"error": "Failed to get image data"}), 500
     base64_data = base64.b64encode(new_data).decode('utf-8')
@@ -90,6 +90,17 @@ def generate_image():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template('index.html')
+
+
+@app.route('/refresh_ui_xml')
+def refresh_ui_xml():
+    root = dump_ui_tree()
+
+    # 构建HTML列表
+    html_list = xml_to_html_list(root)
+
+    # 渲染模板并传递构建的HTML列表
+    return html_list
 
 
 @app.route("/action", methods=["POST"])

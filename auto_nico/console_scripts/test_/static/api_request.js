@@ -98,3 +98,11 @@ function stopFetching() {
 
 fetchStaticImage()
 
+$.get('/refresh_ui_xml', function(data) {
+        var xmlContainer = document.querySelector('.content-inner');
+        xmlContainer.innerHTML = data;
+//        initImageControl()
+//        addTextControlHoverListeners(); // 添加新的事件监听器
+//        addImageListeners(); // 添加新的事件监听器
+});
+
