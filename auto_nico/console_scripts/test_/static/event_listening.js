@@ -25,13 +25,16 @@ let lastX = 0;
 let lastY = 0;
 
 actionLayer.addEventListener('mousedown', (event) => {
-    isDragging = true;
-    lastX = event.clientX;
-    lastY = event.clientY;
+    if (RealtimeUpdates){
+        isDragging = true;
+        lastX = event.clientX;
+        lastY = event.clientY;
 
-    const { xPercent, yPercent } = getPercentageCoordinates(lastX, lastY);
-    console.log('Press detected at:', xPercent.toFixed(2) + '%', yPercent.toFixed(2) + '%');
-    sendActionToServer("touch_down", xPercent.toFixed(2), yPercent.toFixed(2));
+        const { xPercent, yPercent } = getPercentageCoordinates(lastX, lastY);
+        console.log('Press detected at:', xPercent.toFixed(2) + '%', yPercent.toFixed(2) + '%');
+        sendActionToServer("touch_down", xPercent.toFixed(2), yPercent.toFixed(2));
+    }
+
 });
 
 document.addEventListener('mousemove', (event) => {

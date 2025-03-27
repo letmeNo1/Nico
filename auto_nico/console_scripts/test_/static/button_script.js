@@ -1,3 +1,5 @@
+var RealtimeUpdates = false
+
 $(document).ready(function() {
     // 监听开关状态变化
     $('#realtime-switch').change(function() {
@@ -19,11 +21,14 @@ $(document).ready(function() {
     function startRealtimeUpdates() {
         console.log("实时显示已开启");
         startFetching(); // 每秒调用一次refreshData
+        RealtimeUpdates= true
     }
 
     function stopRealtimeUpdates() {
         console.log("实时显示已关闭");
         stopFetching(); // 停止调用refreshData
+        RealtimeUpdates= false
+
     }
 
     // 提取的请求函数
