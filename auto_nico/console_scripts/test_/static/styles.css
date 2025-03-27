@@ -31,22 +31,25 @@ body {
     overflow-y: auto;
 
 }
-
+h1 {
+    background-color: rgb(255, 218, 51);;
+    color: black;
+}
 .section1 {
     width: 40%;
-    background-color: #3498db;
+    background-color: #2c3e50;
     display: flex;
     flex-direction: column
 }
 
 .section2 {
     width: 50%;
-    background-color: #2ecc71;
+    background-color: #2c3e50;
 }
 
 .section3 {
     width: 10%;
-    background-color: #e74c3c;
+    background-color: #2c3e50;
 }
 
 .section2 img {
@@ -167,4 +170,38 @@ input:checked + .slider:before {
     height: 100%;
     z-index: 1;
 
+}
+
+.toggle-button {
+    float: right;
+    margin-left: 10px;
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.content-wrapper {
+    overflow: hidden;
+    max-height: 3em; /* 初始显示高度 */
+}
+
+.node {
+    position: relative;
+}
+
+.node::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.node:hover::after {
+    opacity: 1;
 }

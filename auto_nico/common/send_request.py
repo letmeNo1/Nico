@@ -37,20 +37,43 @@ def send_tcp_request(port: int, message: str):
         return f"{str(b)} by {port}"
 
 
+import pycurl
+from io import BytesIO
+from loguru import logger
+
+
 def send_http_request(port: int, method, params: dict = None, timeout=10):
+    url = f"http://localhost:{port}/{method}"
+    logger.debug(f"request:{url}")
+
+    buffer = BytesIO()
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.TIMEOUT, timeout)
+    if params:
+        param_str = "&".join([f"{k}={v}" for k, v in params.items()])
+        c.setopt(c.URL, f"{url}?{param_str}")
+
     try:
-        url = f"http://localhost:{port}/{method}"
-        # add timeout to the request
-        response = requests.get(url, params=params, timeout=timeout)
-        if response.status_code == 200:
-            content_type = response.headers.get('Content-Type')
-            if content_type == 'image/jpeg' or content_type == 'image/png':
-                logger.debug(f"Request successful, response content: Image content:{response.content[:100]}")
-                return response.content
+        c.setopt(c.WRITEDATA, buffer)
+        c.perform()
+
+        response_code = c.getinfo(pycurl.HTTP_CODE)
+        if response_code == 200:
+            content_type = c.getinfo(pycurl.CONTENT_TYPE)
+            buffer.seek(0)
+            response_content = buffer.read()
+            if 'image/jpeg' in content_type or 'image/png' in content_type:
+                logger.debug(f"Request successful, response content: Image content:{response_content[:100]}")
+                return response_content
             else:
-                logger.debug(response.text[:100])
-                return response.text
+                response_text = response_content.decode('utf-8')
+                logger.debug(f"response:{response_text[:100]}")
+                return response_text
         else:
-            print(f"Request failed, status code: {response.status_code}")
-    except requests.RequestException as e:
-        print(f"An error occurred during the request: {e}")
+            logger.error(f"Request failed, status code: {response_code}")
+    except pycurl.error as e:
+        logger.error(f"An error occurred during the request: {e}")
+    finally:
+        c.close()
+        buffer.close()
