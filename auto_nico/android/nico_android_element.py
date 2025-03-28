@@ -281,6 +281,7 @@ class NicoAndroidElement(NicoBasicElement):
         for ele in eles:
             NAE = NicoAndroidElement()
             NAE.set_current_node(ele)
+            NAE.set_query(self.query)
             NAE.set_udid(self.udid)
             ALL_NAE_LIST.append(NAE)
         return ALL_NAE_LIST
@@ -289,6 +290,7 @@ class NicoAndroidElement(NicoBasicElement):
         previous_node = self._last_sibling(index)
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(previous_node)
         return NAE
 
@@ -296,6 +298,7 @@ class NicoAndroidElement(NicoBasicElement):
         next_node = self._next_sibling(index)
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(next_node)
         return NAE
 
@@ -303,6 +306,7 @@ class NicoAndroidElement(NicoBasicElement):
         parent_node = self._parent()
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(parent_node)
         return NAE
 
@@ -310,6 +314,7 @@ class NicoAndroidElement(NicoBasicElement):
         child_node = self._child(index)
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(child_node)
         return NAE
 

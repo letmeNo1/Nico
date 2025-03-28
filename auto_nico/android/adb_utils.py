@@ -3,11 +3,11 @@ import re
 import time
 import subprocess
 
+from auto_nico.common.send_request import send_http_request
 from loguru import logger
 
 from auto_nico.common.error import ADBServerError, NicoError
 from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_tcp_request
 import cv2
 import numpy as np
 
@@ -22,7 +22,7 @@ class AdbUtils:
         rst = self.cmd(f'''forward --list | findstr /v local |findstr "{self.udid}"''')
         port = None
         if rst != "":
-            port = rst.split("tcp:")[-1]
+            port = rst.split("tcp:")[1]
         return port
 
     def clear_tcp_forward_port(self, port):
@@ -33,9 +33,9 @@ class AdbUtils:
         for _ in range(5):
             rst = self.cmd(f'''forward --list | find "{port}"''')
             if self.udid not in rst:
-                self.cmd(f'''forward tcp:{port} tcp:{port}''')
+                self.cmd(f'''forward tcp:{port} tcp:8000''')
             else:
-                logger.info(f"{self.udid}'s tcp already forward tcp:{port} tcp:{port}")
+                logger.info(f"{self.udid}'s tcp already forward tcp:{port} tcp:8000")
                 break
 
     def restart_test_server(self, port):
@@ -43,7 +43,7 @@ class AdbUtils:
         def __check_server_ready(current_port, timeout):
             time_started_sec = time.time()
             while time.time() < time_started_sec + timeout:
-                rst = "[android.view.accessibility.AccessibilityNodeInfo" in send_tcp_request(current_port, "get_root")
+                rst = send_http_request(current_port, "get_root")
                 if rst:
                     logger.info(f"{self.udid}'s test server is ready on {port}")
                     runtime_cache.set_current_running_port(port)
@@ -105,14 +105,13 @@ class AdbUtils:
 
     def is_device_boot_completed(self):
         result = self.shell("getprop sys.boot_completed").strip()
-        print(result)
         return result == "1"
 
     def wait_for_boot_completed(self):
         while not self.is_device_boot_completed():
-            print("Waiting for device to complete booting...")
+            logger.debug("Waiting for device to complete booting...")
             time.sleep(5)
-        print("Device boot completed")
+        logger.debug("Device boot completed")
 
     def check_adb_server(self):
         rst = os.popen("adb devices").read()
@@ -296,7 +295,7 @@ class AdbUtils:
             return image
         else:
             exists_port = self.runtime_cache.get_current_running_port()
-            a = send_tcp_request(exists_port, f"get_png_pic:{quality}")
+            a = send_http_request(exists_port, "screenshot", {"quality": quality})
             nparr = np.frombuffer(a, np.uint8)
             image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             return image
@@ -304,7 +303,7 @@ class AdbUtils:
     def get_root_node(self):
         exists_port = self.runtime_cache.get_current_running_port()
         for _ in range(5):
-            response = send_tcp_request(exists_port, "dump_tree:true")
+            response = send_http_request(exists_port, "dump", {"compressed": "true"})
             if "<hierarchy" in response and "</hierarchy>" in response:
                 return response
             time.sleep(1)

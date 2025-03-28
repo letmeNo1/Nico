@@ -1,9 +1,9 @@
 import os
 
-from apollo_nico.android.tools.format_converter import add_xpath_att
-from apollo_nico.common.send_request import send_http_request
-from apollo_nico.ios.idb_utils import IdbUtils
-from apollo_nico.ios.tools.format_converter import converter
+from auto_nico.android.tools.format_converter import add_xpath_att
+from auto_nico.common.send_request import send_http_request
+from auto_nico.ios.idb_utils import IdbUtils
+from auto_nico.ios.tools.format_converter import converter
 import lxml.etree as ET
 
 

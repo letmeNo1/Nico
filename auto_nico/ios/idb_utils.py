@@ -12,8 +12,7 @@ import psutil
 
 from loguru import logger
 from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_tcp_request, send_http_request
-from auto_nico.ios.tools.image_process import bytes_to_image, images_to_video
+from auto_nico.common.send_request import send_http_request
 from auto_nico.common.error import NicoError
 
 
@@ -109,11 +108,10 @@ class IdbUtils:
         logger.debug(f"{self.udid}'s uiautomator was initialized successfully")
 
     def _start_tunnel(self):
-        rst = os.popen("ios tunnel ls").read()
-        logger.debug(f"{self.udid}'s uiautomator rst is {rst}")
-        data = json.loads(rst)
-        udids = [item["udid"] for item in data]
-        if str(self.udid).strip() in udids:
+        # self.kill_process_by_port()
+        logger.debug(f"ios tunnel ls --udid={self.udid}")
+        rst = os.popen(f"ios tunnel ls --udid={self.udid}").read()
+        if str(self.udid).strip() in rst:
             logger.debug(f"tunnel for {self.udid} is started")
         else:
             logger.debug(f"ios tunnel start --udid={self.udid}")
@@ -136,7 +134,7 @@ class IdbUtils:
         try:
             subprocess.Popen(commands, shell=True)
         except OSError:
-            print("start fail")
+            logger.error("start fail")
             subprocess.Popen(commands, shell=True)
 
     def _set_running_port(self, port):
@@ -159,32 +157,6 @@ class IdbUtils:
     def terminate_app(self, package_name):
         exists_port = self.runtime_cache.get_current_running_port()
         send_http_request(exists_port, "terminate_app", {"bundle_id": package_name})
-
-    def start_recording(self):
-        logger.debug("start recording")
-        exists_port = self.runtime_cache.get_current_running_port()
-        if exists_port is None:
-            exists_port, _ = self.get_tcp_forward_port()
-        if exists_port is None:
-            raise NicoError("Start the nico service first!!!!")
-
-        send_tcp_request(exists_port, "start_recording")
-
-    def stop_recording(self, path='output.mp4'):
-        logger.debug("stop recording, start to save video")
-        time.sleep(1)
-        exists_port = self.runtime_cache.get_current_running_port()
-        respo = send_tcp_request(exists_port, "stop_recording")
-        images = []
-        # print(respo)
-        images_byte = respo.split(b'end_with')
-        for image_data in images_byte:
-            if not image_data:
-                continue
-            image = bytes_to_image(image_data)
-            images.append(image)
-        images_to_video(images, path)
-        logger.debug("save video successfully")
 
     def get_output_device_name(self):
         exists_port = self.runtime_cache.get_current_running_port()
@@ -211,10 +183,10 @@ class IdbUtils:
         """
         try:
             if self.is_greater_than_ios_17():
-                print(f'''ios {cmd} --udid={udid}''')
                 result = subprocess.run(f'''ios {cmd} --udid={udid}''', shell=True, capture_output=True, text=True,
                                         check=True, timeout=10).stdout
-            result = subprocess.run(f'''tidevice --udid {udid} {cmd}''', shell=True, capture_output=True, text=True,check=True, timeout=10).stdout
+            else:
+                result = subprocess.run(f'''tidevice --udid {udid} {cmd}''', shell=True, capture_output=True, text=True,check=True, timeout=10).stdout
         except subprocess.CalledProcessError as e:
             return e.stderr
         return result
@@ -289,3 +261,6 @@ class IdbUtils:
 
         return send_http_request(exists_port, f"find_element_by_query",
                           {"bundle_id": id, "query_method": "predicate", "query_value": xpath})
+
+# a= IdbUtils("00008140-001C7CD80202801C")
+# a.restart_app("com.apple.Preferences")

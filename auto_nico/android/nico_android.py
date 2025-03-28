@@ -1,10 +1,8 @@
-import os
 import random
 import time
 import subprocess
 
 from auto_nico.android.nico_android_element import NicoAndroidElement
-from apollo_cathin.Android.android_driver import AndroidDriver
 from loguru import logger
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.common.send_request import send_http_request
@@ -15,6 +13,7 @@ from auto_nico.android.adb_utils import AdbUtils
 class NicoAndroid(NicoBasic):
     def __init__(self, udid, port="random", **query):
         super().__init__(udid,  **query)
+
         self.udid = udid
         self.adb_utils = AdbUtils(udid)
         self.version = 1.4
@@ -23,8 +22,11 @@ class NicoAndroid(NicoBasic):
         self.__set_running_port(port)
         self.runtime_cache = RunningCache(udid)
         self.runtime_cache.set_initialized(True)
-        rst = "server is running" in send_http_request(RunningCache(udid).get_current_running_port(), "status")
-        if rst:
+        response = send_http_request(RunningCache(udid).get_current_running_port(), "status")
+        rst = response is not None and "server is running" in response
+        response = send_http_request(RunningCache(udid).get_current_running_port(), "get_root")
+        rst2 = response is not None and "[android.view.accessibility.AccessibilityNodeInfo" in response
+        if rst and rst2:
             logger.debug(f"{self.udid}'s test server is ready on {RunningCache(udid).get_current_running_port()}")
         else:
             logger.debug(f"{self.udid} test server disconnect, restart ")
@@ -49,7 +51,7 @@ class NicoAndroid(NicoBasic):
         time_started_sec = time.time()
         while time.time() < time_started_sec + timeout:
             response = send_http_request(current_port, "get_root")
-            rst = "[android.view.accessibility.AccessibilityNodeInfo" in response
+            rst = response is not None and  "[android.view.accessibility.AccessibilityNodeInfo" in response
             logger.info(f"{self.udid}'s response is {response } ")
 
             if rst:
@@ -88,6 +90,7 @@ class NicoAndroid(NicoBasic):
 
     def __call__(self, **query):
         if any('ocr' in key for key in query):
+            from Android.android_driver import AndroidDriver
             modified_query = {key.replace('ocr_', ''): value if 'ocr_' in key else value for key, value in
                               query.items()}
             android = AndroidDriver(self.udid)
@@ -97,12 +100,15 @@ class NicoAndroid(NicoBasic):
         if self.adb_utils.is_screen_off():
             self.adb_utils.wake_up()
         response = send_http_request(current_port, "get_root")
-        rst = "[android.view.accessibility.AccessibilityNodeInfo" in response
+        rst = response is not None and "[android.view.accessibility.AccessibilityNodeInfo" in response
         if not rst:
             logger.info(f"{self.udid} test server disconnect, restart ")
             self.adb_utils.install_test_server_package(self.version)
             self.__init_adb_auto(current_port)
             self.close_keyboard()
+        else:
+            logger.info(f"{self.udid} test server connect successful ")
+
         NAE = NicoAndroidElement(**query)
         NAE.set_udid(self.udid)
         NAE.set_port(current_port)

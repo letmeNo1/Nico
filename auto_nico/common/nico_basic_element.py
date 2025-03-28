@@ -38,6 +38,8 @@ class NicoBasicElement(NicoBasic):
 
     def _get_attribute_value(self, attribute_name) -> str:
         if self.current_node is None:
+            print(self.query)
+
             self.current_node = self._find_function(self.query)
         if self.current_node is None:
             raise UIStructureError(

@@ -4,7 +4,7 @@ import os
 import socket
 import subprocess
 
-from apollo_nico.console_scripts.inspector_web.nico_inspector import xml_to_html_list,dump_ui_tree
+from auto_nico.console_scripts.inspector_web.nico_inspector import xml_to_html_list,dump_ui_tree
 from auto_nico.android.adb_utils import AdbUtils
 from auto_nico.common.send_request import send_http_request
 from auto_nico.ios.idb_utils import IdbUtils

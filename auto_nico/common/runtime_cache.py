@@ -2,7 +2,7 @@ import os
 
 
 import lxml.etree as ET
-from auto_nico.common.send_request import send_tcp_request
+from auto_nico.common.send_request import send_http_request
 
 
 def set_large_env_var(var_name, var_value, max_length=30000):
@@ -68,7 +68,7 @@ class RunningCache:
             return True
         else:
             exists_port = self.get_current_running_port()
-            rst = send_tcp_request(exists_port, "is_ui_change")
+            rst = send_http_request(exists_port, "is_ui_change")
             if "false" in rst:
                 return False
             elif "true" in rst:

@@ -17,7 +17,7 @@ from typing import Union
 import tempfile
 
 from loguru import logger
-from auto_nico.common.send_request import send_tcp_request, send_http_request
+from auto_nico.common.send_request import send_http_request
 
 import lxml.etree as ET
 
@@ -42,7 +42,7 @@ class NicoBasic:
             port = runtime_cache.get_current_running_port()
             if "NicoAndroid" in self.__class__.__name__:
                 compressed = configuration.get("compressed")
-                response = send_tcp_request(port, f"dump:{str(compressed).lower()}").replace("class=",
+                response = send_http_request(port, "dump",{"compressed":str(compressed)}).replace("class=",
                                                                                              "class_name=").replace(
                     "resource-id=", "id=").replace("content-desc=", "content_desc=")
             elif "NicoIOS" in self.__class__.__name__:
@@ -79,13 +79,13 @@ class NicoBasic:
         @return: The root node of the element tree
         """
         ui_change_status = RunningCache(self.udid).get_ui_change_status()
-        # logger.debug(f"ui tree change is {ui_change_status}")
+        logger.debug(f"ui tree change is {ui_change_status}")
 
         if not ui_change_status:
-            # logger.debug(f"{self.udid}'s UI no change. There is no need to dump again!!")
+            logger.debug(f"{self.udid}'s UI no change. There is no need to dump again!!")
             return RunningCache(self.udid).get_current_cache_ui_tree()
         else:
-            # logger.debug(f"{self.udid}'s UI is change. dump again!!")
+            logger.debug(f"{self.udid}'s UI is change. dump again!!")
             return self._dump_ui_xml(configuration)
 
     def __find_function_by_image(self, image_path, threshold, algorithms):
@@ -275,12 +275,12 @@ class NicoBasic:
                 type_ = attribute
 
         if return_all:
-            matching_elements = send_tcp_request(port,
+            matching_elements = send_http_request(port,
                                                  f"find_elements_by_query:{type_}:{value}")
             return json.loads(f"[{matching_elements}]")
 
         else:
-            matching_element = send_tcp_request(port,
+            matching_element = send_http_request(port,
                                                 f"find_element_by_query:{type_}:{value}")
             if matching_element.strip() == "Element not found" or matching_element.strip() == "":
                 return None
