@@ -8,6 +8,7 @@ import os
 import cv2
 from auto_nico.common.kmeans_run import kmeans_run
 from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.ios.idb_utils import IdbUtils
 from lxml.etree import _Element
 
 from auto_nico.ios.XCUIElementType import get_value_by_element_type
@@ -15,8 +16,8 @@ from typing import Union
 
 import tempfile
 
-from auto_nico.common.logger_config import logger
-from auto_nico.common.send_request import send_tcp_request
+from loguru import logger
+from auto_nico.common.send_request import send_http_request
 
 import lxml.etree as ET
 
@@ -34,40 +35,53 @@ class NicoBasic:
         self.udid = udid
         self.query = query
 
+    def __dump_ui(self,configuration):
+        runtime_cache = RunningCache(self.udid)
+        port = runtime_cache.get_current_running_port()
+        if "NicoAndroid" in self.__class__.__name__:
+            compressed = configuration.get("compressed")
+            response = send_http_request(port, "dump", {"compressed": str(compressed)})
+            if response is None:
+                response = ""
+            else:
+                response = response.replace("class=", "class_name=").replace(
+                    "resource-id=", "id=").replace("content-desc=", "content_desc=").replace('\u200E', '')
+
+        elif "NicoIOS" in self.__class__.__name__:
+            package_name = runtime_cache.get_current_running_package()
+            response = send_http_request(port, f"dump_tree", {"bundle_id": package_name})
+            response = converter(response)
+
+        if "<hierarchy" in response and "</hierarchy>" in response:
+            runtime_cache.clear_current_cache_ui_tree()
+            runtime_cache.set_current_cache_ui_tree(response)
+            root = ET.fromstring(response.encode('utf-8'))
+            return root
+        return None
+
     def _dump_ui_xml(self, configuration):
         response = None
         runtime_cache = RunningCache(self.udid)
         for times in range(5):
             port = runtime_cache.get_current_running_port()
+            rst = self.__dump_ui(configuration)
+            if rst is not None:
+                return rst
+
+            adb_utils = AdbUtils(self.udid)
+            logger.info(
+                f"{self.udid}'s UI tree dump fail on {port}, retrying... current response is {response}, times is {times}")
             if "NicoAndroid" in self.__class__.__name__:
-                compressed = configuration.get("compressed")
-                response = send_tcp_request(port, f"dump:{str(compressed).lower()}").replace("class=",
-                                                                                             "class_name=").replace(
-                    "resource-id=", "id=").replace("content-desc=", "content_desc=")
-                # print(response)
-            elif "NicoIOS" in self.__class__.__name__:
-                package_name = configuration.get("package_name")
-                response = send_tcp_request(port, f"dump_tree:{package_name}")
-                response = converter(response)
-
-            if "<hierarchy" in response and "</hierarchy>" in response:
-                runtime_cache.clear_current_cache_ui_tree()
-                runtime_cache.set_current_cache_ui_tree(response)
-                root = ET.fromstring(response.encode('utf-8'))
-                return root
-
-            else:
-                adb_utils = AdbUtils(self.udid)
-                logger.info(
-                    f"{self.udid}'s UI tree dump fail on {port}, retrying... current response is {response}, times is {times}")
-                if "NicoAndroid" in self.__class__.__name__:
-                    current_port = adb_utils.get_tcp_forward_port()
-                    adb_utils.clear_tcp_forward_port(current_port)
-                    random_number = random.randint(9000, 9999)
-                    new_port = random_number
-                    adb_utils.set_tcp_forward_port(new_port)
-                    adb_utils.restart_test_server(new_port)
-        raise UIStructureError(f"{self.udid}'s UI tree dump fail on {port}")
+                current_port = adb_utils.get_tcp_forward_port()
+                adb_utils.clear_tcp_forward_port(current_port)
+                random_number = random.randint(9000, 9999)
+                new_port = random_number
+                adb_utils.set_tcp_forward_port(new_port)
+                adb_utils.restart_test_server(new_port)
+            rst = self.__dump_ui(configuration)
+            if rst is not None:
+                return rst
+        raise UIStructureError(f"{self.udid}'s UI tree dump fail on {runtime_cache.get_current_running_port()}")
 
     def _get_root_node(self, configuration: dict):
         """
@@ -79,13 +93,13 @@ class NicoBasic:
         @return: The root node of the element tree
         """
         ui_change_status = RunningCache(self.udid).get_ui_change_status()
-        # logger.debug(f"ui tree change is {ui_change_status}")
+        logger.debug(f"ui tree change is {ui_change_status}")
 
         if not ui_change_status:
-            # logger.debug(f"{self.udid}'s UI no change. There is no need to dump again!!")
+            logger.debug(f"{self.udid}'s UI no change. There is no need to dump again!!")
             return RunningCache(self.udid).get_current_cache_ui_tree()
         else:
-            # logger.debug(f"{self.udid}'s UI is change. dump again!!")
+            logger.debug(f"{self.udid}'s UI is change. dump again!!")
             return self._dump_ui_xml(configuration)
 
     def __find_function_by_image(self, image_path, threshold, algorithms):
@@ -95,11 +109,27 @@ class NicoBasic:
             original_image = adb_utils.get_image_object(100)
             target_image = cv2.imread(image_path)
             if threshold is None:
-                threshold = 0.8
+                threshold = 0.9
             if algorithms is None:
                 algorithms = "SIFT"
             x, y, h, w = kmeans_run(target_image, original_image, threshold, algorithms)
             if x is not None:
+                return {"bounds": f"[{x},{y}][{w},{h}]"}
+            else:
+                return None
+        elif "NicoIOSElement" in platform:
+            idb_utils = IdbUtils(self.udid)
+            original_image = idb_utils.get_image_object(100)
+            height, width = original_image.shape[:2]
+            target_image = cv2.imread(image_path)
+            if threshold is None:
+                threshold = 0.8
+            if algorithms is None:
+                algorithms = "SIFT"
+            x, y, h, w = kmeans_run(target_image, original_image, threshold, algorithms, 3)
+
+            if x is not None:
+                logger.debug(f"Found image at {x}, {y}, {w}, {h}")
                 return {"bounds": f"[{x},{y}][{w},{h}]"}
             else:
                 return None
@@ -167,7 +197,7 @@ class NicoBasic:
             compressed = True
         configuration = {
             "platform": self.__class__.__name__,
-            "compressed": compressed,
+            "compressed": str(compressed).lower(),
             "package_name": RunningCache(self.udid).get_current_running_package()
         }
         root = self._get_root_node(configuration)
@@ -191,19 +221,28 @@ class NicoBasic:
         for attribute, value in query.items():
             if attribute == "xpath":
                 xpath_expression = value
-                matching_element = send_tcp_request(port,
-                                                    f"find_element_by_query:{package_name}:xpath:{xpath_expression}")
+                matching_element = send_http_request(port,
+                                                     f"find_element_by_query",
+                                                     {"bundle_id": package_name, "query_method": "xpath",
+                                                      "query_value": xpath_expression})
                 if matching_element == "":
                     return None
                 logger.debug(f"found element: {matching_element}")
                 return json.loads(matching_element)
             elif attribute == "custom":
                 if return_all:
-                    matching_element = send_tcp_request(port,
-                                                        f"find_elements_by_query:{package_name}:predicate:{value}")
+
+
+                    matching_element = send_http_request(port,
+                                                         f"find_elements_by_query",
+                                                         {"bundle_id": package_name, "query_method": "predicate",
+                                                          "query_value": value})
+
                 else:
-                    matching_element = send_tcp_request(port,
-                                                        f"find_element_by_query:{package_name}:predicate:{value}")
+                    matching_element = send_http_request(port,
+                                                         f"find_element_by_query",
+                                                         {"bundle_id": package_name, "query_method": "predicate",
+                                                          "query_value": value})
                 if matching_element == "":
                     return None
                 logger.debug(f"found element: {matching_element}")
@@ -225,13 +264,15 @@ class NicoBasic:
                 NSPredicate_list.append(condition)
         NSPredicate = " AND ".join(NSPredicate_list)
         if return_all:
-            matching_elements = send_tcp_request(port,
-                                                 f"find_elements_by_query:{package_name}:predicate:{NSPredicate}")
+            matching_elements = send_http_request(port, "find_elements_by_query",
+                                                  {"bundle_id": package_name,
+                                                   "predicate": NSPredicate})
             return json.loads(f"[{matching_elements}]")
 
         else:
-            matching_element = send_tcp_request(port,
-                                                f"find_element_by_query:{package_name}:predicate:{NSPredicate}")
+            matching_element = send_http_request(port, "find_element_by_query",
+                                                 {"bundle_id": package_name, "query_method": "predicate",
+                                                  "query_value": NSPredicate})
             if matching_element == "":
                 return None
         logger.debug(f"found element: {matching_element}")
@@ -248,12 +289,12 @@ class NicoBasic:
                 type_ = attribute
 
         if return_all:
-            matching_elements = send_tcp_request(port,
+            matching_elements = send_http_request(port,
                                                  f"find_elements_by_query:{type_}:{value}")
             return json.loads(f"[{matching_elements}]")
 
         else:
-            matching_element = send_tcp_request(port,
+            matching_element = send_http_request(port,
                                                 f"find_element_by_query:{type_}:{value}")
             if matching_element.strip() == "Element not found" or matching_element.strip() == "":
                 return None
@@ -384,3 +425,10 @@ class NicoBasic:
         self._get_root_node(configuration)
         temp_folder = os.path.join(tempfile.gettempdir(), f"{self.udid}_ui.xml")
         os.startfile(temp_folder)
+
+    def get_root_xml_string(self, compressed=True):
+        configuration = {
+            "platform": self.__class__.__name__,
+            "compressed": compressed,
+        }
+        return self._get_root_node(configuration)

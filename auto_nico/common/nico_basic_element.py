@@ -5,7 +5,7 @@ from auto_nico.common.runtime_cache import RunningCache
 from lxml.etree import _Element
 
 from auto_nico.common.nico_basic import NicoBasic
-from auto_nico.common.logger_config import logger
+from loguru import logger
 
 
 class NicoBasicElement(NicoBasic):
@@ -17,6 +17,9 @@ class NicoBasicElement(NicoBasic):
         self.query = query
         super().__init__(self.udid, **query)
 
+    def refresh_ui_tree(self):
+        RunningCache(self.udid).clear_current_cache_ui_tree()
+
     def set_udid(self, udid):
         self.udid = udid
 
@@ -27,6 +30,7 @@ class NicoBasicElement(NicoBasic):
         self.query = query
 
     def set_package_name(self, package_name):
+        RunningCache(self.udid).set_current_running_package_name(package_name)
         self.package_name = package_name
 
     def set_current_node(self, current_node):
@@ -34,6 +38,7 @@ class NicoBasicElement(NicoBasic):
 
     def _get_attribute_value(self, attribute_name) -> str:
         if self.current_node is None:
+
             self.current_node = self._find_function(self.query)
         if self.current_node is None:
             raise UIStructureError(
@@ -81,6 +86,30 @@ class NicoBasicElement(NicoBasic):
                 next_node = next_node.getnext()
 
         return next_node
+
+    def _description(self,img, bounds):
+        from apollo_cathin.common.utils import _crop_and_encode_image
+        from apollo_cathin.common.request_api import _call_generate_image_caption_api
+        cropped_image = _crop_and_encode_image(img, [bounds])
+        text = _call_generate_image_caption_api(cropped_image[0]).get("descriptions")
+        logger.debug("Description generated successfully")
+        return text
+
+    def _ocr_text(self,img, bounds):
+        from apollo_cathin.common.utils import _crop_and_encode_image
+        from apollo_cathin.common.request_api import _call_ocr_api
+        cropped_image = _crop_and_encode_image(img, [bounds])
+        text = _call_ocr_api(cropped_image[0])
+        logger.debug("Description generated successfully")
+        return text
+
+    def _ocr_id(self,img, bounds):
+        from apollo_cathin.common.utils import _crop_and_encode_image
+        from apollo_cathin.common.request_api import _call_classify_image_api
+        cropped_image = _crop_and_encode_image(img, [bounds])
+        text = _call_classify_image_api(cropped_image[0]).get("top_predictions")[0][0]
+        logger.debug("Description generated successfully")
+        return text
 
     def _parent(self) -> _Element:
         if self.current_node is None:

@@ -104,6 +104,31 @@ function addTextControlHoverListeners() {
     }
 }
 
+
+function removeTextControlHoverListeners() {
+    var listItems = document.getElementsByClassName('node');
+    for (var i = 0; i < listItems.length; i++) {
+        listItems[i].removeEventListener('mouseover', function () {
+            this.classList.add('hovered');
+            var infoList = document.getElementById('info-list');
+            infoList.innerHTML = '';
+            var xpath = this.getAttribute('xpath');
+            create_attributes_list(this);
+
+            var identifier_number = this.getAttribute("identifier_number");
+            var img_element = document.querySelector(`[img-identifier_number="${identifier_number}"]`);
+            img_element.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
+        });
+        listItems[i].removeEventListener('mouseout', function () {
+            this.classList.remove('hovered');
+            var imageControlList = document.getElementsByClassName('imageControl');
+            for (var i = 0; i < imageControlList.length; i++) {
+                imageControlList[i].style.backgroundColor = 'rgba(144, 238, 144, 0)';
+            }
+        });
+    }
+}
+
 function crate_attributes_list(text_element){
     var infoList = document.getElementById('info-list'); // 获取新的ul元素
     var first_node = document.getElementById('Title')
@@ -145,6 +170,94 @@ function crate_attributes_list(text_element){
                 infoList.appendChild(li); // 将li元素添加到ul元素中
             }
         }
+    }
+}
+
+function addImageListeners() {
+    var first_node = document.getElementById('Title');
+    var platform = first_node.getAttribute("nico_ui_platform");
+    var imageControlList = document.getElementsByClassName('imageControl'); // 获取新的ul元素
+    for (var i = 0; i < imageControlList.length; i++) {
+        const mouseOverHandler = function () {
+            console.log('"mousemove" event on canvas');
+            this.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
+            text_element.classList.add('hovered');
+            crate_attributes_list(text_element);
+        };
+
+        const clickHandler = function () {
+            console.log('"mousemove" event on canvas');
+            this.style.backgroundColor = 'rgba(144, 238, 144, 0.5)';
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
+            crate_attributes_list(text_element);
+            text_element.classList.add('hovered');
+            text_element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        };
+
+        const doubleClickHandler = function () {
+            console.log('"dblclick" event on canvas');
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
+            text_element.classList.add('hovered');
+            var center = calculateCenter(text_element.getAttribute("bounds"));
+            console.log(platform);
+
+            // 在这里添加双击事件的逻辑
+            if (platform == "iOS") {
+
+            } else {
+                url = `/android_excute_action?action=click&x=${center.centerX}&y=${center.centerY}`;
+                console.log(url);
+                var element_attribute;
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    async: true, // 确保请求是异步的
+                    success: function (data) {
+                        setTimeout(function () {
+                            refreshData();
+                        }, 500); // 1000毫秒 = 1秒
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Request failed:', status, error);
+                        // 即使请求失败，也可以选择调用refreshData
+                        refreshData();
+                    }
+                });
+            }
+        };
+
+        const mouseOutHandler = function () {
+            this.style.backgroundColor = 'rgba(144, 238, 144, 0)';
+            var identifier_number = this.getAttribute("img-identifier_number");
+            var text_element = document.querySelector(`[identifier_number="${identifier_number}"]`);
+            text_element.classList.remove('hovered');
+        };
+
+        imageControlList[i].addEventListener('mouseover', mouseOverHandler);
+        imageControlList[i].addEventListener('click', clickHandler);
+        imageControlList[i].addEventListener('dblclick', doubleClickHandler);
+        imageControlList[i].addEventListener('mouseout', mouseOutHandler);
+
+        // 存储事件处理函数，方便后续移除
+        imageControlList[i]._mouseOverHandler = mouseOverHandler;
+        imageControlList[i]._clickHandler = clickHandler;
+        imageControlList[i]._doubleClickHandler = doubleClickHandler;
+        imageControlList[i]._mouseOutHandler = mouseOutHandler;
+    }
+}
+
+function removeImageListeners() {
+    var imageControlList = document.getElementsByClassName('imageControl');
+    for (var i = 0; i < imageControlList.length; i++) {
+        imageControlList[i].removeEventListener('mouseover', imageControlList[i]._mouseOverHandler);
+        imageControlList[i].removeEventListener('click', imageControlList[i]._clickHandler);
+        imageControlList[i].removeEventListener('dblclick', imageControlList[i]._doubleClickHandler);
+        imageControlList[i].removeEventListener('mouseout', imageControlList[i]._mouseOutHandler);
     }
 }
 
@@ -218,8 +331,7 @@ function addImageListeners() {
         });
     }
 }
-
-function refreshData() {
+function refreshImage() {
     bounds_list = []
     // 发送GET请求到服务器，刷新图片
     $.get('/refresh_image', function(data) {
@@ -227,14 +339,24 @@ function refreshData() {
         img.src = 'data:image/png;base64,' + data;
         img.setAttribute("id","image_")
     });
+}
 
-    // 发送GET请求到服务器，刷新XML
-    $.get('/refresh_ui_xml', function(data) {
-        var xmlContainer = document.querySelector('.content-inner');
-        xmlContainer.innerHTML = data;
-        initImageControl()
-        addTextControlHoverListeners(); // 添加新的事件监听器
-        addImageListeners(); // 添加新的事件监听器
+function refreshData() {
+    bounds_list = [];
+    // 发送GET请求到服务器，刷新图片
+    $.get('/refresh_image', function(data) {
+        var img = document.querySelector('img');
+        img.src = 'data:image/png;base64,' + data;
+        img.setAttribute("id","image_");
+
+        // 发送GET请求到服务器，刷新XML
+        $.get('/refresh_ui_xml', function(data) {
+            var xmlContainer = document.querySelector('.content-inner');
+            xmlContainer.innerHTML = data;
+            initImageControl();
+            addTextControlHoverListeners(); // 添加新的事件监听器
+            addImageListeners(); // 添加新的事件监听器
+        });
     });
 }
 

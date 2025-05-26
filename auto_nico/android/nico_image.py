@@ -1,72 +1,88 @@
 import os
-import tempfile
 import time
+from loguru import logger
+from airtest.core.api import *
+from airtest.core.settings import Settings as ST
+import logging
 
-from auto_nico.android.nico_android import NicoAndroid
-from skimage.metrics import structural_similarity as ssim
-import cv2
-
-from auto_nico.common.logger_config import logger
-
+airtest_logger = logging.getLogger("airtest")
+airtest_logger.setLevel(logging.INFO)
 
 class NicoImage:
     def __init__(self, udid):
-        self.udid = udid
-        self.source_image_path = tempfile.gettempdir() + "/test.png"
+        logger.info(f"Connecting to device with UDID: {udid}")
+        connect_device("Android://127.0.0.1:5037/" + udid)
 
-    def pull_screenshot(self):
-        os.popen(f"adb -s {self.udid} shell screencap /sdcard/screenshot.png").read()
+    def __call__(self, v):
+        self.v = v
+        return self
 
-        os.popen(f"adb -s {self.udid} pull /sdcard/screenshot.png {self.source_image_path}").read()
+    def exists(self, timeout=3):
+        interval=0.5
+        logger.info(f"Checking existence of: {self.v} with timeout: {timeout}")
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if exists(self.v):
+                return True
+            time.sleep(interval)
+        return False  # Return False if the element does not exist within the timeout period
 
-    def __calculate_image_similarity(self, image_path, mosaic):
-        self.pull_screenshot()
-        nico = NicoAndroid(self.udid)
-        img1 = cv2.imread(self.source_image_path)
-        img2 = cv2.imread(image_path)
-        if mosaic:
-            eles = nico(text_matches=r'^(?=(?:.*?\d){2})').all()
-            for ele in eles:
-                x, y, w, h = ele.get_bounds
-                if h < 10:
-                    h = 50
-                cv2.rectangle(img1, (x, y), (x + w, y + h), (0, 0, 0), -1)
-            if not os.path.exists(self.source_image_path) or not os.path.exists(image_path):
-                raise FileExistsError(f"can't open/read file {self.source_image_path}, please check")
+    def click(self, times=1, **kwargs):
+        logger.info(f"Clicking on: {self.v} for {times} times")
+        return touch(self.v, times, **kwargs)
+        
+    def double_click(self):
+        logger.info(f"Double clicking on: {self.v}")
+        return double_click(self.v)
 
-        # 将图片转换为灰度
-        img1_gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-        img2_gray = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    def find_all(self):
+        logger.info(f"Finding all instances of: {self.v}")
+        return find_all(self.v)
 
-        # 计算SSIM
-        similarity = ssim(img1_gray, img2_gray)
+    def wait_for_appearance(self, timeout=10, interval=0.5):
+        logger.info(f"Waiting for appearance of: {self.v} with timeout: {timeout}")
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if exists(self.v):
+                return True
+            time.sleep(interval)
+        raise TimeoutError(f"Element {self.v} did not appear within {timeout} seconds")
 
-        print(str(similarity))
-        return similarity
+    def wait_for_disappearance(self, timeout=10, interval=0.5):
+        logger.info(f"Waiting for disappearance of: {self.v} with timeout: {timeout}")
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if not exists(self.v):
+                return True
+            time.sleep(interval)
+        raise TimeoutError(f"Element {self.v} did not disappear within {timeout} seconds")
 
-    def __wait_page(self, image_path, expected_similarity, timeout, wait_disappear, mosaic):
-        time_started_sec = time.time()
-        while time.time() < time_started_sec + timeout:
-            rst = self.__calculate_image_similarity(image_path, mosaic)
-            if wait_disappear:
-                if rst < expected_similarity:
-                    logger.debug(f"similarity is {rst}")
+    def wait_for_any(self, v_list, timeout=10, interval=0.5):
+        logger.info(f"Waiting for any of: {v_list} with timeout: {timeout}")
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            for v in v_list:
+                if exists(v):
+                    return v
+            time.sleep(interval)
+        raise TimeoutError(f"None of the elements {v_list} appeared within {timeout} seconds")
+    
+    def swipe(self, v2=None, vector=None, **kwargs):
+        logger.info(f"Swiping from {self.v} to {v2} with vector: {vector}")
+        return swipe(self.v, v2, vector, **kwargs)
 
-                    return True
-                else:
-                    continue
-            else:
-                if rst >= expected_similarity:
-                    logger.debug(f"similarity is {rst}")
+    def set_text(self, enter=True, search=False):
+        logger.info(f"Setting text: {self.v} with enter: {enter} and search: {search}")
+        return text(self.v, enter, search)
 
-                    return True
-                else:
-                    continue
-        error = f"Can't find element by image in {timeout} s, similarity is {rst}"
-        raise TimeoutError(error)
+    def keyevent(self):
+        logger.info(f"Sending keyevent: {self.v}")
+        return keyevent(self.v)
 
-    def wait_page_disappear(self, image_path, expected_similarity, timeout, mosaic=False):
-        return self.__wait_page(image_path, expected_similarity, timeout, True, mosaic)
+    def snapshot(self, filename=None, msg="", quality=None, max_size=None):
+        logger.info(f"Taking snapshot with filename: {filename}, msg: {msg}, quality: {quality}, max_size: {max_size}")
+        return snapshot(filename, msg, quality, max_size)
 
-    def wait_page_appear(self, image_path, expected_similarity=0.9, timeout=10, mosaic=False):
-        return self.__wait_page(image_path, expected_similarity, timeout, False, mosaic)
+    def sleep(self, secs):
+        logger.info(f"Sleeping for {secs} seconds")
+        return sleep(secs)

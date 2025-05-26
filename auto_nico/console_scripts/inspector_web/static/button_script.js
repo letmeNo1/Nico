@@ -18,11 +18,14 @@ $(document).ready(function() {
     // 模拟实时更新的函数
     function startRealtimeUpdates() {
         console.log("实时显示已开启");
-        refreshInterval = setInterval(refreshData, 1000); // 每秒调用一次refreshData
+        removeTextControlHoverListeners()
+        removeImageListeners()
+        refreshInterval = setInterval(refreshImage, 500); // 每秒调用一次refreshData
     }
 
     function stopRealtimeUpdates() {
         console.log("实时显示已关闭");
+
         clearInterval(refreshInterval); // 停止调用refreshData
     }
 

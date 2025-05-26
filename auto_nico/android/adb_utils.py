@@ -3,48 +3,91 @@ import re
 import time
 import subprocess
 
-from auto_nico.common.logger_config import logger
+from auto_nico.common.send_request import send_http_request
+from loguru import logger
 
 from auto_nico.common.error import ADBServerError, NicoError
 from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_tcp_request
 import cv2
 import numpy as np
+import platform
 
 
 class AdbUtils:
     def __init__(self, udid):
         self.udid = udid
         self.runtime_cache = RunningCache(udid)
-        self.version = 1.3
+        self.version = 1.4
+
 
     def get_tcp_forward_port(self):
-        rst = self.cmd('forward --list')
+        # Determine the current operating system
+        system = platform.system()
+
+        # Select appropriate command based on the operating system
+        if system == "Windows":
+            # Windows: Use findstr to exclude lines containing "local" and filter by device UDID
+            cmd = f'''forward --list | findstr /v local | findstr "{self.udid}"'''
+        else:
+            # macOS/Linux: Use grep to exclude lines containing "local" and filter by device UDID
+            cmd = f'''forward --list | grep -v local | grep "{self.udid}"'''
+
+        # Execute the command to list port forwards
+        rst = self.cmd(cmd)
         port = None
-        if self.udid in rst:
-            port = rst.split(f"{self.udid} tcp:")[-1]
+
+        # Process the command output if it's not empty
+        if rst.strip():
+            try:
+                # Split the output by "tcp:" to extract the port part
+                parts = rst.split("tcp:")
+                if len(parts) > 1:
+                    # Extract and clean the port number part
+                    port_part = parts[1].strip()
+                    # Further process to get only the port number
+                    port = port_part.split()[0] if port_part else None
+            except Exception as e:
+                print(f"Error parsing port: {e}")
+
         return port
 
     def clear_tcp_forward_port(self, port):
         logger.info(f"{self.udid}'s forward --remove tcp:{port}")
         self.cmd(f"forward --remove tcp:{port}")
 
+
     def set_tcp_forward_port(self, port):
+        system = platform.system()
+        # Select appropriate command based on the operating system
+        if system == "Windows":
+            # Windows uses findstr command
+            check_cmd = f'''forward --list | findstr "{port}"'''
+        else:
+            # macOS/Linux uses grep command
+            check_cmd = f'''forward --list | grep "{port}"'''
+        
+        # Attempt up to 5 times to set up port forwarding
         for _ in range(5):
-            rst = self.cmd('forward --list')
-            if self.udid not in rst:
-                self.cmd(f'forward tcp:{port} tcp:{port}')
-            else:
-                logger.info(f"{self.udid}'s tcp already forward tcp:{port} tcp:{port}")
+            rst = self.cmd(check_cmd)
+            
+            # Use regex to ensure exact port number match
+            port_pattern = r'tcp:' + re.escape(str(port))
+            port_matched = re.search(port_pattern, rst)
+            # Check if port forwarding exists and is associated with this device
+            if port_matched and self.udid in rst:
+                logger.info(f"{self.udid}'s TCP port {port} is already forwarded to TCP:8000")
                 break
+            else:
+                # Configure port forwarding to the device
+                self.cmd(f'''forward tcp:{port} tcp:8000''')
 
     def restart_test_server(self, port):
         runtime_cache = RunningCache(self.udid)
         def __check_server_ready(current_port, timeout):
             time_started_sec = time.time()
             while time.time() < time_started_sec + timeout:
-                rst = "[android.view.accessibility.AccessibilityNodeInfo" in send_tcp_request(current_port, "get_root")
-                if rst:
+                rst = send_http_request(current_port, "get_root")
+                if rst and rst !=[]:
                     logger.info(f"{self.udid}'s test server is ready on {port}")
                     runtime_cache.set_current_running_port(port)
                     return True
@@ -70,7 +113,7 @@ class AdbUtils:
         for i in [f"dump_hierarchy_v{version}.apk", f"dump_hierarchy_androidTest_v{version}.apk"]:
             logger.info(f"{udid}'s start install {i}")
             lib_path = (os.path.dirname(__file__) + f"\package\{i}").replace("console_scripts\inspector_web", "")
-            rst = self.cmd(fr"install -t {lib_path}")
+            rst = self.cmd(fr'install -t "{lib_path}"')
             if rst.find("Success") >= 0:
                 logger.info(f"{udid}'s adb install {lib_path} successfully")
             else:
@@ -105,14 +148,13 @@ class AdbUtils:
 
     def is_device_boot_completed(self):
         result = self.shell("getprop sys.boot_completed").strip()
-        print(result)
         return result == "1"
 
     def wait_for_boot_completed(self):
         while not self.is_device_boot_completed():
-            print("Waiting for device to complete booting...")
+            logger.debug("Waiting for device to complete booting...")
             time.sleep(5)
-        print("Device boot completed")
+        logger.debug("Device boot completed")
 
     def check_adb_server(self):
         rst = os.popen("adb devices").read()
@@ -122,11 +164,13 @@ class AdbUtils:
             raise ADBServerError("no devices connect")
 
     def is_screen_off(self):
-        rst = self.shell("dumpsys power | grep 'Display Power'")
-        if "state=OFF" in rst:
-            return True
-        else:
+        rst = self.shell("dumpsys display | grep 'mScreenState'")
+        if "mScreenState=ON" in rst:
+            # logger.info(f"{self.udid}'s screen is on")
             return False
+        else:
+            logger.info(f"{self.udid}'s screen is off")
+            return True
 
     def get_screen_size(self):
         command = f'adb -s {self.udid} shell wm size'
@@ -270,6 +314,9 @@ class AdbUtils:
     def keyevent(self, keyname):
         self.qucik_shell(f'input keyevent {keyname}')
 
+    def switch_app(self):
+        self.keyevent("KEYCODE_APP_SWITCH")
+
     def back(self):
         self.keyevent("BACK")
 
@@ -282,25 +329,37 @@ class AdbUtils:
     def switch_app(self):
         self.keyevent("KEYCODE_APP_SWITCH")
 
-    def get_image_object(self, quality=100):
-        exists_port = self.runtime_cache.get_current_running_port()
-        a = send_tcp_request(exists_port, f"get_png_pic:{quality}")
-        nparr = np.frombuffer(a, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        return image
+    def get_image_object(self, quality=100,use_adb=True):
+        if use_adb:
+            result = subprocess.run(['adb', '-s', self.udid, 'exec-out', 'screencap', '-p'], stdout=subprocess.PIPE)
+            screenshot_data = result.stdout
+            nparr = np.frombuffer(screenshot_data, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            return image
+        else:
+            exists_port = self.runtime_cache.get_current_running_port()
+            a = send_http_request(exists_port, "screenshot", {"quality": quality})
+            nparr = np.frombuffer(a, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            return image
 
     def get_root_node(self):
         exists_port = self.runtime_cache.get_current_running_port()
         for _ in range(5):
-            response = send_tcp_request(exists_port, "dump_tree:true")
+            response = send_http_request(exists_port, "dump", {"compressed": "true"})
             if "<hierarchy" in response and "</hierarchy>" in response:
                 return response
             time.sleep(1)
 
     def snapshot(self, name, path):
+        if not os.path.isabs(path):
+            path = os.path.abspath(path)
         self.shell(f'screencap -p /sdcard/{name}.png', with_root=True)
         self.cmd(f'pull /sdcard/{name}.png {path}')
         self.qucik_shell(f'rm /sdcard/{name}.png')
+        full_path = f"{path}/{name}.png"
+        logger.info(full_path)
+        return full_path
 
     def swipe(self, direction, scroll_time=1, target_area=None):
         x = int(self.get_screen_size()[0] / 2)

@@ -1,7 +1,8 @@
 import os
 import re
+import subprocess
 
-from auto_nico.common.logger_config import logger
+from loguru import logger
 from auto_nico.common.nico_basic_element import NicoBasicElement
 from auto_nico.common.runtime_cache import RunningCache
 
@@ -153,6 +154,30 @@ class NicoAndroidElement(NicoBasicElement):
         y = top
         return x, y, width, height
 
+    @property
+    def description(self):
+        import cv2
+        import numpy as np
+        logger.debug("Description being generated")
+        result = subprocess.run(['adb', '-s', self.udid, 'exec-out', 'screencap', '-p'], stdout=subprocess.PIPE)
+        screenshot_data = result.stdout
+        nparr = np.frombuffer(screenshot_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        text = self._description(img,self.bounds)
+        return text
+
+    @property
+    def ocr_id(self):
+        import cv2
+        import numpy as np
+        logger.debug("Description being generated")
+        result = subprocess.run(['adb', '-s', self.udid, 'exec-out', 'screencap', '-p'], stdout=subprocess.PIPE)
+        screenshot_data = result.stdout
+        nparr = np.frombuffer(screenshot_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        text = self._ocr_id(img, self.bounds)
+        return text
+
     def get_bounds(self):
         return self.bounds
 
@@ -256,6 +281,7 @@ class NicoAndroidElement(NicoBasicElement):
         for ele in eles:
             NAE = NicoAndroidElement()
             NAE.set_current_node(ele)
+            NAE.set_query(self.query)
             NAE.set_udid(self.udid)
             ALL_NAE_LIST.append(NAE)
         return ALL_NAE_LIST
@@ -264,6 +290,7 @@ class NicoAndroidElement(NicoBasicElement):
         previous_node = self._last_sibling(index)
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(previous_node)
         return NAE
 
@@ -271,6 +298,7 @@ class NicoAndroidElement(NicoBasicElement):
         next_node = self._next_sibling(index)
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(next_node)
         return NAE
 
@@ -278,6 +306,7 @@ class NicoAndroidElement(NicoBasicElement):
         parent_node = self._parent()
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(parent_node)
         return NAE
 
@@ -285,6 +314,7 @@ class NicoAndroidElement(NicoBasicElement):
         child_node = self._child(index)
         NAE = NicoAndroidElement()
         NAE.set_udid(self.udid)
+        NAE.set_query(self.query)
         NAE.set_current_node(child_node)
         return NAE
 

@@ -1,11 +1,13 @@
 import os
 import re
 
-from auto_nico.common.logger_config import logger
 from auto_nico.common.nico_basic_element import NicoBasicElement
 from auto_nico.common.runtime_cache import RunningCache
-from auto_nico.common.send_request import send_tcp_request
+from auto_nico.common.send_request import send_http_request
 from auto_nico.ios.XCUIElementType import get_element_type_by_value
+from loguru import logger
+import cv2
+from auto_nico.ios.idb_utils import IdbUtils
 
 
 class UIStructureError(Exception):
@@ -16,6 +18,7 @@ class NicoIOSElement(NicoBasicElement):
     def __init__(self, **query):
         self.query = query
         super().__init__(**query)
+
 
     @property
     def index(self):
@@ -85,6 +88,39 @@ class NicoIOSElement(NicoBasicElement):
         t = int(matches[0][3]) + y
 
         return x, y, w, h, l, t
+    
+    def __image_rescale(self,image):
+        rst = self._find_function(query={"xpath":"Window[1]"},use_xml=True).get("bounds")
+        matches = re.findall(r'\[(\d+),(\d+)\]', rst)
+        target_w = int(matches[-1][0])  
+        original_h, original_w = image.shape[:2]  
+        aspect_ratio = original_w / original_h
+        target_h = int(target_w / aspect_ratio)
+        if matches:
+            print( matches[-1])
+            w, h = map(int, matches[-1]) 
+            scaled_image = cv2.resize(image, (target_w, target_h))
+            return scaled_image
+        return None
+
+    
+    @property
+    def description(self):
+        self.idb_utils = IdbUtils(self.udid)
+        logger.debug("Description being generated")
+        img = self.idb_utils.get_image_object()
+        img = self.__image_rescale(img)
+        text = self._description(img, self.bounds[:4])
+        return text
+
+    @property
+    def ocr_id(self):
+        self.idb_utils = IdbUtils(self.udid)
+        logger.debug("Description being generated")
+        img = self.idb_utils.get_image_object()
+        img = self.__image_rescale(img)
+        text = self._ocr_id(img, self.bounds[:4])
+        return text
 
     def center_coordinate(self):
         x, y, w, h, l, t = self.bounds
@@ -93,7 +129,7 @@ class NicoIOSElement(NicoBasicElement):
         return center_x, center_y
 
     def click(self, x=None, y=None, x_offset=None, y_offset=None):
-        current_port = RunningCache(self.udid).get_current_running_port()
+        RunningCache(self.udid).get_current_running_port()
 
         if x is None and y is None:
             x = self.center_coordinate()[0]
@@ -102,8 +138,11 @@ class NicoIOSElement(NicoBasicElement):
             x = x + x_offset
         if y_offset is not None:
             y = y + y_offset
-        send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:click:{x}:{y}:none")
-        RunningCache(self.udid).set_action_was_taken(True)
+        send_http_request(RunningCache(self.udid).get_current_running_port(),
+                          f"coordinate_action",
+                          {"bundle_id": self.package_name, "action": "click", "xPixel": x, "yPixel": y,
+                           "action_parms": "none"})
+        RunningCache(self.udid).clear_current_cache_ui_tree()
         logger.debug(f"click {x} {y}")
 
     def long_click(self, duration, x_offset=None, y_offset=None):
@@ -113,13 +152,19 @@ class NicoIOSElement(NicoBasicElement):
             x = x + x_offset
         if y_offset is not None:
             y = y + y_offset
-        send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:press:{x}:{y}:{float(duration)}")
-        RunningCache(self.udid).set_action_was_taken(True)
+        send_http_request(RunningCache(self.udid).get_current_running_port(),
+                          f"coordinate_action",
+                          {"bundle_id": self.package_name, "action": "press", "xPixel": x, "yPixel": y,
+                           "action_parms": float(duration)})
+        RunningCache(self.udid).clear_current_cache_ui_tree()
         logger.debug(f"click {x} {y}")
 
     def set_text(self, text):
-        send_tcp_request(RunningCache(self.udid).get_current_running_port(), f"coordinate_action:{self.package_name}:enter_text:none:none:{text}")
-        RunningCache(self.udid).set_action_was_taken(True)
+        send_http_request(RunningCache(self.udid).get_current_running_port(),
+                          f"coordinate_action",
+                          {"bundle_id": self.package_name, "action": "enter_text",
+                           "action_parms": text})
+        RunningCache(self.udid).clear_current_cache_ui_tree()
 
     def get(self, index):
         node = self._get(index)
