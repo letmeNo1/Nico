@@ -3,13 +3,13 @@ import random
 import tempfile
 import subprocess
 
-from apollo_nico.common.error import IDBServerError
-from apollo_nico.common.runtime_cache import RunningCache
-from apollo_nico.ios.idb_utils import IdbUtils
-from apollo_nico.ios.nico_ios_element import NicoIOSElement
-from apollo_nico.common.send_request import send_http_request
+from auto_nico.common.error import IDBServerError
+from auto_nico.common.runtime_cache import RunningCache
+from auto_nico.ios.idb_utils import IdbUtils
+from auto_nico.ios.nico_ios_element import NicoIOSElement
+from auto_nico.common.send_request import send_http_request
 from loguru import logger
-from apollo_nico.common.nico_basic import NicoBasic
+from auto_nico.common.nico_basic import NicoBasic
 
 
 class NicoIOS(NicoBasic):

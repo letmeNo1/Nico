@@ -3,11 +3,11 @@ import re
 import time
 import subprocess
 
-from apollo_nico.common.send_request import send_http_request
+from auto_nico.common.send_request import send_http_request
 from loguru import logger
 
-from apollo_nico.common.error import ADBServerError, NicoError
-from apollo_nico.common.runtime_cache import RunningCache
+from auto_nico.common.error import ADBServerError, NicoError
+from auto_nico.common.runtime_cache import RunningCache
 import cv2
 import numpy as np
 import platform
