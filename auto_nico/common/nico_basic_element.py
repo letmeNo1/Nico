@@ -1,10 +1,10 @@
 import json
 
-from auto_nico.common.error import UIStructureError
-from auto_nico.common.runtime_cache import RunningCache
+from apollo_nico.common.error import UIStructureError
+from apollo_nico.common.runtime_cache import RunningCache
 from lxml.etree import _Element
 
-from auto_nico.common.nico_basic import NicoBasic
+from apollo_nico.common.nico_basic import NicoBasic
 from loguru import logger
 
 

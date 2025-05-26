@@ -6,24 +6,24 @@ import re
 import os
 
 import cv2
-from auto_nico.common.kmeans_run import kmeans_run
-from auto_nico.android.adb_utils import AdbUtils
-from auto_nico.ios.idb_utils import IdbUtils
+from apollo_nico.common.kmeans_run import kmeans_run
+from apollo_nico.android.adb_utils import AdbUtils
+from apollo_nico.ios.idb_utils import IdbUtils
 from lxml.etree import _Element
 
-from auto_nico.ios.XCUIElementType import get_value_by_element_type
+from apollo_nico.ios.XCUIElementType import get_value_by_element_type
 from typing import Union
 
 import tempfile
 
 from loguru import logger
-from auto_nico.common.send_request import send_http_request
+from apollo_nico.common.send_request import send_http_request
 
 import lxml.etree as ET
 
-from auto_nico.ios.tools.format_converter import converter
+from apollo_nico.ios.tools.format_converter import converter
 
-from auto_nico.common.runtime_cache import RunningCache
+from apollo_nico.common.runtime_cache import RunningCache
 
 
 class UIStructureError(Exception):

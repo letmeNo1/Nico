@@ -1,0 +1,209 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+}
+
+.section {
+    box-sizing: border-box;
+    padding: 20px;
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.content::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.content {
+    float: left;
+    width: 100%; /* 修改为50% */
+    height: 100%; /* 设置高度为视口的100% */
+    box-sizing: border-box; /* 包含内边距和边框在内的宽度 */
+    overflow-y: auto;
+
+}
+h1 {
+    background-color: rgb(255, 218, 51);;
+    color: black;
+}
+.section1 {
+    width: 40%;
+    background-color: #2c3e50;
+    display: flex;
+    flex-direction: column
+}
+
+.section2 {
+    width: 50%;
+    background-color: #2c3e50;
+    overflow-y: auto;
+
+}
+
+.section3 {
+    width: 10%;
+    background-color: #2c3e50;
+}
+
+.section2 img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.c_button {
+    margin: 5px;
+    padding: 5px 10px;
+    width: 90%;
+}
+
+.styled-input {
+    margin: 5px;
+    padding: 5px;
+    width: 90%;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.switch-container {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+}
+
+.content-inner div {
+    margin: 0;
+    padding: 0;
+}
+
+ /* 加载动画样式 */
+.content-inner {
+    width: 100%; /* 使其宽度与父节点一致，不超出 */
+    height: auto; /* 根据内容自动调整高度，也可设置固定值 */
+    text-align: left; /* 左对齐 */
+    word-wrap: break-word; /* 自动换行 */
+    overflow-wrap: break-word; /* 自动换行，更现代的属性 */
+    overflow: auto;
+
+}
+
+.container {
+    width: 100%;
+    height: 100vh; /* 容器占满视口高度 */
+}
+
+#dynamicImage {
+    width: auto;
+    height: 100%;
+    z-index: 0;
+
+}
+#action-layer {
+    position: absolute;
+    width: auto;
+    height: 100%;
+    z-index: 1;
+
+}
+
+.toggle-button {
+    float: right;
+    margin-left: 10px;
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.content-wrapper {
+    overflow: hidden;
+    max-height: 3em; /* 初始显示高度 */
+}
+
+.node {
+    position: relative;
+}
+
+.node::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.node:hover::after {
+    opacity: 1;
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three Section Layout</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="section section1">
+        <div class="content">
+            <h1>XML Content as HTML</h1>
+            <div class="content-inner">
+                {{ xml_content|safe }}
+            </div>
+        </div>
+    <ul id="info-list" style="height: 200px; width: 300px; background-color: #f0f0f0;"></ul>
+
+
+
+    </div>
+    <div class="section section2">
+
+        <div class="container">
+
+            <div id="action-layer"></div>
+
+        <img id="dynamicImage" alt="placeholder">
+            </div>
+
+    </div>
+    <div class="section section3">
+        <div class="controls">
+            <button id="switch-button" class="c_button">Switch App</button>
+            <button id="home-button" class="c_button">Home</button>
+            <button id="back-button" class="c_button">Back</button>
+            <button id="menu-button" class="c_button">Menu</button>
+            <input type="text" id="text-input" class="styled-input" placeholder="Enter text here">
+            <button id="submit-button" class="c_button">Submit</button>
+            <button id="refresh-button" class="c_button">Refresh</button>
+            <button id="volume-up" class="c_button">Volume Up</button>
+            <button id="volume-down" class="c_button">Volume Down</button>
+            <button id="power" class="c_button">Power</button>
+            <button id="delete_text" class="c_button">Delete</button>
+
+            <div class="switch-container">
+                <label class="switch">
+                    <input type="checkbox" id="realtime-switch">
+                    <span class="slider round"></span>
+                </label>
+                <label for="realtime-switch">real-time display</label>
+            </div>
+        </div>
+    </div>
+    <script>
+        function refreshImage() {
+            const randomWidth = Math.floor(Math.random() * 1000);
+            const randomHeight = Math.floor(Math.random() * 1000);
+            const img = document.getElementById('dynamicImage');
+            img.src = `https://dummyimage.com/${randomWidth}x${randomHeight}/ff0000/ffffff`;
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="{{ url_for('static', filename='event_listening.js') }}"></script>
+    <script src="{{ url_for('static', filename='api_request.js') }}"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script src="{{ url_for('static', filename='button_script.js') }}"></script>
+</body>
+
+</html>
