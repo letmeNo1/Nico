@@ -1,5 +1,5 @@
 # Nico - Cross-Platform Mobile Automation Framework
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/Nico.svg?style=social)](https://github.com/yourusername/Nico/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/letmeNo1/Nico.svg?style=social)](https://github.com/letmeNo1/Nico/stargazers)
 [![PyPI version](https://badge.fury.io/py/AutoNico.svg)](https://badge.fury.io/py/AutoNico)
 ![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue)
 
