@@ -11,7 +11,7 @@ def parse_requirements(filename):
 
 setuptools.setup(
     name="AutoNico",
-    version="1.3.7",
+    version="1.3.8",
     author="Hank Hang",
     author_email="hanhuang@jabra.com",
     description="Provide Basic Interface to conrol Mobile UI.",
@@ -20,7 +20,7 @@ setuptools.setup(
     url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'auto_nico': ['package/dump_hierarchy_androidTest_v1.4.apk', 'package/dump_hierarchy_v1.4.apk','console_scripts/inspector_web/templates/xml_template.html',
+        'auto_nico': ['android/package/*','console_scripts/inspector_web/templates/xml_template.html',
                         'console_scripts/inspector_web/static/*']
     },
     install_requires=[
