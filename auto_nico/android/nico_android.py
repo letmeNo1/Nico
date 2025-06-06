@@ -1,4 +1,5 @@
 import random
+import sys
 import time
 import subprocess
 
@@ -11,9 +12,11 @@ from auto_nico.android.adb_utils import AdbUtils
 
 
 class NicoAndroid(NicoBasic):
-    def __init__(self, udid, port="random", **query):
+    def __init__(self, udid, port="random", debug=True,**query):
         super().__init__(udid,  **query)
-
+        if not debug:
+            logger.remove()  # 移除默认处理器
+            logger.add(sys.stderr, level="INFO")  # 只显示 INFO 及以上级别
         self.udid = udid
         self.adb_utils = AdbUtils(udid)
         self.version = 1.4
@@ -107,5 +110,3 @@ class NicoAndroid(NicoBasic):
         NAE.set_udid(self.udid)
         NAE.set_port(current_port)
         return NAE
-
-# nico = NicoAndroid("RFCXA08RFMM")

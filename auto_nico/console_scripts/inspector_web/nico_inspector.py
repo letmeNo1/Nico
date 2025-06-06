@@ -319,3 +319,4 @@ def main():
 
     p = multiprocessing.Process(target=run_app, args=(inspect_port,))
     p.start()
+    
