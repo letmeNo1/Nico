@@ -148,13 +148,20 @@ class AdbUtils:
 
     def is_device_boot_completed(self):
         result = self.shell("getprop sys.boot_completed").strip()
-        return result == "1"
+        return result
 
-    def wait_for_boot_completed(self):
-        while not self.is_device_boot_completed():
-            logger.debug("Waiting for device to complete booting...")
-            time.sleep(5)
-        logger.debug("Device boot completed")
+    def wait_for_boot_completed(self, retries=3, delay=5):
+        """等待设备完成启动（带重试机制）"""
+        for attempt in range(retries):
+            rst = self.is_device_boot_completed()
+            if rst == "1":
+                logger.debug("Device boot completed")
+                return True
+            logger.debug(f"Waiting for device to boot (Attempt {attempt + 1}/{retries})...")
+            time.sleep(delay)
+
+        # 超过重试次数后抛出异常
+        raise TimeoutError(f"Device failed to boot within {retries} attempts, error {rst}")
 
     def check_adb_server(self):
         rst = os.popen("adb devices").read()
