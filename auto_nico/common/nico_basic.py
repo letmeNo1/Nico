@@ -35,6 +35,17 @@ class NicoBasic:
         self.udid = udid
         self.query = query
 
+    def dump_ui_xml(self):
+        runtime_cache = RunningCache(self.udid)
+        port = runtime_cache.get_current_running_port()
+        response = send_http_request(port, "dump", {"compressed": "false"})
+        if response is None:
+            response = ""
+        else:
+            response = response.replace("class=", "class_name=").replace(
+                "resource-id=", "id=").replace("content-desc=", "content_desc=").replace('\u200E', '')
+        return response
+
     def __dump_ui(self,configuration):
         runtime_cache = RunningCache(self.udid)
         port = runtime_cache.get_current_running_port()
