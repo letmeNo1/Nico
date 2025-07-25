@@ -143,12 +143,12 @@ class NicoAndroid(NicoBasic):
         # Check if the server is already running
         if self.__check_server_ready(RunningCache(self.udid).get_current_running_port()):
             logger.debug(f"{self.udid}'s test server is already running")
-            return
+            return True
 
         # First phase: Try starting with current port
         current_port = RunningCache(self.udid).get_current_running_port()
         if attempt_start_server(current_port):
-            return
+            return True
 
         # If first phase fails, clean up and try random port
         logger.warning(f"Failed to start on current port {current_port}, attempting random port")
@@ -157,7 +157,7 @@ class NicoAndroid(NicoBasic):
         # Get new random port and try again
         random_port = random.randint(9000, 9999)
         if attempt_start_server(random_port):
-            return
+            return True
 
         # All attempts exhausted
         logger.error(f"{self.udid}'s uiautomator initialization failed - all retries exhausted")
