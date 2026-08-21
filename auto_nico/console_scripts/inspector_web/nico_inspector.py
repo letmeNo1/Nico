@@ -10,7 +10,7 @@ import lxml.etree as ET
 import base64
 import subprocess
 
-from flask import Flask, render_template, request
+from flask import Flask, Response, render_template, request
 
 from auto_nico.common.common_utils import is_port_in_use
 from auto_nico.common.send_request import send_http_request
@@ -18,6 +18,7 @@ from auto_nico.ios.XCUIElementType import get_element_type_by_value
 from auto_nico.ios.tools.format_converter import converter
 
 from auto_nico.android.adb_utils import AdbUtils
+from auto_nico.android.scrcpy_stream import scrcpy_sessions
 from auto_nico.ios.idb_utils import IdbUtils
 
 from auto_nico.android.tools.format_converter import add_xpath_att
@@ -106,6 +107,42 @@ def refresh_ui_xml():
     return html_list
 
 
+@app.route("/android_video_feed")
+def android_video_feed():
+    udid = os.environ.get("nico_ui_udid")
+    if not udid or os.environ.get("nico_ui_platform") != "android":
+        return "Android device is not configured", 400
+    try:
+        session = scrcpy_sessions.get(udid)
+    except Exception as error:
+        return f"Unable to start scrcpy: {error}", 503
+    return Response(
+        session.iter_mjpeg(),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.route("/android_touch")
+def android_touch():
+    udid = os.environ.get("nico_ui_udid")
+    if not udid or os.environ.get("nico_ui_platform") != "android":
+        return "Android device is not configured", 400
+    action = request.args.get("action")
+    try:
+        x_percent = float(request.args["x"])
+        y_percent = float(request.args["y"])
+        session = scrcpy_sessions.get(udid)
+        session.touch(action, x_percent, y_percent)
+    except (KeyError, TypeError, ValueError) as error:
+        return f"Invalid Android touch: {error}", 400
+    except RuntimeError as error:
+        return str(error), 409
+    except Exception as error:
+        return f"Android touch failed: {error}", 503
+    return "ok"
+
+
 @app.route('/image')
 def generate_image():
     port = int(os.environ.get('RemoteServerPort'))
@@ -140,6 +177,38 @@ def get_element_attribute():
     new_data_dict.update({"bounds": f'[{frame.get("X")},{frame.get("Y")}][{frame.get("Width")},{frame.get("Height")}]'})
 
     return new_data_dict
+
+
+@app.route("/ios_execute_action")
+def ios_execute_action():
+    action = request.args.get("action")
+    if action in {"volume_up", "volume_down"}:
+        port = int(os.environ.get("RemoteServerPort"))
+        result = send_http_request(port, "device_action", {"action": action})
+        return str(result or "iOS action failed")
+    if action not in {"tap", "move"}:
+        return "Unsupported iOS action", 400
+
+    try:
+        params = {
+            "action": action,
+            "x": str(float(request.args["x"])),
+            "y": str(float(request.args["y"])),
+        }
+        if action == "move":
+            params.update({
+                "x2": str(float(request.args["x2"])),
+                "y2": str(float(request.args["y2"])),
+                "duration": str(float(request.args.get("duration", 0.3))),
+            })
+    except (KeyError, TypeError, ValueError):
+        return "Invalid iOS action coordinates", 400
+
+    port = int(os.environ.get("RemoteServerPort"))
+    print(f"[iOS action] {action} -> event {params}")
+    result = send_http_request(port, "event", params)
+    print(f"[iOS action] {action} response: {result!r}")
+    return str(result or "iOS action failed")
 
 
 @app.route("/android_excute_action")
@@ -310,7 +379,8 @@ def main():
             remote_port = port
             idb_utils.runtime_cache.set_current_running_port(port)
         else:
-            idb_utils.set_port_forward(remote_port)
+            idb_utils._set_tcp_forward_port(remote_port)
+            idb_utils.runtime_cache.set_current_running_port(remote_port)
         idb_utils._init_test_server()
 
     os.environ['RemoteServerPort'] = str(remote_port)
@@ -319,4 +389,3 @@ def main():
 
     p = multiprocessing.Process(target=run_app, args=(inspect_port,))
     p.start()
-    

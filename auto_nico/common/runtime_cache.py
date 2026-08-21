@@ -55,7 +55,11 @@ class RunningCache:
         delete_large_env_var(f"{self.udid}_ui_tree")
 
     def get_current_running_port(self) -> int:
-        return int(os.getenv(f"{self.udid}_running_port"))
+        port = os.getenv(f"{self.udid}_running_port")
+        if port:
+            return int(os.getenv(f"{self.udid}_running_port"))
+        else:
+            return None
 
     def set_current_running_port(self, port):
         os.environ[f"{self.udid}_running_port"] = str(port)

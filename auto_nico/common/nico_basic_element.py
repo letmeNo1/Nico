@@ -87,6 +87,30 @@ class NicoBasicElement(NicoBasic):
 
         return next_node
 
+    def _description(self,img, bounds):
+        from auto_cathin.common.utils import _crop_and_encode_image
+        from auto_cathin.common.request_api import _call_generate_image_caption_api
+        cropped_image = _crop_and_encode_image(img, [bounds])
+        text = _call_generate_image_caption_api(cropped_image[0]).get("descriptions")
+        logger.debug("Description generated successfully")
+        return text
+
+    def _ocr_text(self,img, bounds):
+        from auto_cathin.common.utils import _crop_and_encode_image
+        from auto_cathin.common.request_api import _call_ocr_api
+        cropped_image = _crop_and_encode_image(img, [bounds])
+        text = _call_ocr_api(cropped_image[0])
+        logger.debug("Description generated successfully")
+        return text
+
+    def _ocr_id(self,img, bounds):
+        from auto_cathin.common.utils import _crop_and_encode_image
+        from auto_cathin.common.request_api import _call_classify_image_api
+        cropped_image = _crop_and_encode_image(img, [bounds])
+        text = _call_classify_image_api(cropped_image[0]).get("top_predictions")[0][0]
+        logger.debug("Description generated successfully")
+        return text
+
     def _parent(self) -> _Element:
         if self.current_node is None:
             self.current_node = self._find_function(query=self.query, use_xml=True)
@@ -100,7 +124,11 @@ class NicoBasicElement(NicoBasic):
             self.current_node = self._find_function(query=self.query, use_xml=True)
         if self.current_node is None:
             raise UIStructureError(f"Can't found element")
-        child_node = self.current_node.getchildren()[index]
+        # print(self.current_node)
+        if type(self.current_node) is dict:
+            child_node = self.current_node.get("children")[index]
+        else:
+            child_node = self.current_node.getchildren()[index]
         return child_node
 
     def _child_amount(self) -> int:

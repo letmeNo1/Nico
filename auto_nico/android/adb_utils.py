@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import os
 import re
 import time
@@ -113,13 +114,15 @@ class AdbUtils:
         for i in [f"dump_hierarchy_v{version}.apk", f"dump_hierarchy_androidTest_v{version}.apk"]:
             logger.info(f"{udid}'s start install {i}")
             lib_path = (os.path.dirname(__file__) + f"\package\{i}").replace("console_scripts\inspector_web", "")
-            rst = self.cmd(fr'install -t "{lib_path}"')
+            #rst = self.cmd(fr'install -t "{lib_path}"')  
+            # Use os.popen to execute the adb install command, sometimes cmd() installed but did not return success
+            rst = os.popen(fr'adb -s {self.udid} install -t "{lib_path}"').read()
             if rst.find("Success") >= 0:
                 logger.info(f"{udid}'s adb install {lib_path} successfully")
             else:
                 logger.info(rst)
 
-    def reinstall_test_server_package(self, version):
+    def __reinstall_test_server_package(self, version):
         for i in ["nico.dump_hierarchy", "nico.dump_hierarchy.test"]:
             logger.info(f"{self.udid}'s start uninstall {i}")
             rst = self.cmd(f"uninstall {i}")
@@ -128,40 +131,61 @@ class AdbUtils:
         self.__install(self.udid, version)
 
     def install_test_server_package(self, version):
+        """
+        Install the test server package on the device if not already installed or if a new version is detected.
+        """
         rst = self.qucik_shell("dumpsys package nico.dump_hierarchy | grep versionName")
+        count_nico_apks = self.qucik_shell("pm list packages | grep -c nico")
         if "versionName" not in rst:
             self.wait_for_boot_completed()
             self.__install(self.udid, version)
         elif version > float(rst.split("=")[-1]):
-            logger.info(float(rst.split("=")[-1]))
-            logger.info(f"{self.udid}'s New version detected")
-            for i in ["nico.dump_hierarchy", "nico.dump_hierarchy.test"]:
-                logger.debug(f"{self.udid}'s start uninstall {i}")
-                rst = self.cmd(f"uninstall {i}")
-                if rst.find("Success") >= 0:
-                    logger.debug(f"{self.udid}'s adb uninstall {i} successfully")
-                else:
-                    logger.debug(rst)
-            self.__install(self.udid, version)
+            logger.debug(f"{self.udid}'s version is {rst.split('=')[-1]}, reinstalling with version {version}")
+            self.__reinstall_test_server_package(version)
+        elif int(count_nico_apks) < 2:
+            logger.debug(f"{self.udid}'s nico package count is {count_nico_apks}, reinstalling")
+            self.__reinstall_test_server_package(version)
         else:
             logger.debug(f"{self.udid}'s version is the latest")
 
     def is_device_boot_completed(self):
         result = self.shell("getprop sys.boot_completed").strip()
-        return result
+        return result == "1"
 
-    def wait_for_boot_completed(self, retries=3, delay=5):
-        """等待设备完成启动（带重试机制）"""
-        for attempt in range(retries):
-            rst = self.is_device_boot_completed()
-            if rst == "1":
-                logger.debug("Device boot completed")
-                return True
-            logger.debug(f"Waiting for device to boot (Attempt {attempt + 1}/{retries})...")
-            time.sleep(delay)
-
-        # 超过重试次数后抛出异常
-        raise TimeoutError(f"Device failed to boot within {retries} attempts, error {rst}")
+    def wait_for_boot_completed(self, timeout: int = 300):
+        """
+        Minimal version: Only output the first waiting log to avoid log spamming
+        Args:
+            timeout: Timeout in seconds, default 300 seconds (5 minutes)
+        Raises:
+            TimeoutError: If device boot not completed within timeout
+        """
+        start_time = datetime.now()
+        timeout_deadline = start_time + timedelta(seconds=timeout)
+        has_logged = False  # Flag to mark if waiting log has been output
+        
+        logger.info(f"Start waiting for device {self.udid} boot completion, timeout: {timeout} seconds")
+        
+        while True:
+            current_time = datetime.now()
+            
+            # Timeout check
+            if current_time > timeout_deadline:
+                elapsed = (current_time - start_time).total_seconds()
+                raise TimeoutError(f"Device {self.udid} boot timeout! Waited {elapsed:.1f} seconds (timeout threshold: {timeout} seconds)")
+            
+            # Check boot status
+            if self.is_device_boot_completed():
+                elapsed = (current_time - start_time).total_seconds()
+                logger.info(f"Device {self.udid} boot completed, total wait time: {elapsed:.1f} seconds")
+                break
+            
+            # Only output waiting log for the first time
+            if not has_logged:
+                logger.debug(f"Waiting for device {self.udid} to boot up... (Silent waiting afterwards until completion/timeout)")
+                has_logged = True
+            
+            time.sleep(5)
 
     def check_adb_server(self):
         rst = os.popen("adb devices").read()
@@ -316,7 +340,9 @@ class AdbUtils:
         self.qucik_shell('input keyevent BACK')
 
     def wake_up(self):
-        self.qucik_shell('input keyevent KEYCODE_WAKEUP')
+        if self.is_screen_off():
+            logger.debug(f"{self.udid}'s wake up the device")
+            self.qucik_shell('input keyevent KEYCODE_WAKEUP')
 
     def keyevent(self, keyname):
         self.qucik_shell(f'input keyevent {keyname}')

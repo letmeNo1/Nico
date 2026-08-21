@@ -24,6 +24,13 @@ class NicoAndroidElement(NicoBasicElement):
         self.click(x, y)
 
     @property
+    def naf(self):
+        return self._get_attribute_value("NAF")
+
+    def get_naf(self):
+        return self.naf
+
+    @property
     def index(self):
         return self._get_attribute_value("index")
 

@@ -23,6 +23,13 @@ function initImageControl(){
     var listItems = document.getElementsByClassName('node');
     var ui_image = document.getElementById('ui_image');
     var img = document.getElementById('image_')
+    var oldControls = ui_image.getElementsByClassName('imageControl');
+    while (oldControls.length > 0) {
+        oldControls[0].remove();
+    }
+    if (!img || !img.naturalWidth || listItems.length === 0) {
+        return;
+    }
     var displayedWidth = img.clientWidth;
     var displayedHeight = img.clientHeight;
     var actualWidth = img.naturalWidth;
@@ -61,6 +68,7 @@ function initImageControl(){
 
         // 添加控件元素
         var imageControl = document.createElement('div');
+        imageControl.className = 'imageControl';
         imageControl.setAttribute('img-identifier_number', identifier_number);
         imageControl.style.position = 'absolute';
         imageControl.style.left = x1 + "px"; /* 相对于目标元素左侧距离 */
@@ -75,7 +83,6 @@ function initImageControl(){
 
 
         imageControl.style.backgroundColor = 'rgba(144, 238, 144, 0)';
-        imageControl.className = 'imageControl';
         ui_image.appendChild(imageControl);
     }
 }
@@ -363,3 +370,12 @@ function refreshData() {
 window.onload = function() {
     refreshData();
 };
+
+var resizeTimer;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        initImageControl();
+        addImageListeners();
+    }, 100);
+});

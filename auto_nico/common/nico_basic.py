@@ -35,16 +35,9 @@ class NicoBasic:
         self.udid = udid
         self.query = query
 
-    def dump_ui_xml(self):
-        runtime_cache = RunningCache(self.udid)
-        port = runtime_cache.get_current_running_port()
-        response = send_http_request(port, "dump", {"compressed": "false"})
-        if response is None:
-            response = ""
-        else:
-            response = response.replace("class=", "class_name=").replace(
-                "resource-id=", "id=").replace("content-desc=", "content_desc=").replace('\u200E', '')
-        return response
+    @staticmethod
+    def __format_query_for_log(query):
+        return ", ".join([f"{key} = {value}" for key, value in query.items()])
 
     def __dump_ui(self,configuration):
         runtime_cache = RunningCache(self.udid)
@@ -104,13 +97,10 @@ class NicoBasic:
         @return: The root node of the element tree
         """
         ui_change_status = RunningCache(self.udid).get_ui_change_status()
-        logger.debug(f"ui tree change is {ui_change_status}")
 
         if not ui_change_status:
-            logger.debug(f"{self.udid}'s UI no change. There is no need to dump again!!")
             return RunningCache(self.udid).get_current_cache_ui_tree()
         else:
-            logger.debug(f"{self.udid}'s UI is change. dump again!!")
             return self._dump_ui_xml(configuration)
 
     def __find_function_by_image(self, image_path, threshold, algorithms):
@@ -261,13 +251,13 @@ class NicoBasic:
             else:
                 if attribute.find("_contains") > 0:
                     if attribute == "text_contains":
-                        condition = f'''label CONTAINS "{value}" OR title CONTAINS "{value}"'''
+                        condition = f'''(label CONTAINS "{value}" OR title CONTAINS "{value}")'''
                     else:
                         attribute = attribute.replace("_contains", "")
                         condition = f"{attribute} CONTAINS {value}"
                 else:
                     if attribute == "text":
-                        condition = f'''label == "{value}" OR title == "{value}"'''
+                        condition = f'''(label == "{value}" OR title == "{value}")'''
                     elif attribute == "class_name":
                         condition = f'''elementType == {get_value_by_element_type(value)}'''
                     else:
@@ -286,8 +276,10 @@ class NicoBasic:
                                                   "query_value": NSPredicate})
             if matching_element == "":
                 return None
+            if matching_element is None:
+                return None
         logger.debug(f"found element: {matching_element}")
-        return json.loads(matching_element)
+        return json.loads(matching_element) 
 
     def __find_element_by_query_for_android(self, query, return_all=False) -> Union[dict, None]:
         port = RunningCache(self.udid).get_current_running_port()
@@ -349,8 +341,7 @@ class NicoBasic:
 
     def __wait_function(self, timeout, wait_disappear, query):
         time_started_sec = time.time()
-        query_string = list(query.values())[0]
-        query_method = list(query.keys())[0]
+        query_desc = self.__format_query_for_log(query)
         while time.time() < time_started_sec + timeout:
             found_node = self._find_function(query)
             if wait_disappear:
@@ -368,21 +359,19 @@ class NicoBasic:
             time.sleep(0.2)
 
         if wait_disappear:
-            error = "Can't wait element/elements disappear in %s s by %s = %s" % (timeout, query_method, query_string)
+            error = f"Can't wait element/elements disappear in {timeout} s by {query_desc}"
         else:
-            error = "Can't find element/elements in %s s by %s = %s" % (timeout, query_method, query_string)
+            error = f"Can't find element/elements in {timeout} s by {query_desc}"
         raise TimeoutError(error)
 
     def wait_for_appearance(self, timeout=10, force_reload=False):
-        query_string = list(self.query.values())[0]
-        query_method = list(self.query.keys())[0]
-        logger.debug(f"Waiting element appearance by {query_method} = {query_string}")
+        query_desc = self.__format_query_for_log(self.query)
+        logger.debug(f"Waiting element appearance by {query_desc}")
         self.__wait_function(timeout, False, self.query)
 
     def wait_for_disappearance(self, timeout=10, force_reload=False):
-        query_string = list(self.query.values())[0]
-        query_method = list(self.query.keys())[0]
-        logger.debug(f"Waiting element disappear by {query_method} = {query_string}")
+        query_desc = self.__format_query_for_log(self.query)
+        logger.debug(f"Waiting element disappear by {query_desc}")
 
         self.__wait_function(timeout, True, self.query)
 
@@ -413,9 +402,8 @@ class NicoBasic:
         raise TimeoutError(error)
 
     def exists(self, timeout=None):
-        query_string = list(self.query.values())[0]
-        query_method = list(self.query.keys())[0]
-        logger.debug(f"checking element is exists by {query_method}={query_string}...")
+        query_desc = self.__format_query_for_log(self.query)
+        logger.debug(f"checking element is exists by {query_desc}...")
         rst = self._find_function(self.query) is not None
         if timeout is not None:
             time_started_sec = time.time()

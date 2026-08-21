@@ -90,19 +90,13 @@ class NicoIOSElement(NicoBasicElement):
         return x, y, w, h, l, t
     
     def __image_rescale(self,image):
-        rst = self._find_function(query={"xpath":"Window[1]"},use_xml=True).get("bounds")
-        matches = re.findall(r'\[(\d+),(\d+)\]', rst)
-        target_w = int(matches[-1][0])  
-        original_h, original_w = image.shape[:2]  
-        aspect_ratio = original_w / original_h
-        target_h = int(target_w / aspect_ratio)
-        if matches:
-            print( matches[-1])
-            w, h = map(int, matches[-1]) 
-            scaled_image = cv2.resize(image, (target_w, target_h))
-            return scaled_image
-        return None
-
+        rst  =send_http_request(RunningCache(self.udid).get_current_running_port(),"get_actual_wh")
+        print(rst)
+        matches = rst.split(",")
+        target_w = int(float(matches[0]))
+        target_h = int(float(matches[1]) ) 
+        scaled_image = cv2.resize(image, (target_w, target_h))
+        return scaled_image
     
     @property
     def description(self):
@@ -112,6 +106,16 @@ class NicoIOSElement(NicoBasicElement):
         img = self.__image_rescale(img)
         text = self._description(img, self.bounds[:4])
         return text
+    
+    @property
+    def image(self):
+        self.idb_utils = IdbUtils(self.udid)
+        img = self.idb_utils.get_image_object()
+        img = self.__image_rescale(img)
+        x, y, w, h, l, t = self.bounds
+        cropped_img = img[y:y + h, x:x + w]
+        return cropped_img
+
 
     @property
     def ocr_id(self):
@@ -139,9 +143,9 @@ class NicoIOSElement(NicoBasicElement):
         if y_offset is not None:
             y = y + y_offset
         send_http_request(RunningCache(self.udid).get_current_running_port(),
-                          f"coordinate_action",
-                          {"bundle_id": self.package_name, "action": "click", "xPixel": x, "yPixel": y,
-                           "action_parms": "none"})
+                          f"event",
+                          {"action": "tap", "x": x, "y": y,
+                           })
         RunningCache(self.udid).clear_current_cache_ui_tree()
         logger.debug(f"click {x} {y}")
 
@@ -160,10 +164,11 @@ class NicoIOSElement(NicoBasicElement):
         logger.debug(f"click {x} {y}")
 
     def set_text(self, text):
+        self.click()
         send_http_request(RunningCache(self.udid).get_current_running_port(),
                           f"coordinate_action",
                           {"bundle_id": self.package_name, "action": "enter_text",
-                           "action_parms": text})
+                           "action_parms": str(text)})
         RunningCache(self.udid).clear_current_cache_ui_tree()
 
     def get(self, index):

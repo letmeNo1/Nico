@@ -1,46 +1,55 @@
 <!doctype html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 <title>XML Content</title>
 </head>
 <body>
 
-<div class="content">
-    <h1>XML Content as HTML</h1>
-    <div class="content-inner">
-        {{ xml_content|safe }}
-    </div>
-    <ul id="info-list"></ul>
-</div>
-<div class="controls">
-    <button id="switch-button" class="c_button">Switch App</button>
-    <button id="home-button" class="c_button">Home</button>
-    <button id="back-button" class="c_button">Back</button>
-    <button id="menu-button" class="c_button">Menu</button>
-    <input type="text" id="text-input" class="styled-input" placeholder="Enter text here">
-    <button id="submit-button" class="c_button">Submit</button>
-    <button id="refresh-button" class="c_button">Refresh</button>
-    <button id="volume-up" class="c_button">Volume Up</button>
-    <button id="volume-down" class="c_button">Volume Down</button>
-    <button id="power" class="c_button">Power</button>
-    <button id="delete_text" class="c_button">Delete</button>
+<main class="inspector-layout">
+    <section class="content">
+        <h1>XML Content as HTML</h1>
+        <div class="content-inner">
+            {{ xml_content|safe }}
+        </div>
+        <ul id="info-list"></ul>
+    </section>
+    <section class="preview-panel">
+        <div class="controls">
+            <button id="switch-button" class="c_button">Switch App</button>
+            <button id="home-button" class="c_button">Home</button>
+            <button id="back-button" class="c_button">Back</button>
+            <button id="menu-button" class="c_button">Menu</button>
+            <input type="text" id="text-input" class="styled-input" placeholder="Enter text here">
+            <button id="submit-button" class="c_button">Submit</button>
+            <button id="refresh-button" class="c_button">Refresh</button>
+            <button id="volume-up" class="c_button">Volume Up</button>
+            <button id="volume-down" class="c_button">Volume Down</button>
+            <button id="power" class="c_button">Power</button>
+            <button id="delete_text" class="c_button">Delete</button>
 
-
-    <div class="switch-container">
-        <label class="switch">
-            <input type="checkbox" id="realtime-switch">
-            <span class="slider round"></span>
-        </label>
-        <label for="realtime-switch">real-time display</label>
-    </div>
-
-
-</div>
-<div class="image" id="ui_image">
-    <img src="" alt="Image">
-    <canvas id="myCanvas"></canvas>
-</div>
+            <div class="switch-container">
+                <label class="switch">
+                    <input type="checkbox" id="realtime-switch">
+                    <span class="slider round"></span>
+                </label>
+                <label for="realtime-switch">real-time display</label>
+            </div>
+            <div class="switch-container" id="ios-gesture-mode-control">
+                <label class="switch">
+                    <input type="checkbox" id="ios-drag-switch">
+                    <span class="slider round"></span>
+                </label>
+                <label for="ios-drag-switch">drag mode</label>
+            </div>
+        </div>
+        <div class="image" id="ui_image">
+            <img src="" alt="Image">
+            <canvas id="myCanvas"></canvas>
+        </div>
+    </section>
+</main>
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>

@@ -1,6 +1,6 @@
 import lxml.etree as ET
 from lxml import etree
-
+import re
 
 # 用于计算缩进的函数
 def count_leading_spaces(s):
@@ -38,9 +38,18 @@ def generate_xpath(element):
 
     return '/'.join(parts)
 
+def clean_xml_text(text):
+    # 移除所有控制字符（保留制表符、换行符和回车符）
+    if isinstance(text, bytes):
+        text = text.decode('utf-8', errors='ignore')  # 先解码为字符串
+    # 移除XML非法字符
+    clean_text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
+    return clean_text
+
 
 def converter(hierarchy_string, front=3, end=-8) -> str:
     hierarchy_string = exclude_invalid_rows(hierarchy_string, front, end).replace("Window (Main)", "Window")
+    hierarchy_string = clean_xml_text(hierarchy_string)
     elements_str = hierarchy_string.split('\n')
     # 创建 XML 根元素
     root = ET.Element(f"hierarchy")
@@ -52,17 +61,23 @@ def converter(hierarchy_string, front=3, end=-8) -> str:
     for node_index, element_str in enumerate(elements_str):
         # 计算前导空格数，以确定层级
         element_str = element_str[4:]
+        if not element_str.strip():
+            continue
         indent = count_leading_spaces(element_str)
         parent, index = parent_stack[-1]
         element_attrs = element_str.strip().replace("{", "").replace("}", "").split(",")
         class_name = element_attrs[0]
-        x = round(float(element_attrs[2].strip()))
-        y = round(float(element_attrs[3].strip()))
-        w = round(float(element_attrs[4].strip()))
-        h = round(float(element_attrs[5].strip()))
+        frame_match = re.search(
+            r"\{\{\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\},\s*"
+            r"\{\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\}\}",
+            element_str,
+        )
+        if frame_match is None:
+            continue
+        x, y, w, h = (round(float(value)) for value in frame_match.groups())
         bounds = f"[{x},{y}][{w},{h}]"
-        left = round(float(element_attrs[4].strip())) + x
-        top = round(float(element_attrs[5].strip())) + y
+        left = w + x
+        top = h + y
         label = get_element_of_attr("label", element_attrs)
         identifier = get_element_of_attr("identifier", element_attrs)
         value = get_element_of_attr("value", element_attrs)

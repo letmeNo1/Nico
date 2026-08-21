@@ -20,8 +20,12 @@ setuptools.setup(
     url="https://github.com/letmeNo1/nico",
     packages=setuptools.find_packages(),
     package_data={
-        'auto_nico': ['android/package/*','console_scripts/inspector_web/templates/xml_template.html',
-                        'console_scripts/inspector_web/static/*']
+        'auto_nico': ['android/package/*',
+                      'ios/lib/*.exe',
+                      'ios/lib/*.dll',
+                      'ios/lib/selfIdentity.plist',
+                      'console_scripts/inspector_web/templates/xml_template.html',
+                      'console_scripts/inspector_web/static/*']
     },
     install_requires=[
         "flask==3.0.3",

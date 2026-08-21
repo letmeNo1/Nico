@@ -3,6 +3,7 @@ import time
 import subprocess
 
 from auto_nico.android.nico_android_element import NicoAndroidElement
+from auto_cathin.Android.android_driver import AndroidDriver
 from loguru import logger
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.common.send_request import send_http_request
@@ -71,6 +72,9 @@ class NicoAndroid(NicoBasic):
             bool: True if the server is ready, False otherwise.
         """
         for _ in range(max_retries):
+            # Check if device screen is off and wake it up
+            self.adb_utils.wake_up()
+
             # Check server is running
             response = send_http_request(current_port, "status")
             rst1 = response is not None and "server is running" in response
@@ -83,8 +87,6 @@ class NicoAndroid(NicoBasic):
                 logger.debug(f"{self.udid}'s test server is ready on {current_port}")
                 return True
             else:
-                # Check if device screen is off and wake it up
-                self.adb_utils.wake_up()
                 logger.debug(f"{self.udid}'s server no ready on {current_port}, retrying...")
                 time.sleep(1)
                 continue
@@ -182,6 +184,11 @@ class NicoAndroid(NicoBasic):
 
     def __call__(self, **query):
         logger.debug(f"{self.udid}'s NicoAndroid __call__ with query: {query}")
+        if any('ocr' in key for key in query):
+            modified_query = {key.replace('ocr_', ''): value if 'ocr_' in key else value for key, value in
+                              query.items()}
+            android = AndroidDriver(self.udid)
+            return android(**modified_query)
         # Initialize ADB and start the test server
         self.adb_utils.check_adb_server()
         self.__start_test_server()

@@ -1,8 +1,7 @@
 import os
-import random
 import tempfile
 import subprocess
-
+import time
 from auto_nico.common.error import IDBServerError
 from auto_nico.common.runtime_cache import RunningCache
 from auto_nico.ios.idb_utils import IdbUtils
@@ -10,8 +9,7 @@ from auto_nico.ios.nico_ios_element import NicoIOSElement
 from auto_nico.common.send_request import send_http_request
 from loguru import logger
 from auto_nico.common.nico_basic import NicoBasic
-
-
+    
 class NicoIOS(NicoBasic):
     def __init__(self, udid, package_name=None, port="random", **query):
         super().__init__(udid, **query)
@@ -31,13 +29,23 @@ class NicoIOS(NicoBasic):
             self.package_name = self.__get_current_bundleIdentifier(RunningCache(udid).get_current_running_port())
         self.runtime_cache.set_action_was_taken(True)
 
+
     def __check_idb_server(self, udid):
-        result = subprocess.run("tidevice list", shell=True, stdout=subprocess.PIPE).stdout
-        decoded_result = result.decode('utf-8', errors='ignore')
-        if udid in decoded_result:
-            pass
-        else:
-            raise IDBServerError("no devices connect")
+        for _ in range(10):
+            result = subprocess.run(
+                "tidevice list",
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            decoded_result = result.stdout.decode('utf-8', errors='ignore')
+            logger.info(f"tidevice list result: {decoded_result}")
+            if udid in decoded_result:
+                return
+            
+            time.sleep(1)
+        
+        raise IDBServerError("no devices connect in 10 times check, please check your idb server and device connection")
 
     def __get_current_bundleIdentifier(self, port):
         bundle_list = self.idb_utils.get_app_list()
