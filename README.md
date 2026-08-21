@@ -27,6 +27,12 @@ For iOS, you need to compile [nico_dump](https://github.com/letmeNo1/IOSHierarch
 - **Rich Operation Library**: Over 30 methods for clicks, swipes, inputs, screenshots, and more
 - **Visual Debugging**: Built-in UI Inspector for real-time interface structure inspection
 
+### What's New in 1.3.17
+- iOS tunnel, developer image, and Windows runtime tools are now included in the package.
+- iOS text input now focuses the target element before sending text.
+- iOS UI hierarchy parsing tolerates invalid or incomplete frame data without crashing the Inspector.
+- The Inspector includes Android scrcpy streaming and touch gesture interactions.
+
 
 ## 🚀 Quick Start
 ### 1. Installation
@@ -65,8 +71,10 @@ nico(xpath="//XCUIElementTypeTextField").set_text("user@example.com")
 ### 🔍 Element Locators
 #### Launch UI Inspector
 ```bash
-nico_ui -s {udid}
+nico_ui -s {udid} -plat {android|iOS}
 ```
+
+The Inspector supports live screen viewing. Android uses scrcpy streaming, while iOS supports tap, swipe, and drag gestures from the preview.
 
 #### Supported Query Parameters
 | Parameter Type | Android Supported Fields         | iOS Supported Fields            |
@@ -311,6 +319,12 @@ qq交流群：1029838186
 - **丰富操作库**：点击/滑动/输入/截图等30+操作方法
 - **可视化调试**：内置UI Inspector实时查看界面结构
 
+### 1.3.17 版本更新
+- iOS 隧道工具、开发者镜像工具和 Windows 运行时文件已随安装包提供。
+- iOS 发送文本前会自动聚焦目标元素。
+- iOS UI 层级解析兼容无效或不完整的坐标数据，避免 Inspector 崩溃。
+- Inspector 支持 Android scrcpy 实时画面和触摸手势交互。
+
 ## 🚀 快速开始
 ### 1. 安装
 ```bash
@@ -349,8 +363,10 @@ nico(xpath="//XCUIElementTypeTextField").set_text("user@example.com")
 ### 🔍 元素定位
 #### 启动UI Inspector
 ```bash
-nico_ui -s {udid}
+nico_ui -s {udid} -plat {android|iOS}
 ```
+
+Inspector支持实时查看设备画面。Android使用scrcpy传输画面，iOS预览区域支持点击、滑动和拖拽手势。
 
 #### 支持的查询参数
 | 参数类型       | Android支持字段                      | iOS支持字段                   |
